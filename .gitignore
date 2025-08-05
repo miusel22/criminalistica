@@ -1,0 +1,78 @@
+# =================================================================
+#  CONFIGURACIÓN GENERAL
+# =================================================================
+
+# Archivos de log
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de configuración de editores de código
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Archivos generados por el sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =================================================================
+#  ENTORNO DE PYTHON (BACKEND)
+# =================================================================
+
+# Entornos virtuales
+# ¡NUNCA subas tu entorno virtual!
+venv/
+.venv/
+
+# Archivos de caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de distribución y empaquetado
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Archivos de tests y cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+
+# =================================================================
+#  BASE DE DATOS Y SECRETOS (IMPORTANTE)
+# =================================================================
+
+# La base de datos local no debe ser versionada.
+site.db
+*.sqlite
+*.sqlite3
+instance/
+migrations/
+
+# ¡NUNCA subas tus variables de entorno con secretos!
+.flaskenv
+
+# =================================================================
+#  ENTORNO DE NODE.JS / ANGULAR (FRONTEND)
+# =================================================================
+
+# Dependencias
+# ¡NUNCA subas la carpeta node_modules!
+node_modules/
+
+# Archivos de build y caché de Angular
+/dist/
+.angular/
+
+# Archivos temporales
+/tmp/

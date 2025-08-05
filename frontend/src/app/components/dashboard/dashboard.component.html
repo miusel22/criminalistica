@@ -1,0 +1,24 @@
+<div class="dashboard-container" *ngIf="userProfile">
+  <!-- Saludo personalizado usando el nombre completo o el de usuario -->
+  <h1>¡Bienvenido, {{ userProfile.full_name || userProfile.username }}!</h1>
+  
+  <p>Esta es una página protegida. Solo puedes verla si has iniciado sesión.</p>
+
+  <!-- Sección de detalles del perfil -->
+  <div class="profile-details">
+    <h2>Tu Perfil</h2>
+    <ul>
+      <li><strong>ID de Usuario:</strong> {{ userProfile.id }}</li>
+      <li><strong>Nombre de Usuario:</strong> {{ userProfile.username }}</li>
+      <li><strong>Email:</strong> {{ userProfile.email }}</li>
+      <li><strong>Nombre Completo:</strong> {{ userProfile.full_name || 'No especificado' }}</li>
+    </ul>
+  </div>
+
+  <button (click)="logout()">Cerrar Sesión</button>
+</div>
+
+<!-- Opcional: Mostrar un estado de carga mientras se obtiene el perfil -->
+<div class="dashboard-container" *ngIf="!userProfile">
+  <h1>Cargando información del usuario...</h1>
+</div>
