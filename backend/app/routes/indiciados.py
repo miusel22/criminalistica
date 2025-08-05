@@ -8,7 +8,6 @@ from ..extensions import db
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 indiciados_bp = Blueprint('indiciados', __name__)
-
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 def allowed_file(filename):
@@ -27,8 +26,10 @@ def agregar_indiciado():
     current_username = get_jwt_identity()
     user = User.query.filter_by(username=current_username).first_or_404()
 
-    if 'cc' not in request.form or 'nombres' not in request.form or 'apellidos' not in request.form or 'carpeta_id' not in request.form:
-        return jsonify({"msg": "Faltan datos requeridos (cc, nombres, apellidos, carpeta_id)"}), 400
+    required_fields = ['cc', 'nombres', 'apellidos', 'carpeta_id']
+    for field in required_fields:
+        if field not in request.form:
+            return jsonify({"msg": f"Falta el campo requerido: {field}"}), 400
 
     if Indiciado.query.filter_by(cc=request.form['cc']).first():
         return jsonify({"msg": "Un indiciado con esa Cédula de Ciudadanía ya existe"}), 409
@@ -36,7 +37,7 @@ def agregar_indiciado():
     carpeta = Carpeta.query.filter_by(id=request.form['carpeta_id'], user_id=user.id).first()
     if not carpeta:
         return jsonify({"msg": "La carpeta no existe o no tienes permiso sobre ella"}), 404
-        
+
     foto_filename = None
     if 'foto' in request.files:
         file = request.files['foto']
@@ -86,7 +87,6 @@ def agregar_indiciado():
 def actualizar_indiciado(id_indiciado):
     current_username = get_jwt_identity()
     user = User.query.filter_by(username=current_username).first_or_404()
-
     indiciado = _get_indiciado_if_owner(id_indiciado, user.id)
     if not indiciado:
         return jsonify({"msg": "Indiciado no encontrado o no tienes permiso"}), 404
@@ -98,7 +98,6 @@ def actualizar_indiciado(id_indiciado):
                 old_photo_path = os.path.join(current_app.config['UPLOAD_FOLDER'], indiciado.foto_filename)
                 if os.path.exists(old_photo_path):
                     os.remove(old_photo_path)
-            
             filename = secure_filename(file.filename)
             unique_filename = str(uuid.uuid4()) + "_" + filename
             file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename))
@@ -124,9 +123,7 @@ def actualizar_indiciado(id_indiciado):
     indiciado.situacion_juridica = request.form.get('situacion_juridica', indiciado.situacion_juridica)
     indiciado.observaciones = request.form.get('observaciones', indiciado.observaciones)
     indiciado.sub_sector = request.form.get('sub_sector', indiciado.sub_sector)
-
     db.session.commit()
-
     return jsonify({
         "msg": "Indiciado actualizado exitosamente",
         "indiciado": indiciado.to_dict()
@@ -137,17 +134,13 @@ def actualizar_indiciado(id_indiciado):
 def borrar_indiciado(id_indiciado):
     current_username = get_jwt_identity()
     user = User.query.filter_by(username=current_username).first_or_404()
-
     indiciado = _get_indiciado_if_owner(id_indiciado, user.id)
     if not indiciado:
         return jsonify({"msg": "Indiciado no encontrado o no tienes permiso"}), 404
-
     if indiciado.foto_filename:
         photo_path = os.path.join(current_app.config['UPLOAD_FOLDER'], indiciado.foto_filename)
         if os.path.exists(photo_path):
             os.remove(photo_path)
-
     db.session.delete(indiciado)
     db.session.commit()
-
     return jsonify({"msg": "Indiciado eliminado exitosamente"}), 200
