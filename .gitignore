@@ -58,6 +58,7 @@ site.db
 *.sqlite3
 instance/
 migrations/
+uploads/
 
 # ¡NUNCA subas tus variables de entorno con secretos!
 .flaskenv
