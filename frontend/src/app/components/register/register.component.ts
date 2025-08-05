@@ -19,7 +19,7 @@ export class RegisterComponent {
   registerData = {
     username: '',
     email: '',
-    full_name: '', // Coincide con el backend (full_name)
+    full_name: '',
     password: ''
   };
   errorMessage = '';

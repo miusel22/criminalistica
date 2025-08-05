@@ -5,7 +5,6 @@ import { tap, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Router } from '@angular/router';
 
-// Interfaz para los datos de registro
 interface RegisterData {
   username: string;
   email: string;
@@ -31,7 +30,6 @@ export class AuthService {
     );
   }
 
-  // Actualizado para usar la interfaz RegisterData
   register(data: RegisterData): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, data);
   }
