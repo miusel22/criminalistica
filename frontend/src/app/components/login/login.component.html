@@ -1,18 +1,84 @@
-<div class="login-container">
-  <h2>Iniciar Sesión</h2>
-  <form (ngSubmit)="onLogin()">
-    <div>
-      <label for="username">Usuario:</label>
-      <input type="text" id="username" [(ngModel)]="credentials.username" name="username" required>
+<div class="login-shell">
+  <section class="form-section">
+
+    <img src="assets/logo-login.png" alt="Logo de la Empresa" class="login-logo" />
+
+    <div class="form-wrapper">
+
+      <h2>Iniciar sesión</h2>
+      <p class="signup-prompt">
+        ¿No tienes una cuenta? <a routerLink="/register">Regístrate ahora</a>
+      </p>
+
+      <form (ngSubmit)="onLogin()">
+        <div class="form-field">
+          <label for="username">Nombre de usuario</label>
+          <div class="input-container">
+            <input
+              id="username"
+              type="text"
+              name="username"
+              [(ngModel)]="credentials.username"
+              required
+              autocomplete="username"
+              [attr.aria-invalid]="errorMessage ? 'true' : 'false'"
+            />
+            <span class="material-icons input-icon" aria-hidden="true">person</span>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="password">Contraseña</label>
+          <div class="input-container">
+            <input
+              id="password"
+              type="password"
+              name="password"
+              [(ngModel)]="credentials.password"
+              required
+              autocomplete="current-password"
+            />
+            <span class="material-icons input-icon" aria-hidden="true">visibility</span>
+          </div>
+        </div>
+
+        <div class="options-container">
+          <label class="remember-me">
+            <input type="checkbox" name="remember" [(ngModel)]="rememberMe" />
+            <span>Recuérdame</span>
+          </label>
+        </div>
+
+        <button
+          class="login-button"
+          type="submit"
+          [disabled]="isLoading || !credentials.username || !credentials.password"
+          [attr.aria-busy]="isLoading ? 'true' : 'false'"
+          aria-live="polite"
+        >
+          <span *ngIf="!isLoading">Entrar</span>
+          <span *ngIf="isLoading">Iniciando sesión…</span>
+        </button>
+      </form>
+
+      <div *ngIf="errorMessage" class="error-message" role="alert">
+        {{ errorMessage }}
+      </div>
+      
+      <footer class="creator-footer">
+        Creado por 
+        <a href="https://www.linkedin.com/in/johan-morales-b3809b206" target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16px" height="16px">
+            <path d="M20.5 2h-17A1.5 1.5 0 0 0 2 3.5v17A1.5 1.5 0 0 0 3.5 22h17a1.5 1.5 0 0 0 1.5-1.5v-17A1.5 1.5 0 0 0 20.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 1 1 8.25 6.5 1.75 1.75 0 0 1 6.5 8.25zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.62 1.62 0 0 0 13 14.19V19h-3v-9h2.9v1.3a3.11 3.11 0 0 1 2.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path>
+          </svg>
+          Johan Morales
+        </a>
+      </footer>
+
     </div>
-    <div>
-      <label for="password">Contraseña:</label>
-      <input type="password" id="password" [(ngModel)]="credentials.password" name="password" required>
-    </div>
-    <button type="submit">Entrar</button>
-  </form>
-  <div *ngIf="errorMessage" class="error-message">
-    {{ errorMessage }}
-  </div>
-  <p>¿No tienes cuenta? <a routerLink="/register">Regístrate aquí</a></p>
+  </section>
+
+  <section class="illustration-section" aria-hidden="true">
+    <img src="assets/imagen-derecha-login.jpg" alt="Un cohete despegando hacia un cielo estrellado" />
+  </section>
 </div>

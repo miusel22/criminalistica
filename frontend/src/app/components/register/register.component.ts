@@ -23,6 +23,7 @@ export class RegisterComponent {
     password: ''
   };
   errorMessage = '';
+  isLoading = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -32,14 +33,18 @@ export class RegisterComponent {
       return;
     }
 
+    this.isLoading = true;
+    this.errorMessage = '';
+
     this.authService.register(this.registerData).subscribe({
       next: () => {
         alert('¡Usuario registrado con éxito! Ahora serás redirigido para que inicies sesión.');
         this.router.navigate(['/login']);
       },
       error: (err) => {
-        this.errorMessage = err.error.msg || 'Ocurrió un error durante el registro. Por favor, inténtalo de nuevo.';
+        this.errorMessage = err.error?.msg || 'Ocurrió un error durante el registro. Por favor, inténtalo de nuevo.';
         console.error(err);
+        this.isLoading = false;
       }
     });
   }
