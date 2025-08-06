@@ -1,3 +1,4 @@
+// dashboard.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -20,17 +21,35 @@ export class DashboardComponent implements OnInit {
   carpetasPadre: Carpeta[] = [];
   sectorSeleccionado: Carpeta | null = null;
   subSectorSeleccionado: Carpeta | null = null;
-
   indiciadoForm: FormGroup;
   isFormVisible = false;
   isEditingIndiciado = false;
   currentFile: File | null = null;
-
   indiciadoParaVer: Indiciado | null = null;
-  
   isLoadingCarpetas = false;
   isLoadingDetalles = false;
   isSubmitting = false;
+
+  // Datos de sectores desde el HTML original
+  sectors = [
+    { name: 'General', icon: 'house' },
+    { name: 'Itagui', icon: 'map_pin_fill' },
+    { name: 'Envigado', icon: 'map_pin' },
+    { name: 'Sabaneta', icon: 'map_pin' },
+    { name: 'La Estrella', icon: 'map_pin' }
+  ];
+
+  // Datos de subsectores desde el HTML original
+  subsectors = [
+    { name: 'Industrial Zone' },
+    { name: 'Residential Area' },
+    { name: 'Commercial District' },
+    { name: 'Historical Center' },
+    { name: 'Green Spaces' },
+    { name: 'Educational Hub' },
+    { name: 'Cultural Quarter' },
+    { name: 'Transportation Hub' }
+  ];
 
   constructor(
     public authService: AuthService,
@@ -88,7 +107,6 @@ export class DashboardComponent implements OnInit {
 
   seleccionarSector(sector: Carpeta): void {
     if (this.sectorSeleccionado?.id === sector.id && this.subSectorSeleccionado === null) return;
-    
     this.isLoadingDetalles = true;
     this.subSectorSeleccionado = null;
     this.carpetaService.getCarpetaConIndiciados(sector.id).pipe(
@@ -106,7 +124,6 @@ export class DashboardComponent implements OnInit {
 
   seleccionarSubSector(subSector: Carpeta): void {
     if (this.subSectorSeleccionado?.id === subSector.id) return;
-    
     this.isLoadingDetalles = true;
     this.carpetaService.getCarpetaConIndiciados(subSector.id).pipe(
       finalize(() => this.isLoadingDetalles = false)
@@ -118,11 +135,11 @@ export class DashboardComponent implements OnInit {
       }
     });
   }
-  
+
   volverASubSectores(): void {
     this.subSectorSeleccionado = null;
   }
-  
+
   verIndiciado(indiciado: Indiciado): void {
     this.indiciadoParaVer = indiciado;
   }
@@ -135,10 +152,8 @@ export class DashboardComponent implements OnInit {
     const tipo = esSubcarpeta ? 'sub-sector' : 'sector';
     const nombre = prompt(`Introduce el nombre del nuevo ${tipo}:`);
     if (!nombre || nombre.trim() === '') return;
-
     const nombreLimpio = nombre.trim();
     const parentId = (esSubcarpeta && this.sectorSeleccionado) ? this.sectorSeleccionado.id : undefined;
-    
     this.carpetaService.crearCarpeta(nombreLimpio, parentId).subscribe({
       next: (response) => {
         alert(response.msg || `${tipo} creado con éxito`);
@@ -183,7 +198,6 @@ export class DashboardComponent implements OnInit {
   prepararFormulario(indiciado: Indiciado | null): void {
     const carpetaDestino = this.subSectorSeleccionado;
     if (!carpetaDestino) return;
-
     this.isFormVisible = true;
     this.currentFile = null;
     if (indiciado) {
@@ -195,7 +209,7 @@ export class DashboardComponent implements OnInit {
       this.indiciadoForm.patchValue({ carpeta_id: carpetaDestino.id });
     }
   }
-  
+
   cerrarFormulario(): void {
     this.isFormVisible = false;
     this.indiciadoForm.reset();
@@ -203,7 +217,6 @@ export class DashboardComponent implements OnInit {
 
   onSubmitIndiciado(): void {
     if (this.indiciadoForm.invalid || this.isSubmitting) return;
-
     this.isSubmitting = true;
     const formData = new FormData();
     Object.keys(this.indiciadoForm.controls).forEach(key => {
@@ -216,15 +229,12 @@ export class DashboardComponent implements OnInit {
         }
       }
     });
-
     if (this.currentFile) {
       formData.append('foto', this.currentFile, this.currentFile.name);
     }
-    
     const action = this.isEditingIndiciado
       ? this.indiciadoService.actualizarIndiciado(this.indiciadoForm.value.id, formData)
       : this.indiciadoService.agregarIndiciado(formData);
-
     action.pipe(finalize(() => this.isSubmitting = false)).subscribe({
       next: () => {
         alert(`Indiciado ${this.isEditingIndiciado ? 'actualizado' : 'creado'} con éxito.`);
@@ -236,7 +246,7 @@ export class DashboardComponent implements OnInit {
       error: (err) => alert(`Error: ${err.error.msg || 'Ocurrió un problema.'}`)
     });
   }
-  
+
   borrarIndiciado(id: number): void {
     if (confirm("¿Estás seguro de que quieres eliminar a este indiciado? Esta acción es irreversible.")) {
       this.indiciadoService.borrarIndiciado(id).subscribe({
@@ -250,7 +260,7 @@ export class DashboardComponent implements OnInit {
       });
     }
   }
-  
+
   logout(): void {
     this.authService.logout();
   }

@@ -1,19 +1,24 @@
 :root {
-  --theme-primary: #f97316;
-  --theme-primary-hover: #ea580c;
-
-  --theme-bg-main: rgb(255, 247, 232);
-  --theme-bg-content: #ffffff;
-
-  --theme-text-dark: #374151;
-  --theme-text-medium: #6b7280;
-  --theme-text-light: #9ca3af;
-
-  --theme-danger: #dc3545;
-  --theme-danger-hover: #bb2d3b;
-  --theme-border: #e5e7eb;
-  --theme-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --theme-primary-old: #f97316;
+  --theme-primary-hover-old: #ea580c;
+  --theme-danger-old: #dc3545;
+  --theme-danger-hover-old: #bb2d3b;
+  --color-bg: #fcfaf8;
+  --color-bg-accent: #f3ede7;
+  --color-text-dark: #1b140e;
+  --color-text-medium: #97734e;
+  --color-border: #e7dbd0;
+  --theme-primary: var(--color-text-dark);
+  --theme-primary-hover: #3a2d23;
+  --theme-bg-main: var(--color-bg);
+  --theme-bg-content: var(--color-bg);
+  --theme-text-dark: var(--color-text-dark);
+  --theme-text-medium: var(--color-text-medium);
+  --theme-border: var(--color-border);
+  --theme-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
   --theme-border-radius: 8px;
+  --theme-danger: #d9534f;
+  --theme-danger-hover: #c9302c;
 }
 
 html, body {
@@ -21,8 +26,9 @@ html, body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Manrope', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--theme-bg-main);
+  color: var(--theme-text-dark);
 }
 
 .material-icons {
