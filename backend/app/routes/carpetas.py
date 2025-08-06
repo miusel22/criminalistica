@@ -63,13 +63,11 @@ def obtener_carpeta_con_indiciados(id_carpeta):
     current_username = get_jwt_identity()
     user = User.query.filter_by(username=current_username).first_or_404()
     carpeta = Carpeta.query.filter_by(id=id_carpeta, user_id=user.id).first()
+    
     if not carpeta:
         return jsonify({"msg": "Carpeta no encontrada o no pertenece al usuario"}), 404
 
-    indiciados_data = [indiciado.to_dict() for indiciado in carpeta.indiciados]
-    carpeta_data = carpeta.to_dict()
-    carpeta_data['indiciados'] = indiciados_data
-    return jsonify(carpeta_data)
+    return jsonify(carpeta.to_dict(include_indiciados=True))
 
 @carpetas_bp.route('/<int:id_carpeta>', methods=['DELETE'])
 @jwt_required()

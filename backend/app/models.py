@@ -19,18 +19,22 @@ class Carpeta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    parent_id = db.Column(db.Integer, db.ForeignKey('carpeta.id'), nullable=True) # Para sectores
+    parent_id = db.Column(db.Integer, db.ForeignKey('carpeta.id'), nullable=True)
     indiciados = db.relationship('Indiciado', backref='carpeta', lazy=True, cascade="all, delete-orphan")
-    sub_carpetas = db.relationship('Carpeta', backref=db.backref('parent', remote_side=[id]), lazy=True)
+    sub_carpetas = db.relationship('Carpeta', backref=db.backref('parent', remote_side=[id]), lazy='dynamic') # Cambiado a lazy='dynamic' para mejor rendimiento
 
-    def to_dict(self):
-        return {
+    def to_dict(self, include_indiciados=False):
+        data = {
             "id": self.id,
             "nombre": self.nombre,
             "owner_id": self.user_id,
             "parent_id": self.parent_id,
-            "sub_carpetas": [sub.to_dict() for sub in self.sub_carpetas]
+            "sub_carpetas": [sub.to_dict(include_indiciados=True) for sub in self.sub_carpetas]
         }
+        if include_indiciados:
+            data['indiciados'] = [indiciado.to_dict() for indiciado in self.indiciados]
+        
+        return data
 
 class Indiciado(db.Model):
     id = db.Column(db.Integer, primary_key=True)

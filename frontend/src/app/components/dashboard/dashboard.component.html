@@ -1,199 +1,70 @@
 <div class="dashboard-shell" *ngIf="userProfile">
   <div class="main-container">
+
     <aside class="sidebar">
       <div class="sidebar-inner">
+
+        <div class="sidebar-app-logo">
+          <span class="material-icons shield-icon">shield</span>
+          <h2>Programita</h2>
+        </div>
+
         <div class="sidebar-header">
           <h1>Sectors</h1>
-          <button (click)="crearNuevaCarpeta(false)" class="btn btn--icon" title="Añadir nuevo sector">
+          <button (click)="crearNuevoSector()" class="btn btn--icon" title="Añadir nuevo sector">
             <span class="material-icons">add_circle_outline</span>
           </button>
         </div>
+
         <div *ngIf="isLoadingCarpetas" class="sidebar-loader">Cargando...</div>
         <nav *ngIf="!isLoadingCarpetas" class="sidebar-nav">
           <ul>
-            <li *ngFor="let carpeta of carpetasPadre">
-              <a (click)="seleccionarSector(carpeta)" 
-                 class="sidebar-item" 
-                 [class.active]="carpeta.id === sectorSeleccionado?.id && !subSectorSeleccionado">
-                <span class="material-icons">folder_special</span>
-                <p>{{ carpeta.nombre }}</p>
+            <li>
+              <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="sidebar-item">
+                <span class="material-icons">home</span>
+                <p>Inicio</p>
               </a>
             </li>
-            <li *ngIf="carpetasPadre.length === 0" class="sidebar-list__empty">No hay sectores.</li>
+            @for (carpeta of carpetasPadre; track carpeta.id) {
+              <li>
+                <a (click)="seleccionarSector(carpeta)"
+                   class="sidebar-item"
+                   [class.active]="(activeSectorId$ | async) === carpeta.id">
+                  <span class="material-icons">folder_special</span>
+                  <p>{{ carpeta.nombre }}</p>
+                </a>
+              </li>
+            }
+            @if (carpetasPadre.length === 0) {
+              <li class="sidebar-list__empty">No hay sectores.</li>
+            }
           </ul>
         </nav>
       </div>
     </aside>
+
     <main class="main-content">
       <header class="content-header">
-        <div class="header-logo">
-          <span class="material-icons shield-icon">shield</span>
-          <h2>Admin Panel</h2>
+        
+        <div class="search-bar global-search">
+          <span class="material-icons">search</span>
+          <input 
+            placeholder="Buscar por nombre, alias, cc..."
+            (input)="onSearch($event)">
         </div>
+        
         <div class="header-user">
           <span class="user-welcome">Welcome, <strong>{{ userProfile.full_name || userProfile.username }}</strong></span>
           <button (click)="logout()" class="btn btn-logout">
-            <span class="truncate">Cerrar sesion</span>
+            <span class="truncate">Logout</span>
           </button>
         </div>
       </header>
-      <div *ngIf="!sectorSeleccionado && !isLoadingDetalles" class="content-placeholder">
-        <span class="material-icons placeholder-icon">explore</span>
-        <h2>Selecciona un sector para empezar</h2>
-        <p>La información de tus sectores aparecerá aquí.</p>
+
+      <div class="content-area">
+        <router-outlet></router-outlet>
       </div>
-      <div *ngIf="isLoadingDetalles" class="content-loader">
-        <div class="spinner"></div>
-        <p>Cargando datos...</p>
-      </div>
-      <div *ngIf="sectorSeleccionado && !subSectorSeleccionado && !isLoadingDetalles" class="content-view">
-        <div class="view-header">
-          <h1>{{ sectorSeleccionado.nombre }}</h1>
-          <div class="header-actions">
-            <button (click)="crearNuevaCarpeta(true)" class="btn btn--primary">Añadir Sub-sector</button>
-            <button (click)="borrarCarpeta(sectorSeleccionado)" class="btn btn--danger">Borrar Sector</button>
-          </div>
-        </div>
-        <div class="search-bar">
-          <span class="material-icons">search</span>
-          <input placeholder="Buscar un sub-sector...">
-        </div>
-        
-        <h2>Sub-Sectores</h2>
-        <div *ngIf="sectorSeleccionado.sub_carpetas && sectorSeleccionado.sub_carpetas.length > 0; else noSubSectores" class="subsector-grid">
-            <div *ngFor="let sub of sectorSeleccionado.sub_carpetas" class="subsector-card" (click)="seleccionarSubSector(sub)">
-                <span class="material-icons">folder</span>
-                <h3>{{ sub.nombre }}</h3>
-            </div>
-        </div>
-        <ng-template #noSubSectores>
-          <div class="content-placeholder secondary">
-            <span class="material-icons placeholder-icon">add_location_alt</span>
-            <h3>Este sector no tiene sub-sectores</h3>
-            <p>Puedes añadir uno usando el botón de arriba.</p>
-          </div>
-        </ng-template>
-      </div>
-      <div *ngIf="subSectorSeleccionado && !isLoadingDetalles" class="content-view">
-        <div class="breadcrumb">
-          <a (click)="volverASubSectores()" class="breadcrumb__link">
-            {{ sectorSeleccionado?.nombre }}
-          </a>
-          <span class="breadcrumb__separator">/</span>
-          <span class="breadcrumb__active">{{ subSectorSeleccionado.nombre }}</span>
-        </div>
-        <div class="view-header">
-          <h1>Indiciados en "{{ subSectorSeleccionado.nombre }}"</h1>
-           <div class="header-actions">
-              <button (click)="prepararFormulario(null)" class="btn btn--primary">
-                <span class="material-icons">person_add</span> Añadir Indiciado
-              </button>
-              <button (click)="borrarCarpeta(subSectorSeleccionado)" class="btn btn--danger-outline" title="Borrar este sub-sector">
-                <span class="material-icons">delete</span>
-              </button>
-            </div>
-        </div>
-        <div *ngIf="!subSectorSeleccionado.indiciados || subSectorSeleccionado.indiciados.length === 0" class="content-placeholder secondary">
-          <span class="material-icons placeholder-icon">person_search</span>
-          <h2>No hay indiciados en este sub-sector</h2>
-          <p>Añade el primero para empezar a construir tu base de datos.</p>
-        </div>
-        <div class="indiciados-grid">
-          <div *ngFor="let indiciado of subSectorSeleccionado.indiciados || []" class="indiciado-card">
-              <div class="indiciado-card__photo-wrapper">
-                <img [src]="indiciado.foto_url ? 'http://127.0.0.1:5000' + indiciado.foto_url : 'assets/placeholder-person.png'" 
-                     alt="Foto de {{indiciado.nombres}}" class="indiciado-card__photo">
-              </div>
-              <div class="indiciado-card__info">
-                  <h4>{{ indiciado.nombres }} {{ indiciado.apellidos }}</h4>
-                  <p class="info-item"><span class="material-icons">fingerprint</span>{{ indiciado.cc }}</p>
-                  <p *ngIf="indiciado.alias" class="info-item"><span class="material-icons">theater_comedy</span>{{ indiciado.alias }}</p>
-              </div>
-              <div class="indiciado-card__actions">
-                  <button (click)="verIndiciado(indiciado)" class="btn btn--icon" title="Ver Detalles"><span class="material-icons">visibility</span></button>
-                  <button (click)="prepararFormulario(indiciado)" class="btn btn--icon" title="Editar"><span class="material-icons">edit</span></button>
-                  <button (click)="borrarIndiciado(indiciado.id)" class="btn btn--icon btn--danger-text" title="Eliminar"><span class="material-icons">delete_forever</span></button>
-              </div>
-          </div>
-        </div>
-      </div>
+
     </main>
-  </div>
-  <div *ngIf="isFormVisible || indiciadoParaVer" class="overlay" (click)="isFormVisible ? cerrarFormulario() : cerrarVistaIndiciado()">
-    <form *ngIf="isFormVisible" [formGroup]="indiciadoForm" (ngSubmit)="onSubmitIndiciado()" class="modal-form" (click)="$event.stopPropagation()">
-      <header class="form-header">
-        <h3>{{ isEditingIndiciado ? 'Editar' : 'Nuevo' }} Indiciado</h3>
-        <button type="button" class="btn btn--close" (click)="cerrarFormulario()" title="Cerrar"><span class="material-icons">close</span></button>
-      </header>
-      <div class="form-content">
-        <div class="form-grid">
-            <div class="form-field"><label for="nombres">Nombres*</label><input id="nombres" formControlName="nombres"></div>
-            <div class="form-field"><label for="apellidos">Apellidos*</label><input id="apellidos" formControlName="apellidos"></div>
-            <div class="form-field"><label for="cc">Cédula*</label><input id="cc" formControlName="cc"></div>
-            <div class="form-field"><label for="alias">Alias</label><input id="alias" formControlName="alias"></div>
-            <div class="form-field"><label for="fecha_nacimiento">Fecha Nacimiento</label><input id="fecha_nacimiento" type="date" formControlName="fecha_nacimiento"></div>
-            <div class="form-field"><label for="edad">Edad</label><input id="edad" type="number" formControlName="edad"></div>
-            <div class="form-field span-2"><label for="hijo_de">Hijo de</label><input id="hijo_de" formControlName="hijo_de"></div>
-            <div class="form-field"><label for="estado_civil">Estado Civil</label><input id="estado_civil" formControlName="estado_civil"></div>
-            <div class="form-field"><label for="telefono">Teléfono</label><input id="telefono" formControlName="telefono"></div>
-            <div class="form-field span-2"><label for="residencia">Residencia</label><input id="residencia" formControlName="residencia"></div>
-            <div class="form-field span-2"><label for="estudios_realizados">Estudios</label><input id="estudios_realizados" formControlName="estudios_realizados"></div>
-            <div class="form-field"><label for="profesion">Profesión</label><input id="profesion" formControlName="profesion"></div>
-            <div class="form-field"><label for="oficio">Oficio</label><input id="oficio" formControlName="oficio"></div>
-            <div class="form-field span-2"><label for="senales_fisicas">Señales Físicas</label><textarea id="senales_fisicas" formControlName="senales_fisicas" rows="3"></textarea></div>
-            <div class="form-field span-2"><label for="banda_delincuencial">Banda Delincuencial</label><input id="banda_delincuencial" formControlName="banda_delincuencial"></div>
-            <div class="form-field span-2"><label for="delitos_atribuidos">Delitos Atribuidos</label><textarea id="delitos_atribuidos" formControlName="delitos_atribuidos" rows="3"></textarea></div>
-            <div class="form-field span-2"><label for="situacion_juridica">Situación Jurídica</label><input id="situacion_juridica" formControlName="situacion_juridica"></div>
-            <div class="form-field span-2"><label for="observaciones">Observaciones</label><textarea id="observaciones" formControlName="observaciones" rows="4"></textarea></div>
-            <div class="form-field span-2"><label for="foto">Foto</label><input id="foto" type="file" (change)="onFileChange($event)"></div>
-        </div>
-      </div>
-      <footer class="form-footer">
-        <button type="button" (click)="cerrarFormulario()" class="btn btn--secondary">Cancelar</button>
-        <button type="submit" [disabled]="indiciadoForm.invalid || isSubmitting" class="btn btn--primary">
-          <span *ngIf="!isSubmitting">{{ isEditingIndiciado ? 'Guardar Cambios' : 'Crear' }}</span>
-          <span *ngIf="isSubmitting">Procesando...</span>
-        </button>
-      </footer>
-    </form>
-    <div *ngIf="indiciadoParaVer" class="modal-detail" (click)="$event.stopPropagation()">
-       <header class="modal-header">
-        <h3>Individualización</h3>
-        <button type="button" class="btn btn--close" (click)="cerrarVistaIndiciado()" title="Cerrar"><span class="material-icons">close</span></button>
-      </header>
-      <div class="modal-content">
-        <div class="detail-grid">
-            <div class="detail-col">
-              <div class="detail-photo-wrapper">
-                <img [src]="indiciadoParaVer.foto_url ? 'http://127.0.0.1:5000' + indiciadoParaVer.foto_url : 'assets/placeholder-person.png'" 
-                     alt="Foto de {{indiciadoParaVer.nombres}}" class="detail-photo">
-              </div>
-              <div class="detail-group">
-                <div class="detail-item"><span class="label">Nombres</span><span class="value">{{ indiciadoParaVer.nombres }}</span></div>
-                <div class="detail-item"><span class="label">Apellidos</span><span class="value">{{ indiciadoParaVer.apellidos }}</span></div>
-                <div class="detail-item"><span class="label">Documento</span><span class="value">{{ indiciadoParaVer.cc }}</span></div>
-                <div class="detail-item" *ngIf="indiciadoParaVer.alias"><span class="label">Alias</span><span class="value">{{ indiciadoParaVer.alias }}</span></div>
-              </div>
-            </div>
-            <div class="detail-col">
-              <div class="detail-group">
-                <h5 class="group-title">Información Personal</h5>
-                <div class="detail-item"><span class="label">Fecha de Nacimiento</span><span class="value">{{ indiciadoParaVer.fecha_nacimiento | date:'longDate' }}</span></div>
-                <div class="detail-item"><span class="label">Edad</span><span class="value">{{ indiciadoParaVer.edad }} años</span></div>
-                <div class="detail-item"><span class="label">Residencia</span><span class="value">{{ indiciadoParaVer.residencia || 'N/A' }}</span></div>
-              </div>
-              <div class="detail-group">
-                <h5 class="group-title">Información Relevante</h5>
-                <div class="detail-item"><span class="label">Banda Delincuencial</span><span class="value">{{ indiciadoParaVer.banda_delincuencial || 'N/A' }}</span></div>
-                <div class="detail-item"><span class="label">Delitos</span><span class="value long-text">{{ indiciadoParaVer.delitos_atribuidos || 'N/A' }}</span></div>
-              </div>
-            </div>
-        </div>
-        <div class="detail-group full-width">
-            <h5 class="group-title">Observaciones</h5>
-            <p class="observations-text">{{ indiciadoParaVer.observaciones || 'No hay observaciones.' }}</p>
-        </div>
-      </div>
-    </div>
   </div>
 </div>

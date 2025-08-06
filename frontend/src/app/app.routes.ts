@@ -1,8 +1,12 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './components/login/login.component';
-import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { RegisterComponent } from './components/register/register.component';
 import { authGuard } from './guards/auth.guard';
+
+import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { DashboardHomeComponent } from './components/dashboard/dashboard-home/dashboard-home.component';
+import { SectorViewComponent } from './components/dashboard/sector-view/sector-view.component';
+import { SubsectorViewComponent } from './components/dashboard/subsector-view/subsector-view.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -10,7 +14,12 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: DashboardComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
+    children: [
+      { path: '', component: DashboardHomeComponent, pathMatch: 'full' },
+      { path: 'sector/:id', component: SectorViewComponent },
+      { path: 'subsector/:id', component: SubsectorViewComponent },
+    ]
   },
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }

@@ -1,0 +1,31 @@
+@if (!isLoading && sector) {
+  <div class="view-header">
+    <h1>{{ sector.nombre }}</h1>
+    <div class="header-actions">
+      <button (click)="crearNuevoSubSector(sector)" class="btn btn--primary">Añadir Sub-sector</button>
+    </div>
+  </div>
+
+  <h2>Sub-Sectores</h2>
+  @if (sector.sub_carpetas && sector.sub_carpetas.length > 0) {
+    <div class="subsector-grid">
+      @for (sub of sector.sub_carpetas; track sub.id) {
+        <div class="subsector-card" (click)="seleccionarSubSector(sub.id)">
+          <span class="material-icons">folder</span>
+          <h3>{{ sub.nombre }}</h3>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="content-placeholder secondary">
+      <span class="material-icons placeholder-icon">add_location_alt</span>
+      <h3>Este sector no tiene sub-sectores</h3>
+      <p>Puedes añadir uno usando el botón de arriba.</p>
+    </div>
+  }
+} @else {
+  <div class="content-loader">
+    <div class="spinner"></div>
+    <p>Cargando datos del sector...</p>
+  </div>
+}

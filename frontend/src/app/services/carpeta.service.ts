@@ -12,27 +12,28 @@ export class CarpetaService {
 
   constructor(private http: HttpClient) { }
 
+  
   getCarpetas(): Observable<Carpeta[]> {
     return this.http.get<Carpeta[]>(this.apiUrl);
   }
+  
   
   getCarpetaConIndiciados(id: number): Observable<Carpeta> {
     return this.http.get<Carpeta>(`${this.apiUrl}/${id}`);
   }
 
+  
   crearCarpeta(nombre: string, parentId?: number): Observable<any> {
-    const payload: { nombre: string; parent_id?: number } = {
-      nombre: nombre
-    };
-    
+    const payload: { nombre: string; parent_id?: number } = { nombre };
     if (parentId) {
       payload.parent_id = parentId;
     }
-
     return this.http.post(this.apiUrl, payload);
   }
 
+  
   borrarCarpeta(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
+
 }
