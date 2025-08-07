@@ -436,7 +436,7 @@
 }
 
 .doc-viewer-overlay {
-  z-index: 1100; /* Asegura que esté por encima del otro modal */
+  z-index: 1100;
 }
 
 .doc-viewer-modal {
