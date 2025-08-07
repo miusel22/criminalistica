@@ -59,7 +59,8 @@ export class SubsectorViewComponent implements OnInit {
       delitos_atribuidos: [''],
       situacion_juridica: [''],
       observaciones: [''],
-      foto: [null]
+      foto: [null],
+      google_earth_link: ['']
     });
   }
 
@@ -72,7 +73,6 @@ export class SubsectorViewComponent implements OnInit {
       }
     });
   }
-
   
   async loadData(id: number): Promise<void> {
     this.isLoading = true;
@@ -112,10 +112,27 @@ export class SubsectorViewComponent implements OnInit {
     }
   }
 
-  
-
   verIndiciado(indiciado: Indiciado): void { this.indiciadoParaVer = indiciado; }
   cerrarVistaIndiciado(): void { this.indiciadoParaVer = null; }
+
+  abrirLinkGoogleEarth(url: string | undefined): void {
+    if (!url || url.trim() === '') {
+      console.warn('Se intentó abrir un link de Google Earth inválido o vacío.');
+      alert('El link de ubicación no es válido o no ha sido guardado.');
+      return;
+    }
+
+    let fullUrl = url.trim();
+
+    if (!/^https?:\/\//i.test(fullUrl)) {
+      console.log(`La URL no tiene protocolo. Añadiendo 'https://'. Original: ${fullUrl}`);
+      fullUrl = 'https://' + fullUrl;
+    }
+    
+    console.log('Abriendo URL completa y corregida:', fullUrl);
+
+    window.open(fullUrl, '_blank', 'noopener,noreferrer');
+  }
   
   prepararFormulario(indiciado: Indiciado | null): void {
     if (!this.subSector) return;

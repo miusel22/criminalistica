@@ -59,6 +59,7 @@ class Indiciado(db.Model):
     foto_filename = db.Column(db.String(255), nullable=True)
     carpeta_id = db.Column(db.Integer, db.ForeignKey('carpeta.id'), nullable=False)
     sub_sector = db.Column(db.String(100), nullable=True)
+    google_earth_link = db.Column(db.Text, nullable=True)
 
     def get_foto_url(self):
         if self.foto_filename:
@@ -88,5 +89,6 @@ class Indiciado(db.Model):
             "observaciones": self.observaciones,
             "foto_url": self.get_foto_url(),
             "carpeta_id": self.carpeta_id,
-            "sub_sector": self.sub_sector
+            "sub_sector": self.sub_sector,
+            "google_earth_link": self.google_earth_link
         }

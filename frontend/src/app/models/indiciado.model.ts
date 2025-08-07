@@ -22,4 +22,5 @@ export interface Indiciado {
   situacion_juridica?: string;
   observaciones?: string;
   sub_sector?: string;
+  google_earth_link?: string;
 }

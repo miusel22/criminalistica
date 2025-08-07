@@ -70,7 +70,8 @@ def agregar_indiciado():
             observaciones=request.form.get('observaciones'),
             foto_filename=foto_filename,
             carpeta_id=carpeta.id,
-            sub_sector=request.form.get('sub_sector')
+            sub_sector=request.form.get('sub_sector'),
+            google_earth_link=request.form.get('google_earth_link')
         )
         db.session.add(nuevo_indiciado)
         db.session.commit()
@@ -124,6 +125,7 @@ def actualizar_indiciado(id_indiciado):
     indiciado.situacion_juridica = request.form.get('situacion_juridica', indiciado.situacion_juridica)
     indiciado.observaciones = request.form.get('observaciones', indiciado.observaciones)
     indiciado.sub_sector = request.form.get('sub_sector', indiciado.sub_sector)
+    indiciado.google_earth_link = request.form.get('google_earth_link', indiciado.google_earth_link)
     db.session.commit()
     return jsonify({
         "msg": "Indiciado actualizado exitosamente",

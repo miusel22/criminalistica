@@ -90,7 +90,14 @@
             <div class="form-field span-2"><label for="situacion_juridica">Situación Jurídica</label><input id="situacion_juridica" formControlName="situacion_juridica"></div>
             
             <div class="form-field span-2"><label for="observaciones">Observaciones Generales</label><textarea id="observaciones" formControlName="observaciones" rows="4"></textarea></div>
+            
             <div class="form-field span-2"><label for="foto">Fotografía</label><input id="foto" type="file" (change)="onFileChange($event)"></div>
+            
+            <div class="form-field span-2">
+              <label for="google_earth_link">Link de Google Earth</label>
+              <input id="google_earth_link" formControlName="google_earth_link" placeholder="Pegue aquí el link completo de Google Earth...">
+            </div>
+
           </div>
         </div>
         <footer class="form-footer">
@@ -118,6 +125,7 @@
                   <img [src]="indiciadoParaVer.foto_url ? 'http://127.0.0.1:5000' + indiciadoParaVer.foto_url : 'assets/placeholder-person.png'" 
                        alt="Foto de {{indiciadoParaVer.nombres}}" class="detail-photo">
                 </div>
+                
                 <div class="detail-group">
                   <div class="detail-item"><span class="label">Nombres</span><span class="value">{{ indiciadoParaVer.nombres }}</span></div>
                   <div class="detail-item"><span class="label">Apellidos</span><span class="value">{{ indiciadoParaVer.apellidos }}</span></div>
@@ -132,6 +140,19 @@
                     <div class="detail-item"><span class="label">Edad</span><span class="value">{{ indiciadoParaVer.edad }} años</span></div>
                   }
                 </div>
+                
+                @if (indiciadoParaVer.google_earth_link) {
+                  <div class="detail-group">
+                    <div class="detail-item">
+                      <span class="label">Ubicación de Referencia</span>
+                      <button type="button" 
+                              (click)="abrirLinkGoogleEarth(indiciadoParaVer.google_earth_link)" 
+                              class="btn btn--primary-outline">
+                        <span class="material-icons">public</span> Abrir en Google Earth
+                      </button>
+                    </div>
+                  </div>
+                }
               </div>
 
               <div class="detail-col">
