@@ -27,7 +27,6 @@ export class SectorViewComponent implements OnInit {
   }
 
   loadData(): void {
-    console.log('[SectorView] Iniciando carga de datos...');
     this.isLoading = true;
 
     this.route.paramMap.pipe(
@@ -37,14 +36,11 @@ export class SectorViewComponent implements OnInit {
           this.router.navigate(['/dashboard']);
           return new Observable<Carpeta | null>(sub => sub.next(null));
         }
-        console.log(`[SectorView] Obteniendo sector con ID: ${id}`);
         return this.carpetaService.getCarpetaConIndiciados(id);
       }),
       tap(sectorData => {
-        console.log('[SectorView] Datos del sector recibidos:', sectorData);
         this.sector = sectorData;
         this.isLoading = false;
-        console.log('[SectorView] Carga de datos finalizada. isLoading = false');
       })
     ).subscribe({
         error: err => {

@@ -40,11 +40,9 @@ export class SearchResultsComponent implements OnInit {
 
   async performSearch(query: string): Promise<void> {
     this.isLoading = true;
-    console.log(`[SearchResults] Buscando: "${query}"`);
 
     try {
       const results = await firstValueFrom(this.indiciadoService.searchIndiciados(query));
-      console.log('[SearchResults] Resultados recibidos:', results);
       this.searchResults = results;
     } catch (error) {
       console.error('[SearchResults] Error durante la búsqueda:', error);
@@ -52,7 +50,6 @@ export class SearchResultsComponent implements OnInit {
       alert('Ocurrió un error al realizar la búsqueda.');
     } finally {
       this.isLoading = false;
-      console.log('[SearchResults] Búsqueda finalizada. isLoading = false');
       this.cdr.detectChanges();
     }
   }
