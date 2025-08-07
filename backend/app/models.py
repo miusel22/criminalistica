@@ -1,5 +1,6 @@
 from .extensions import db
 from flask import url_for
+from datetime import datetime
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -60,6 +61,7 @@ class Indiciado(db.Model):
     carpeta_id = db.Column(db.Integer, db.ForeignKey('carpeta.id'), nullable=False)
     sub_sector = db.Column(db.String(100), nullable=True)
     google_earth_link = db.Column(db.Text, nullable=True)
+    documentos = db.relationship('Documento', backref='indiciado', lazy='dynamic', cascade="all, delete-orphan")
 
     def get_foto_url(self):
         if self.foto_filename:
@@ -90,5 +92,24 @@ class Indiciado(db.Model):
             "foto_url": self.get_foto_url(),
             "carpeta_id": self.carpeta_id,
             "sub_sector": self.sub_sector,
-            "google_earth_link": self.google_earth_link
+            "google_earth_link": self.google_earth_link,
+            "documentos": [doc.to_dict() for doc in self.documentos]
+        }
+
+class Documento(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(255), nullable=False)
+    original_filename = db.Column(db.String(255), nullable=False)
+    upload_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    indiciado_id = db.Column(db.Integer, db.ForeignKey('indiciado.id'), nullable=False)
+
+    def get_download_url(self):
+        return url_for('serve_document', filename=self.filename, _external=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "filename": self.original_filename,
+            "upload_date": self.upload_date.isoformat(),
+            "url": self.get_download_url()
         }

@@ -1,3 +1,5 @@
+import { Documento } from './documento.model';
+
 export interface Indiciado {
   id: number;
   nombres: string;
@@ -23,4 +25,5 @@ export interface Indiciado {
   observaciones?: string;
   sub_sector?: string;
   google_earth_link?: string;
+  documentos?: Documento[];
 }

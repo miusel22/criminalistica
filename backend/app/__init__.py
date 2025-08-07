@@ -1,13 +1,15 @@
 import os
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, request
 from flask_cors import CORS
 
 from .config import Config
 from .extensions import db, migrate, bcrypt, jwt
+from .models import Documento
 
 from .routes.auth import auth_bp
 from .routes.carpetas import carpetas_bp
 from .routes.indiciados import indiciados_bp
+from .routes.documentos import documentos_bp 
 
 def create_app(config_class=Config):
     app = Flask(__name__, instance_relative_config=True)
@@ -52,6 +54,7 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(carpetas_bp, url_prefix='/api/carpetas')
     app.register_blueprint(indiciados_bp, url_prefix='/api/indiciados')
+    app.register_blueprint(documentos_bp, url_prefix='/api/documentos')
     
     @app.route('/uploads/<path:filename>')
     def serve_upload(filename):
@@ -59,6 +62,22 @@ def create_app(config_class=Config):
             app.config['UPLOAD_FOLDER'],
             filename,
             as_attachment=False
+        )
+    
+    @app.route('/uploads/documentos/<path:filename>')
+    def serve_document(filename):
+        documento = Documento.query.filter_by(filename=filename).first_or_404()
+        document_directory = os.path.join(app.config['UPLOAD_FOLDER'], 'documentos')
+
+        wants_to_view = request.args.get('view', 'false').lower() == 'true'
+
+        should_attach = not wants_to_view
+
+        return send_from_directory(
+            document_directory,
+            filename,
+            as_attachment=should_attach,
+            download_name=documento.original_filename
         )
         
     return app

@@ -1,12 +1,15 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, SecurityContext } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CarpetaService } from '../../../services/carpeta.service';
 import { IndiciadoService } from '../../../services/indiciado.service';
+import { DocumentoService } from '../../../services/documento.service';
 import { Carpeta } from '../../../models/carpeta.model';
 import { Indiciado } from '../../../models/indiciado.model';
 import { firstValueFrom } from 'rxjs';
+import { Documento } from '../../../models/documento.model';
 
 @Component({
   selector: 'app-subsector-view',
@@ -16,12 +19,10 @@ import { firstValueFrom } from 'rxjs';
   styleUrls: ['../dashboard.component.css']
 })
 export class SubsectorViewComponent implements OnInit {
-  
   subSector: Carpeta | null = null;
   sectorPadre: Carpeta | null = null;
   isLoading = true;
 
-  
   indiciadoForm: FormGroup;
   isFormVisible = false;
   isEditingIndiciado = false;
@@ -29,15 +30,20 @@ export class SubsectorViewComponent implements OnInit {
   currentFile: File | null = null;
   indiciadoParaVer: Indiciado | null = null;
 
+  documentosParaSubir: File[] = [];
+  documentoParaVerUrl: string | null = null;
+  safeDocUrl: SafeResourceUrl | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private carpetaService: CarpetaService,
     private indiciadoService: IndiciadoService,
+    private documentoService: DocumentoService,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sanitizer: DomSanitizer,
   ) {
-    
     this.indiciadoForm = this.fb.group({
       id: [null],
       carpeta_id: [null, Validators.required],
@@ -65,7 +71,6 @@ export class SubsectorViewComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    
     this.route.paramMap.subscribe(params => {
       const id = Number(params.get('id'));
       if (id) {
@@ -73,68 +78,54 @@ export class SubsectorViewComponent implements OnInit {
       }
     });
   }
-  
+
   async loadData(id: number): Promise<void> {
     this.isLoading = true;
-    console.log(`[SubsectorView] Iniciando carga de datos para ID: ${id}`);
-    
     try {
-      
       const subSector = await firstValueFrom(this.carpetaService.getCarpetaConIndiciados(id));
-      console.log('[SubsectorView] Datos del sub-sector recibidos:', subSector);
-
       if (!subSector) {
         throw new Error(`El sub-sector con ID ${id} no fue encontrado.`);
       }
       this.subSector = subSector;
 
-      
       if (subSector.parent_id) {
-        console.log(`[SubsectorView] Obteniendo padre con ID: ${subSector.parent_id}`);
         const padre = await firstValueFrom(this.carpetaService.getCarpetaConIndiciados(subSector.parent_id));
-        console.log('[SubsectorView] Datos del padre recibidos:', padre);
         this.sectorPadre = padre;
       } else {
         this.sectorPadre = null;
       }
-
     } catch (error) {
       console.error('[SubsectorView] Error durante la carga de datos:', error);
       alert('No se pudieron cargar los datos. Serás redirigido.');
       this.router.navigate(['/dashboard']);
     } finally {
-      
       this.isLoading = false;
-      console.log('[SubsectorView] Carga de datos finalizada. isLoading = false');
-      
-      
       this.cdr.detectChanges();
     }
   }
 
-  verIndiciado(indiciado: Indiciado): void { this.indiciadoParaVer = indiciado; }
-  cerrarVistaIndiciado(): void { this.indiciadoParaVer = null; }
+  verIndiciado(indiciado: Indiciado): void {
+    this.indiciadoParaVer = indiciado;
+  }
 
+  cerrarVistaIndiciado(): void {
+    this.indiciadoParaVer = null;
+  }
+  
   abrirLinkGoogleEarth(url: string | undefined): void {
     if (!url || url.trim() === '') {
-      console.warn('Se intentó abrir un link de Google Earth inválido o vacío.');
       alert('El link de ubicación no es válido o no ha sido guardado.');
       return;
     }
-
     let fullUrl = url.trim();
-
     if (!/^https?:\/\//i.test(fullUrl)) {
-      console.log(`La URL no tiene protocolo. Añadiendo 'https://'. Original: ${fullUrl}`);
       fullUrl = 'https://' + fullUrl;
     }
-    
-    console.log('Abriendo URL completa y corregida:', fullUrl);
-
     window.open(fullUrl, '_blank', 'noopener,noreferrer');
   }
-  
+
   prepararFormulario(indiciado: Indiciado | null): void {
+    this.documentosParaSubir = [];
     if (!this.subSector) return;
     this.isFormVisible = true;
     this.currentFile = null;
@@ -148,10 +139,21 @@ export class SubsectorViewComponent implements OnInit {
     }
   }
 
-  cerrarFormulario(): void { this.isFormVisible = false; this.indiciadoForm.reset(); }
-  onFileChange(event: any): void { const file = event.target.files?.[0]; if (file) this.currentFile = file; }
+  cerrarFormulario(): void {
+    this.isFormVisible = false;
+    this.indiciadoForm.reset();
+  }
 
-  
+  onFileChange(event: any): void {
+    const file = event.target.files?.[0];
+    if (file) this.currentFile = file;
+  }
+
+  onDocumentosSeleccionados(event: any): void {
+    if (event.target.files.length > 0) {
+      this.documentosParaSubir = Array.from(event.target.files);
+    }
+  }
 
   onSubmitIndiciado(): void {
     if (this.indiciadoForm.invalid || this.isSubmitting) return;
@@ -162,32 +164,55 @@ export class SubsectorViewComponent implements OnInit {
       const control = this.indiciadoForm.get(key);
       if (key !== 'foto' && control && control.value !== null && control.value !== '') {
         if (key === 'fecha_nacimiento' && control.value) {
-            formData.append(key, new Date(control.value).toISOString().split('T')[0]);
+          formData.append(key, new Date(control.value).toISOString().split('T')[0]);
         } else {
-            formData.append(key, control.value);
+          formData.append(key, control.value);
         }
       }
     });
-    if (this.currentFile) formData.append('foto', this.currentFile, this.currentFile.name);
+    if (this.currentFile) {
+      formData.append('foto', this.currentFile, this.currentFile.name);
+    }
 
     const action = this.isEditingIndiciado
       ? this.indiciadoService.actualizarIndiciado(this.indiciadoForm.value.id, formData)
       : this.indiciadoService.agregarIndiciado(formData);
 
     action.subscribe({
-      next: () => {
-        alert(`Indiciado ${this.isEditingIndiciado ? 'actualizado' : 'creado'} con éxito.`);
-        this.isSubmitting = false;
-        this.cerrarFormulario();
-        if (this.subSector) {
-          this.loadData(this.subSector.id);
+      next: (response) => {
+        const indiciadoId = this.isEditingIndiciado ? this.indiciadoForm.value.id : response.indiciado.id;
+
+        if (this.documentosParaSubir.length > 0) {
+          const docFormData = new FormData();
+          this.documentosParaSubir.forEach(file => {
+            docFormData.append('documentos', file, file.name);
+          });
+          
+          this.documentoService.uploadDocumentos(indiciadoId, docFormData).subscribe({
+            next: () => this.finalizarSubmit(),
+            error: (err) => {
+              alert(`El perfil se guardó, pero hubo un error al subir los documentos: ${err.error.msg}`);
+              this.finalizarSubmit();
+            }
+          });
+        } else {
+          this.finalizarSubmit();
         }
       },
       error: (err) => {
         this.isSubmitting = false;
-        alert(`Error: ${err.error.msg || 'Ocurrió un problema.'}`);
+        alert(`Error al guardar el perfil: ${err.error.msg || 'Ocurrió un problema.'}`);
       }
     });
+  }
+  
+  finalizarSubmit(): void {
+    this.isSubmitting = false;
+    this.documentosParaSubir = [];
+    this.cerrarFormulario();
+    if (this.subSector) {
+      this.loadData(this.subSector.id);
+    }
   }
 
   borrarIndiciado(id: number): void {
@@ -197,6 +222,43 @@ export class SubsectorViewComponent implements OnInit {
           alert("Indiciado eliminado.");
           if (this.subSector) {
             this.loadData(this.subSector.id);
+          }
+        },
+        error: (err) => alert(`Error: ${err.error.msg || 'No se pudo eliminar.'}`)
+      });
+    }
+  }
+
+  visualizarDocumento(doc: Documento): void {
+        const fileExtension = doc.filename.split('.').pop()?.toLowerCase();
+        
+        const downloadUrl = 'http://127.0.0.1:5000' + doc.url;
+        const viewUrl = downloadUrl + '?view=true';
+
+        if (fileExtension === 'pdf') {
+            window.open(viewUrl, '_blank');
+        } else if (fileExtension === 'doc' || fileExtension === 'docx') {
+            const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(downloadUrl)}&embedded=true`;
+            this.safeDocUrl = this.sanitizer.bypassSecurityTrustResourceUrl(googleViewerUrl);
+        } else {
+            alert("Este tipo de archivo no se puede previsualizar. Por favor, descárgalo.");
+        }
+  }
+
+  cerrarVisualizador(): void {
+        this.documentoParaVerUrl = null;
+        this.safeDocUrl = null;
+  }
+
+  eliminarDocumento(documentoId: number, event: MouseEvent): void {
+    event.stopPropagation();
+    if (confirm("¿Estás seguro de que quieres eliminar este documento?")) {
+      this.documentoService.deleteDocumento(documentoId).subscribe({
+        next: () => {
+          alert("Documento eliminado.");
+          if (this.indiciadoParaVer) {
+            this.indiciadoParaVer.documentos = this.indiciadoParaVer.documentos?.filter(d => d.id !== documentoId);
+            this.cdr.detectChanges();
           }
         },
         error: (err) => alert(`Error: ${err.error.msg || 'No se pudo eliminar.'}`)
