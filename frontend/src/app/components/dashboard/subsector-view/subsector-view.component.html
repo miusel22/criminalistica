@@ -18,7 +18,6 @@
       <button (click)="borrarSubSectorActual()" class="btn btn--danger-outline" title="Eliminar este sub-sector">
         <span class="material-icons">delete_forever</span> Eliminar
       </button>
-
       <button (click)="prepararFormulario(null)" class="btn btn--primary">
         <span class="material-icons">person_add</span> Añadir Indiciado
       </button>
@@ -64,7 +63,7 @@
 }
 
 @if (isFormVisible || indiciadoParaVer) {
-  <div class="overlay" (click)="isFormVisible ? cerrarFormulario() : cerrarVistaIndiciado()">
+  <div class="overlay" (click)="indiciadoParaVer ? cerrarVistaIndiciado() : null">
     
     @if (isFormVisible) {
       <form [formGroup]="indiciadoForm" (ngSubmit)="onSubmitIndiciado()" class="modal-form" (click)="$event.stopPropagation()">
@@ -139,7 +138,11 @@
               <div class="detail-col">
                 <div class="detail-photo-wrapper">
                   <img [src]="indiciadoParaVer.foto_url ? 'http://127.0.0.1:5000' + indiciadoParaVer.foto_url : 'assets/placeholder-person.png'" 
-                       alt="Foto de {{indiciadoParaVer.nombres}}" class="detail-photo">
+                       alt="Foto de {{indiciadoParaVer.nombres}}"
+                       class="detail-photo"
+                       [class.clickable]="indiciadoParaVer.foto_url"
+                       (click)="openPhotoViewer(indiciadoParaVer.foto_url)"
+                       title="Ver foto en tamaño completo">
                 </div>
                 <div class="detail-group">
                   <div class="detail-item"><span class="label">Nombres</span><span class="value">{{ indiciadoParaVer.nombres }}</span></div>
@@ -244,4 +247,15 @@
             </div>
         </div>
     </div>
+}
+
+@if (photoViewerUrl) {
+  <div class="photo-viewer-overlay" (click)="closePhotoViewer()">
+    <button class="photo-viewer-close" (click)="closePhotoViewer()" title="Cerrar">
+      <span class="material-icons">close</span>
+    </button>
+    <div class="photo-viewer-content" (click)="$event.stopPropagation()">
+      <img [src]="photoViewerUrl" alt="Foto del indiciado en tamaño completo">
+    </div>
+  </div>
 }

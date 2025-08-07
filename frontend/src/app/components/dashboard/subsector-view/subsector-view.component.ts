@@ -34,6 +34,8 @@ export class SubsectorViewComponent implements OnInit {
   documentoParaVerUrl: string | null = null;
   safeDocUrl: SafeResourceUrl | null = null;
 
+  photoViewerUrl: string | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -147,6 +149,16 @@ export class SubsectorViewComponent implements OnInit {
     this.indiciadoParaVer = null;
   }
   
+  openPhotoViewer(url: string | undefined): void {
+    if (url) {
+      this.photoViewerUrl = 'http://127.0.0.1:5000' + url;
+    }
+  }
+
+  closePhotoViewer(): void {
+    this.photoViewerUrl = null;
+  }
+
   abrirLinkGoogleEarth(url: string | undefined): void {
     if (!url || url.trim() === '') {
       alert('El link de ubicación no es válido o no ha sido guardado.');
