@@ -104,6 +104,41 @@ export class SubsectorViewComponent implements OnInit {
     }
   }
 
+  editarSubSectorActual(): void {
+    if (!this.subSector) return;
+    
+    const nuevoNombre = prompt(`Editar nombre del sub-sector "${this.subSector.nombre}":`, this.subSector.nombre);
+    if (!nuevoNombre || nuevoNombre.trim() === '' || nuevoNombre.trim() === this.subSector.nombre) {
+      return;
+    }
+
+    this.carpetaService.actualizarCarpeta(this.subSector.id, nuevoNombre.trim()).subscribe({
+      next: (response) => {
+        alert("Sub-sector actualizado con éxito.");
+        if (this.subSector) {
+          this.subSector.nombre = response.carpeta.nombre;
+          this.cdr.detectChanges();
+        }
+      },
+      error: err => alert(`Error: ${err.error?.msg || 'No se pudo actualizar.'}`)
+    });
+  }
+
+  borrarSubSectorActual(): void {
+    if (!this.subSector) return;
+
+    if (confirm(`¿Estás seguro de que quieres eliminar el sub-sector "${this.subSector.nombre}"? Esto borrará a todos los indiciados asociados de forma permanente.`)) {
+      this.carpetaService.borrarCarpeta(this.subSector.id).subscribe({
+        next: () => {
+          alert("Sub-sector eliminado con éxito.");
+          const navTarget = this.subSector?.parent_id ? ['/dashboard/sector', this.subSector.parent_id] : ['/dashboard'];
+          this.router.navigate(navTarget);
+        },
+        error: err => alert(`Error: ${err.error?.msg || 'No se pudo eliminar.'}`)
+      });
+    }
+  }
+
   verIndiciado(indiciado: Indiciado): void {
     this.indiciadoParaVer = indiciado;
   }

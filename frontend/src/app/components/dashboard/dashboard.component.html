@@ -27,12 +27,19 @@
             </li>
             @for (carpeta of carpetasPadre; track carpeta.id) {
               <li>
-                <a (click)="seleccionarSector(carpeta)"
-                   class="sidebar-item"
-                   [class.active]="(activeSectorId$ | async) === carpeta.id">
-                  <span class="material-icons">folder_special</span>
-                  <p>{{ carpeta.nombre }}</p>
-                </a>
+                <div class="sidebar-item" 
+                     [class.active]="(activeSectorId$ | async) === carpeta.id">
+                  <span class="material-icons folder-icon" (click)="seleccionarSector(carpeta)">folder_special</span>
+                  <p class="sidebar-item__name" (click)="seleccionarSector(carpeta)">{{ carpeta.nombre }}</p>
+                  <div class="sidebar-item__actions">
+                    <button (click)="editarSector($event, carpeta)" class="btn btn--icon" title="Editar Sector">
+                      <span class="material-icons">edit</span>
+                    </button>
+                    <button (click)="borrarSector($event, carpeta)" class="btn btn--icon btn--danger-text" title="Eliminar Sector">
+                      <span class="material-icons">delete_forever</span>
+                    </button>
+                  </div>
+                </div>
               </li>
             }
             @if (carpetasPadre.length === 0) {

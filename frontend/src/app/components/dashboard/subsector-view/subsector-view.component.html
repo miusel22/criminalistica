@@ -12,6 +12,13 @@
   <div class="view-header">
     <h1>Indiciados en "{{ subSector.nombre }}"</h1>
     <div class="header-actions">
+      <button (click)="editarSubSectorActual()" class="btn btn--secondary" title="Editar este sub-sector">
+        <span class="material-icons">edit</span> Editar Sub-sector
+      </button>
+      <button (click)="borrarSubSectorActual()" class="btn btn--danger-outline" title="Eliminar este sub-sector">
+        <span class="material-icons">delete_forever</span> Eliminar
+      </button>
+
       <button (click)="prepararFormulario(null)" class="btn btn--primary">
         <span class="material-icons">person_add</span> Añadir Indiciado
       </button>

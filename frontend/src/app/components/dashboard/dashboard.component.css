@@ -58,6 +58,7 @@
   transition: background-color 0.2s;
   text-decoration: none;
   color: var(--color-text-dark);
+  position: relative; /* Para posicionar los botones de acción */
 }
 
 .sidebar-item:hover {
@@ -69,21 +70,44 @@
   font-weight: 600;
 }
 
-.sidebar-item .material-icons {
-  font-size: 24px;
+.sidebar-item .folder-icon,
+.sidebar-item .sidebar-item__name {
+  z-index: 1;
 }
 
-.sidebar-item p {
+.sidebar-item__name {
+  flex-grow: 1;
   margin: 0;
   font-size: 0.875rem;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.sidebar-list__empty {
-  padding: 24px;
-  text-align: center;
-  color: var(--theme-text-medium);
-  font-style: italic;
+
+.sidebar-item__actions {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--color-bg-accent);
+  border-radius: 6px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  z-index: 2;
+}
+
+.sidebar-item:hover .sidebar-item__actions {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sidebar-item__actions .btn--icon {
+  padding: 6px;
 }
 
 .main-content {

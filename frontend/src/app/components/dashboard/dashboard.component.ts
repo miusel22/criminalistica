@@ -35,7 +35,13 @@ export class DashboardComponent implements OnInit {
         while (currentRoute?.firstChild) {
             currentRoute = currentRoute.firstChild;
         }
-        if (currentRoute?.snapshot.params['id'] && currentRoute.snapshot.routeConfig?.path?.includes('sector')) {
+        if (currentRoute?.snapshot.params['id'] && (currentRoute.snapshot.routeConfig?.path?.includes('sector') || currentRoute.snapshot.routeConfig?.path?.includes('subsector'))) {
+          const activeId = +currentRoute.snapshot.params['id'];
+          const parentMatch = this.carpetasPadre.find(c => c.id === activeId);
+          if (parentMatch) return parentMatch.id;
+          
+        }
+        if(currentRoute?.snapshot.routeConfig?.path?.includes('sector/:id')) {
           return +currentRoute.snapshot.params['id'];
         }
         return null;
@@ -87,6 +93,38 @@ export class DashboardComponent implements OnInit {
         alert(`Error: ${errorMessage}`);
       }
     });
+  }
+  
+  editarSector(event: MouseEvent, sector: Carpeta): void {
+    event.stopPropagation();
+    const nuevoNombre = prompt(`Editar nombre del sector "${sector.nombre}":`, sector.nombre);
+    if (!nuevoNombre || nuevoNombre.trim() === '' || nuevoNombre.trim() === sector.nombre) {
+      return;
+    }
+    
+    this.carpetaService.actualizarCarpeta(sector.id, nuevoNombre.trim()).subscribe({
+      next: () => {
+        alert("Sector actualizado con éxito.");
+        this.loadCarpetasPadre();
+      },
+      error: err => alert(`Error: ${err.error?.msg || 'No se pudo actualizar.'}`)
+    });
+  }
+
+  borrarSector(event: MouseEvent, sector: Carpeta): void {
+    event.stopPropagation();
+    if (confirm(`¿Estás seguro de que quieres eliminar el sector "${sector.nombre}"? Esto borrará todos sus sub-sectores e indiciados de forma permanente.`)) {
+      this.carpetaService.borrarCarpeta(sector.id).subscribe({
+        next: () => {
+          alert("Sector eliminado con éxito.");
+          if (this.router.url.includes(`/sector/${sector.id}`) || this.router.url.includes(`/subsector/`)) { // Simplificado
+            this.router.navigate(['/dashboard']);
+          }
+          this.loadCarpetasPadre();
+        },
+        error: err => alert(`Error: ${err.error?.msg || 'No se pudo eliminar.'}`)
+      });
+    }
   }
 
   onSearch(event: Event): void {

@@ -23,7 +23,9 @@ export class SectorViewComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadData();
+    this.route.paramMap.subscribe(() => {
+        this.loadData();
+    });
   }
 
   loadData(): void {
@@ -67,5 +69,34 @@ export class SectorViewComponent implements OnInit {
       },
       error: (err) => alert(`Error: ${err.error?.msg || 'No se pudo crear.'}`)
     });
+  }
+
+  editarSubSector(event: MouseEvent, subSector: Carpeta): void {
+    event.stopPropagation();
+    const nuevoNombre = prompt(`Editar nombre del sub-sector "${subSector.nombre}":`, subSector.nombre);
+    if (!nuevoNombre || nuevoNombre.trim() === '' || nuevoNombre.trim() === subSector.nombre) {
+      return;
+    }
+
+    this.carpetaService.actualizarCarpeta(subSector.id, nuevoNombre.trim()).subscribe({
+      next: () => {
+        alert("Sub-sector actualizado con éxito.");
+        this.loadData();
+      },
+      error: err => alert(`Error: ${err.error?.msg || 'No se pudo actualizar.'}`)
+    });
+  }
+
+  borrarSubSector(event: MouseEvent, subSector: Carpeta): void {
+    event.stopPropagation();
+    if (confirm(`¿Estás seguro de que quieres eliminar el sub-sector "${subSector.nombre}"? Esto borrará a todos los indiciados asociados de forma permanente.`)) {
+      this.carpetaService.borrarCarpeta(subSector.id).subscribe({
+        next: () => {
+          alert("Sub-sector eliminado con éxito.");
+          this.loadData();
+        },
+        error: err => alert(`Error: ${err.error?.msg || 'No se pudo eliminar.'}`)
+      });
+    }
   }
 }

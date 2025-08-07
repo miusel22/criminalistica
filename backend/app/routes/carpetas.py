@@ -5,6 +5,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 carpetas_bp = Blueprint('carpetas', __name__)
 
+# --- CREAR CARPETA (Sin cambios) ---
 @carpetas_bp.route('', methods=['POST'])
 @jwt_required()
 def crear_carpeta():
@@ -68,6 +69,43 @@ def obtener_carpeta_con_indiciados(id_carpeta):
         return jsonify({"msg": "Carpeta no encontrada o no pertenece al usuario"}), 404
 
     return jsonify(carpeta.to_dict(include_indiciados=True))
+
+@carpetas_bp.route('/<int:id_carpeta>', methods=['PUT'])
+@jwt_required()
+def actualizar_carpeta(id_carpeta):
+    current_username = get_jwt_identity()
+    user = User.query.filter_by(username=current_username).first_or_404()
+    
+    carpeta = Carpeta.query.filter_by(id=id_carpeta, user_id=user.id).first()
+    if not carpeta:
+        return jsonify({"msg": "Carpeta no encontrada o no pertenece al usuario"}), 404
+
+    data = request.get_json()
+    nuevo_nombre = data.get('nombre')
+
+    if not nuevo_nombre or not isinstance(nuevo_nombre, str) or nuevo_nombre.strip() == "":
+        return jsonify({"msg": "El campo 'nombre' es requerido y debe ser un texto no vacío"}), 400
+
+    nuevo_nombre = nuevo_nombre.strip()
+
+    query_conflicto = Carpeta.query.filter(
+        Carpeta.user_id == user.id,
+        Carpeta.parent_id == carpeta.parent_id,
+        Carpeta.nombre == nuevo_nombre,
+        Carpeta.id != id_carpeta
+    )
+    conflicto = query_conflicto.first()
+
+    if conflicto:
+        return jsonify({"msg": f"Ya existe una carpeta con el nombre '{nuevo_nombre}' en este nivel."}), 409
+
+    carpeta.nombre = nuevo_nombre
+    db.session.commit()
+
+    return jsonify({
+        "msg": "Carpeta actualizada exitosamente",
+        "carpeta": carpeta.to_dict()
+    }), 200
 
 @carpetas_bp.route('/<int:id_carpeta>', methods=['DELETE'])
 @jwt_required()
