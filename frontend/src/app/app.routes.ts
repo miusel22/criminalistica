@@ -7,6 +7,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { DashboardHomeComponent } from './components/dashboard/dashboard-home/dashboard-home.component';
 import { SectorViewComponent } from './components/dashboard/sector-view/sector-view.component';
 import { SubsectorViewComponent } from './components/dashboard/subsector-view/subsector-view.component';
+import { SearchResultsComponent } from './components/dashboard/search-results/search-results.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -19,6 +20,7 @@ export const routes: Routes = [
       { path: '', component: DashboardHomeComponent, pathMatch: 'full' },
       { path: 'sector/:id', component: SectorViewComponent },
       { path: 'subsector/:id', component: SubsectorViewComponent },
+      { path: 'search', component: SearchResultsComponent },
     ]
   },
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },

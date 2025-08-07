@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 from flask import request, jsonify, Blueprint, current_app
 from werkzeug.utils import secure_filename
+from sqlalchemy import or_
 from ..models import User, Carpeta, Indiciado
 from ..extensions import db
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -144,3 +145,28 @@ def borrar_indiciado(id_indiciado):
     db.session.delete(indiciado)
     db.session.commit()
     return jsonify({"msg": "Indiciado eliminado exitosamente"}), 200
+
+@indiciados_bp.route('/search', methods=['GET'])
+@jwt_required()
+def search_indiciados():
+    current_username = get_jwt_identity()
+    user = User.query.filter_by(username=current_username).first_or_404()
+    
+    query_term = request.args.get('q', '').strip()
+
+    if not query_term:
+        return jsonify([])
+
+    search_pattern = f"%{query_term}%"
+
+    search_results = db.session.query(Indiciado).join(Carpeta).filter(
+        Carpeta.user_id == user.id,
+        or_(
+            Indiciado.nombres.ilike(search_pattern),
+            Indiciado.apellidos.ilike(search_pattern),
+            Indiciado.alias.ilike(search_pattern),
+            Indiciado.cc.ilike(search_pattern)
+        )
+    ).all()
+
+    return jsonify([indiciado.to_dict() for indiciado in search_results]), 200

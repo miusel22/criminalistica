@@ -90,9 +90,14 @@ export class DashboardComponent implements OnInit {
   }
 
   onSearch(event: Event): void {
-    const query = (event.target as HTMLInputElement).value;
-    console.log('Buscando:', query);
-    
+    const input = event.target as HTMLInputElement;
+    const query = input.value.trim();
+
+    if (query) {
+      this.router.navigate(['/dashboard/search'], { queryParams: { q: query } });
+    } else {
+      this.router.navigate(['/dashboard']);
+    }
   }
 
   logout(): void {

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { Indiciado } from '../models/indiciado.model';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +23,11 @@ export class IndiciadoService {
 
   borrarIndiciado(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  searchIndiciados(query: string): Observable<Indiciado[]> {
+    const params = new HttpParams().set('q', query);
+    return this.http.get<Indiciado[]>(`${this.apiUrl}/search`, { params });
   }
 
   getFotoUrl(foto_filename: string | null | undefined): string | null {
