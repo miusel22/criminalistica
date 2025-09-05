@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Formulario Indiciado</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        form { background: #f5f5f5; padding: 20px; border-radius: 8px; }
+        input, textarea, button { width: 100%; margin: 10px 0; padding: 10px; font-size: 16px; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #0056b3; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🐛 Debug - Test Formulario Indiciado</h1>
+    
+    <div id="status" class="info">Listo para probar...</div>
+    
+    <form id="testForm">
+        <h3>Datos de Prueba para Actualización</h3>
+        
+        <label>ID del Indiciado:</label>
+        <input type="text" id="indiciadoId" value="689cabcee6b5b29216c77ef9" required>
+        
+        <label>Nombre:</label>
+        <input type="text" id="nombre" value="Maria Camila Test" required>
+        
+        <label>Apellidos:</label>
+        <input type="text" id="apellidos" value="Velez Bedoya Test" required>
+        
+        <label>Estatura:</label>
+        <input type="text" id="estatura" value="1.70m">
+        
+        <label>Peso:</label>
+        <input type="text" id="peso" value="65kg">
+        
+        <label>Contextura Física:</label>
+        <input type="text" id="contexturaFisica" value="Delgada">
+        
+        <label>Color de Piel:</label>
+        <input type="text" id="colorPiel" value="Morena Clara">
+        
+        <label>Color de Ojos:</label>
+        <input type="text" id="colorOjos" value="Café">
+        
+        <label>Color de Cabello:</label>
+        <input type="text" id="colorCabello" value="Castaño">
+        
+        <label>Marcas Especiales:</label>
+        <textarea id="marcasEspeciales">Cicatriz en la rodilla izquierda</textarea>
+        
+        <button type="submit">🔄 Actualizar Indiciado</button>
+    </form>
+    
+    <div id="response" style="margin-top: 20px;"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api';
+        
+        let authToken = null;
+
+        // Función para hacer login automático
+        async function login() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin@criminalistica.com',
+                        password: 'admin123'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.access_token;
+                    document.getElementById('status').innerHTML = '<span class="success">✅ Login exitoso</span>';
+                    return true;
+                } else {
+                    const error = await response.json();
+                    document.getElementById('status').innerHTML = `<span class="error">❌ Error de login: ${error.message}</span>`;
+                    return false;
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = `<span class="error">❌ Error de conexión: ${error.message}</span>`;
+                return false;
+            }
+        }
+
+        // Función para actualizar indiciado
+        async function updateIndiciado(formData) {
+            try {
+                const indiciadoId = document.getElementById('indiciadoId').value;
+                
+                const response = await fetch(`${API_BASE}/indiciados/${indiciadoId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+
+                const responseData = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('response').innerHTML = `
+                        <div class="success">
+                            <h3>✅ Actualización Exitosa!</h3>
+                            <pre>${JSON.stringify(responseData, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('response').innerHTML = `
+                        <div class="error">
+                            <h3>❌ Error en Actualización</h3>
+                            <p>Status: ${response.status}</p>
+                            <pre>${JSON.stringify(responseData, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+                
+                return response.ok;
+            } catch (error) {
+                document.getElementById('response').innerHTML = `
+                    <div class="error">
+                        <h3>❌ Error de Conexión</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                return false;
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('testForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            document.getElementById('status').innerHTML = '<span class="info">🔄 Procesando...</span>';
+            
+            // Login si no tenemos token
+            if (!authToken) {
+                const loginSuccess = await login();
+                if (!loginSuccess) return;
+            }
+            
+            // Preparar FormData
+            const formData = new FormData();
+            
+            // Campos básicos
+            formData.append('nombre', document.getElementById('nombre').value);
+            formData.append('apellidos', document.getElementById('apellidos').value);
+            
+            // Señales físicas como JSON
+            const senalesFisicas = {
+                estatura: document.getElementById('estatura').value,
+                peso: document.getElementById('peso').value,
+                contexturaFisica: document.getElementById('contexturaFisica').value,
+                colorPiel: document.getElementById('colorPiel').value,
+                colorOjos: document.getElementById('colorOjos').value,
+                colorCabello: document.getElementById('colorCabello').value,
+                marcasEspeciales: document.getElementById('marcasEspeciales').value
+            };
+            
+            formData.append('senalesFisicas', JSON.stringify(senalesFisicas));
+            
+            console.log('📤 Enviando datos:', {
+                nombre: document.getElementById('nombre').value,
+                apellidos: document.getElementById('apellidos').value,
+                senalesFisicas: senalesFisicas
+            });
+            
+            // Enviar actualización
+            const success = await updateIndiciado(formData);
+            
+            if (success) {
+                document.getElementById('status').innerHTML = '<span class="success">✅ ¡Actualización completada!</span>';
+            } else {
+                document.getElementById('status').innerHTML = '<span class="error">❌ Error en la actualización</span>';
+            }
+        });
+
+        // Login automático al cargar la página
+        login();
+    </script>
+</body>
+</html>

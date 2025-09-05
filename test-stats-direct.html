@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Estadísticas Directo</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Test Estadísticas Directo</h1>
+    <div id="results"></div>
+
+    <script>
+        // Configurar axios igual que en el frontend
+        axios.defaults.baseURL = 'http://localhost:5004/api';
+        
+        // Token de desarrollo
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEwOGM3NmFkLWQ0MmEtNGJiZS1iNjAxLTY1MThmNzYxZTE1NyIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sZSI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbl8xNzU2MTQ5NjQzMTIwIiwiaWF0IjoxNzU2MTU1MjYyLCJleHAiOjE3NTY3NjAwNjJ9.d20Ii8-LnYfgmqm7r-Sd78t_XKH8vUqQVY5HhsrKaIM';
+        
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+        async function testSubsectores() {
+            console.log('🔍 Probando subsectores específicamente...');
+            
+            try {
+                const subsectoresResponse = await axios.get('/subsectores');
+                const subsectoresData = subsectoresResponse.data;
+                
+                console.log('📊 Respuesta completa de subsectores:', subsectoresData);
+                console.log('📊 Tipo de subsectoresData:', typeof subsectoresData);
+                console.log('📊 subsectoresData?.subsectores:', subsectoresData?.subsectores);
+                console.log('📊 subsectoresData?.subsectores?.length:', subsectoresData?.subsectores?.length);
+                console.log('📊 subsectoresData?.length:', subsectoresData?.length);
+                
+                // Pruebas manuales de interpretación
+                let count1 = subsectoresData?.subsectores?.length || 0;
+                let count2 = subsectoresData?.length || 0;
+                let count3 = Array.isArray(subsectoresData?.subsectores) ? subsectoresData.subsectores.length : 0;
+                
+                console.log('📊 Diferentes formas de contar:', {
+                    'subsectoresData?.subsectores?.length || 0': count1,
+                    'subsectoresData?.length || 0': count2,
+                    'Array.isArray check': count3
+                });
+                
+                document.getElementById('results').innerHTML = `
+                    <h2>Resultados de Subsectores:</h2>
+                    <p><strong>Respuesta completa:</strong> ${JSON.stringify(subsectoresData, null, 2)}</p>
+                    <p><strong>Tipo:</strong> ${typeof subsectoresData}</p>
+                    <p><strong>subsectoresData?.subsectores?.length:</strong> ${subsectoresData?.subsectores?.length}</p>
+                    <p><strong>subsectoresData?.length:</strong> ${subsectoresData?.length}</p>
+                    <p><strong>Conteo manual 1:</strong> ${count1}</p>
+                    <p><strong>Conteo manual 2:</strong> ${count2}</p>
+                    <p><strong>Conteo manual 3:</strong> ${count3}</p>
+                `;
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                document.getElementById('results').innerHTML = `<h2>❌ Error:</h2><pre>${error.message}</pre>`;
+            }
+        }
+
+        // Ejecutar automáticamente
+        window.onload = function() {
+            testSubsectores();
+        };
+    </script>
+</body>
+</html>

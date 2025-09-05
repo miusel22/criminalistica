@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API Frontend</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Test API desde Frontend</h1>
+    <button onclick="testStats()">Probar Estadísticas</button>
+    <button onclick="testIndividual()">Probar Endpoints Individuales</button>
+    <div id="results"></div>
+
+    <script>
+        // Configurar axios igual que en el frontend
+        axios.defaults.baseURL = 'http://localhost:5004/api';
+        
+        // Token de desarrollo
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEwOGM3NmFkLWQ0MmEtNGJiZS1iNjAxLTY1MThmNzYxZTE1NyIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sZSI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbl8xNzU2MTQ5NjQzMTIwIiwiaWF0IjoxNzU2MTU1MjYyLCJleHAiOjE3NTY3NjAwNjJ9.d20Ii8-LnYfgmqm7r-Sd78t_XKH8vUqQVY5HhsrKaIM';
+        
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+        async function testStats() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>Probando estadísticas...</h2>';
+            
+            try {
+                // Probar endpoints individuales
+                const [sectores, subsectores, indiciados, vehiculos] = await Promise.all([
+                    axios.get('/sectores'),
+                    axios.get('/subsectores'),
+                    axios.get('/indiciados'),
+                    axios.get('/vehiculos')
+                ]);
+
+                const stats = {
+                    sectores: sectores.data?.sectores?.length || sectores.data?.length || 0,
+                    subsectores: subsectores.data?.subsectores?.length || subsectores.data?.length || 0,
+                    indiciados: indiciados.data?.indiciados?.length || indiciados.data?.length || 0,
+                    vehiculos: vehiculos.data?.length || 0
+                };
+
+                resultsDiv.innerHTML = `
+                    <h2>✅ Estadísticas obtenidas correctamente:</h2>
+                    <ul>
+                        <li><strong>Sectores:</strong> ${stats.sectores}</li>
+                        <li><strong>Subsectores:</strong> ${stats.subsectores}</li>
+                        <li><strong>Indiciados:</strong> ${stats.indiciados}</li>
+                        <li><strong>Vehículos:</strong> ${stats.vehiculos}</li>
+                        <li><strong>Total:</strong> ${stats.sectores + stats.subsectores + stats.indiciados + stats.vehiculos}</li>
+                    </ul>
+                `;
+                
+                console.log('Stats:', stats);
+                console.log('Raw responses:', { sectores: sectores.data, subsectores: subsectores.data, indiciados: indiciados.data, vehiculos: vehiculos.data });
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<h2>❌ Error:</h2><pre>${error.message}</pre>`;
+                console.error('Error:', error);
+            }
+        }
+
+        async function testIndividual() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>Probando endpoints individuales...</h2>';
+            
+            const endpoints = [
+                { name: 'Sectores', url: '/sectores' },
+                { name: 'Subsectores', url: '/subsectores' },
+                { name: 'Indiciados', url: '/indiciados' },
+                { name: 'Vehículos', url: '/vehiculos' }
+            ];
+
+            let html = '<h2>Resultados:</h2>';
+
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await axios.get(endpoint.url);
+                    const count = response.data?.length || response.data?.sectores?.length || response.data?.subsectores?.length || response.data?.indiciados?.length || 0;
+                    html += `<p>✅ <strong>${endpoint.name}:</strong> ${count} elementos</p>`;
+                    console.log(`${endpoint.name}:`, response.data);
+                } catch (error) {
+                    html += `<p>❌ <strong>${endpoint.name}:</strong> Error - ${error.message}</p>`;
+                    console.error(`Error en ${endpoint.name}:`, error);
+                }
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Ejecutar automáticamente al cargar la página
+        window.onload = function() {
+            testStats();
+        };
+    </script>
+</body>
+</html>

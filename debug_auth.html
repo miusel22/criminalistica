@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Sistema de Autenticación</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f6fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .info-card {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #3498db;
+        }
+        .error-card {
+            background: #fdedec;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #e74c3c;
+        }
+        .success-card {
+            background: #eafaf1;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #27ae60;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .danger-btn {
+            background: #e74c3c;
+        }
+        .danger-btn:hover {
+            background: #c0392b;
+        }
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug del Sistema de Autenticación</h1>
+        <p>Esta página te ayuda a diagnosticar problemas con la autenticación y permisos en el sistema.</p>
+        
+        <div id="results"></div>
+        
+        <h2>🛠️ Acciones de Debug</h2>
+        <button onclick="checkAuthStatus()">📊 Verificar Estado de Autenticación</button>
+        <button onclick="clearStorage()">🧹 Limpiar Storage</button>
+        <button onclick="setDevUser()">👨‍💻 Configurar Usuario de Desarrollo</button>
+        <button onclick="testUserService()">🔧 Probar UserService</button>
+        <button class="danger-btn" onclick="clearAll()">🗑️ Limpiar Todo</button>
+    </div>
+
+    <div class="container">
+        <h2>📋 Logs en Tiempo Real</h2>
+        <div id="logs"></div>
+        <button onclick="clearLogs()">🧽 Limpiar Logs</button>
+    </div>
+
+    <script>
+        let logCount = 0;
+        
+        function log(message, type = 'info') {
+            logCount++;
+            const timestamp = new Date().toLocaleTimeString();
+            const logsDiv = document.getElementById('logs');
+            const logClass = type === 'error' ? 'error-card' : type === 'success' ? 'success-card' : 'info-card';
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = logClass;
+            logEntry.innerHTML = `<strong>[${logCount}] ${timestamp}</strong><br>${message}`;
+            
+            logsDiv.insertBefore(logEntry, logsDiv.firstChild);
+            
+            // Mantener solo los últimos 50 logs
+            if (logsDiv.children.length > 50) {
+                logsDiv.removeChild(logsDiv.lastChild);
+            }
+        }
+        
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+            logCount = 0;
+            log('✅ Logs limpiados', 'success');
+        }
+        
+        function checkAuthStatus() {
+            log('🔍 Verificando estado de autenticación...', 'info');
+            const results = document.getElementById('results');
+            
+            try {
+                // 1. Verificar localStorage
+                const token = localStorage.getItem('access_token');
+                const userLocalStorage = localStorage.getItem('user');
+                
+                // 2. Verificar sessionStorage
+                const userSessionStorage = sessionStorage.getItem('user');
+                
+                let html = '<h2>📊 Estado Actual del Sistema</h2>';
+                
+                // Token
+                html += '<div class="' + (token ? 'success-card' : 'error-card') + '">';
+                html += '<h3>🔑 Token de Acceso</h3>';
+                if (token) {
+                    html += `<p>✅ Token presente: <code>${token.substring(0, 50)}...</code></p>`;
+                    
+                    // Decodificar JWT
+                    try {
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        html += '<h4>Datos del Token:</h4>';
+                        html += `<pre>${JSON.stringify(payload, null, 2)}</pre>`;
+                        log(`🔓 Token JWT decodificado: ${payload.email} (${payload.role})`, 'success');
+                    } catch (e) {
+                        html += '<p>⚠️ Error al decodificar token JWT</p>';
+                        log('❌ Error al decodificar token JWT: ' + e.message, 'error');
+                    }
+                } else {
+                    html += '<p>❌ No hay token de acceso</p>';
+                    log('❌ No se encontró token de acceso', 'error');
+                }
+                html += '</div>';
+                
+                // Usuario en localStorage
+                html += '<div class="' + (userLocalStorage ? 'success-card' : 'error-card') + '">';
+                html += '<h3>👤 Usuario en localStorage</h3>';
+                if (userLocalStorage) {
+                    try {
+                        const user = JSON.parse(userLocalStorage);
+                        html += '<h4>Datos del Usuario:</h4>';
+                        html += `<pre>${JSON.stringify(user, null, 2)}</pre>`;
+                        html += `<p>🔒 Es Admin: <strong>${user.role === 'admin' ? 'SÍ' : 'NO'}</strong></p>`;
+                        log(`👤 Usuario en localStorage: ${user.email} (${user.role})`, 'success');
+                    } catch (e) {
+                        html += '<p>⚠️ Error al parsear usuario de localStorage</p>';
+                        log('❌ Error al parsear usuario de localStorage: ' + e.message, 'error');
+                    }
+                } else {
+                    html += '<p>❌ No hay usuario en localStorage</p>';
+                    log('❌ No se encontró usuario en localStorage', 'error');
+                }
+                html += '</div>';
+                
+                // Usuario en sessionStorage
+                html += '<div class="' + (userSessionStorage ? 'success-card' : 'error-card') + '">';
+                html += '<h3>🗂️ Usuario en sessionStorage</h3>';
+                if (userSessionStorage) {
+                    try {
+                        const user = JSON.parse(userSessionStorage);
+                        html += '<h4>Datos del Usuario:</h4>';
+                        html += `<pre>${JSON.stringify(user, null, 2)}</pre>`;
+                        html += `<p>🔒 Es Admin: <strong>${user.role === 'admin' ? 'SÍ' : 'NO'}</strong></p>`;
+                        log(`🗂️ Usuario en sessionStorage: ${user.email} (${user.role})`, 'success');
+                    } catch (e) {
+                        html += '<p>⚠️ Error al parsear usuario de sessionStorage</p>';
+                        log('❌ Error al parsear usuario de sessionStorage: ' + e.message, 'error');
+                    }
+                } else {
+                    html += '<p>❌ No hay usuario en sessionStorage</p>';
+                    log('❌ No se encontró usuario en sessionStorage', 'error');
+                }
+                html += '</div>';
+                
+                results.innerHTML = html;
+                log('✅ Verificación de estado completada', 'success');
+                
+            } catch (error) {
+                log('❌ Error general en verificación: ' + error.message, 'error');
+                results.innerHTML = '<div class="error-card"><h3>❌ Error</h3><p>' + error.message + '</p></div>';
+            }
+        }
+        
+        function clearStorage() {
+            try {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('user');
+                sessionStorage.removeItem('user');
+                log('🧹 Storage limpiado exitosamente', 'success');
+                checkAuthStatus();
+            } catch (error) {
+                log('❌ Error limpiando storage: ' + error.message, 'error');
+            }
+        }
+        
+        function setDevUser() {
+            try {
+                const devToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEwOGM3NmFkLWQ0MmEtNGJiZS1iNjAxLTY1MThmNzYxZTE1NyIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sZSI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbl8xNzU2MTQ5NjQzMTIwIiwiaWF0IjoxNzU2MTU1MjYyLCJleHAiOjE3NTY3NjAwNjJ9.d20Ii8-LnYfgmqm7r-Sd78t_XKH8vUqQVY5HhsrKaIM';
+                
+                const devUser = {
+                    _id: '108c76ad-d42a-4bbe-b601-6518f761e157',
+                    email: 'admin@admin.com',
+                    role: 'admin',
+                    nombre: 'Admin',
+                    apellidos: 'Desarrollo',
+                    isActive: true,
+                    username: 'admin_1756149643120'
+                };
+                
+                localStorage.setItem('access_token', devToken);
+                localStorage.setItem('user', JSON.stringify(devUser));
+                sessionStorage.setItem('user', JSON.stringify(devUser));
+                
+                log('👨‍💻 Usuario de desarrollo configurado exitosamente', 'success');
+                checkAuthStatus();
+            } catch (error) {
+                log('❌ Error configurando usuario de desarrollo: ' + error.message, 'error');
+            }
+        }
+        
+        function testUserService() {
+            log('🔧 Simulando verificaciones de UserService...', 'info');
+            
+            try {
+                // Simular isCurrentUserAdmin()
+                let isAdmin = false;
+                
+                // Método 1: localStorage
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    try {
+                        const user = JSON.parse(userStr);
+                        log(`📋 Método 1 (localStorage): ${user.email} - Rol: ${user.role}`, user.role === 'admin' ? 'success' : 'info');
+                        if (user.role === 'admin') {
+                            isAdmin = true;
+                        }
+                    } catch (parseError) {
+                        log('❌ Error parseando usuario de localStorage: ' + parseError.message, 'error');
+                    }
+                }
+                
+                // Método 2: sessionStorage
+                const sessionUserStr = sessionStorage.getItem('user');
+                if (sessionUserStr) {
+                    try {
+                        const user = JSON.parse(sessionUserStr);
+                        log(`📋 Método 2 (sessionStorage): ${user.email} - Rol: ${user.role}`, user.role === 'admin' ? 'success' : 'info');
+                        if (user.role === 'admin') {
+                            isAdmin = true;
+                        }
+                    } catch (parseError) {
+                        log('❌ Error parseando usuario de sessionStorage: ' + parseError.message, 'error');
+                    }
+                }
+                
+                // Método 3: JWT Token
+                const token = localStorage.getItem('access_token');
+                if (token && token !== 'temp-development-token') {
+                    try {
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        log(`📋 Método 3 (JWT Token): ${payload.email} - Rol: ${payload.role}`, payload.role === 'admin' ? 'success' : 'info');
+                        if (payload.role === 'admin') {
+                            isAdmin = true;
+                        }
+                    } catch (tokenError) {
+                        log('❌ Error decodificando token JWT: ' + tokenError.message, 'error');
+                    }
+                }
+                
+                log(`🔒 Resultado final: Es Admin = ${isAdmin ? 'SÍ' : 'NO'}`, isAdmin ? 'success' : 'error');
+                
+                if (isAdmin) {
+                    log('✅ El usuario DEBERÍA tener acceso a la gestión de usuarios', 'success');
+                } else {
+                    log('❌ El usuario NO debería tener acceso a la gestión de usuarios', 'error');
+                }
+                
+            } catch (error) {
+                log('❌ Error en test de UserService: ' + error.message, 'error');
+            }
+        }
+        
+        function clearAll() {
+            if (confirm('¿Estás seguro de que quieres limpiar todo el storage y recargar la página?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                log('🗑️ Todo el storage limpiado - Recargando página...', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        }
+        
+        // Verificar estado al cargar
+        window.addEventListener('load', () => {
+            log('🚀 Página de debug cargada', 'info');
+            checkAuthStatus();
+        });
+    </script>
+</body>
+</html>
