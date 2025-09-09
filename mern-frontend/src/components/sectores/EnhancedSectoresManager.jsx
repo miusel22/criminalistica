@@ -39,6 +39,14 @@ import SectoresService from '../../services/sectoresService';
 import { IndiciadoService } from '../../services/indiciadoService';
 import { VehiculoService } from '../../services/vehiculoService';
 
+// Custom confirmation modals
+import { 
+  useDeleteSectorConfirmation, 
+  useDeleteSubsectorConfirmation, 
+  useDeleteIndiciadoConfirmation, 
+  useDeleteVehiculoConfirmation 
+} from '../../hooks/useCustomConfirmation';
+
 // Components
 import { IndiciadoForm } from '../IndiciadoForm';
 import VehiculoForm from '../vehiculos/VehiculoForm';
@@ -604,6 +612,12 @@ const EnhancedSectoresManager = () => {
   const [showIndiciadoForm, setShowIndiciadoForm] = useState(false);
   const [showVehiculoForm, setShowVehiculoForm] = useState(false);
 
+  // Custom confirmation hooks
+  const { confirmDeleteSector, ConfirmationComponent: SectorDeleteConfirmation } = useDeleteSectorConfirmation();
+  const { confirmDeleteSubsector, ConfirmationComponent: SubsectorDeleteConfirmation } = useDeleteSubsectorConfirmation();
+  const { confirmDeleteIndiciado, ConfirmationComponent: IndiciadoDeleteConfirmation } = useDeleteIndiciadoConfirmation();
+  const { confirmDeleteVehiculo, ConfirmationComponent: VehiculoDeleteConfirmation } = useDeleteVehiculoConfirmation();
+
   // Effects
   useEffect(() => {
     loadHierarchy();
@@ -786,31 +800,110 @@ const EnhancedSectoresManager = () => {
   };
 
   const handleDelete = async (item) => {
-    if (!window.confirm(`¿Está seguro de eliminar este ${item.type}?`)) {
-      return;
-    }
-
+    console.log('🗑️ === INICIANDO ELIMINACIÓN ===');
+    console.log('🗑️ Item a eliminar:', item);
+    
+    let confirmed = false;
+    
     try {
       switch (item.type) {
-        case 'sector':
-          await SectoresService.deleteSector(item.id);
+        case 'sector': {
+          console.log('🏢 Eliminando sector:', item);
+          
+          // Contar elementos en el sector
+          const subsectorsCount = item.subsectores?.length || 0;
+          const indiciadosCount = item.subsectores?.reduce((acc, sub) => acc + (sub.indiciados?.length || 0), 0) || 0;
+          const vehiculosCount = item.subsectores?.reduce((acc, sub) => acc + (sub.vehiculos?.length || 0), 0) || 0;
+          
+          console.log('📊 Conteos:', { subsectorsCount, indiciadosCount, vehiculosCount });
+          console.log('🔄 Mostrando modal de confirmación...');
+          
+          confirmed = await confirmDeleteSector(item, subsectorsCount, indiciadosCount, vehiculosCount);
+          console.log('✅ Confirmación recibida:', confirmed);
+          
+          if (confirmed) {
+            // Verificar qué campo de ID usar (compatibilidad MongoDB/_id y PostgreSQL/id)
+            const sectorId = item.id || item._id;
+            console.log('🔄 Llamando a SectoresService.deleteSector con ID:', sectorId);
+            console.log('🔍 Verificando item completo:', JSON.stringify(item, null, 2));
+            
+            if (!sectorId) {
+              throw new Error('No se encontró ID válido para el sector');
+            }
+            
+            await SectoresService.deleteSector(sectorId);
+            console.log('✅ Sector eliminado exitosamente del backend');
+          } else {
+            console.log('❌ Eliminación cancelada por el usuario');
+          }
           break;
-        case 'subsector':
-          await SectoresService.deleteSubsector(item.id);
+        }
+        case 'subsector': {
+          console.log('🏢 Eliminando subsector:', item);
+          
+          // Contar elementos en el subsector
+          const indiciadosCount = item.indiciados?.length || 0;
+          const vehiculosCount = item.vehiculos?.length || 0;
+          
+          confirmed = await confirmDeleteSubsector(item, indiciadosCount, vehiculosCount);
+          if (confirmed) {
+            const subsectorId = item.id || item._id;
+            console.log('🔄 Llamando a SectoresService.deleteSubsector con ID:', subsectorId);
+            await SectoresService.deleteSubsector(subsectorId);
+          }
           break;
+        }
         case 'indiciado':
-          await IndiciadoService.eliminar(item.id);
+          console.log('👤 Eliminando indiciado:', item);
+          confirmed = await confirmDeleteIndiciado(item);
+          if (confirmed) {
+            const indiciadoId = item.id || item._id;
+            console.log('🔄 Llamando a IndiciadoService.eliminar con ID:', indiciadoId);
+            await IndiciadoService.eliminar(indiciadoId);
+          }
           break;
         case 'vehiculo':
-          await VehiculoService.eliminar(item.id);
+          console.log('🚗 Eliminando vehículo:', item);
+          confirmed = await confirmDeleteVehiculo(item);
+          if (confirmed) {
+            const vehiculoId = item.id || item._id;
+            console.log('🔄 Llamando a VehiculoService.eliminar con ID:', vehiculoId);
+            await VehiculoService.eliminar(vehiculoId);
+          }
           break;
+        default:
+          console.warn('Tipo de elemento no reconocido:', item.type);
+          return;
       }
       
-      toast.success(`${item.type} eliminado exitosamente`);
-      loadHierarchy();
+      if (confirmed) {
+        console.log('🚀 Mostrando mensaje de éxito y recargando jerarquía...');
+        const elementType = item.type === 'sector' ? 'Sector' : 
+                           item.type === 'subsector' ? 'Subsector' : 
+                           item.type === 'indiciado' ? 'Indiciado' : 
+                           item.type === 'vehiculo' ? 'Vehículo' : 'Elemento';
+        
+        toast.success(`${elementType} eliminado exitosamente`);
+        
+        console.log('🔄 Recargando jerarquía...');
+        await loadHierarchy();
+        console.log('✅ Jerarquía recargada');
+      }
     } catch (error) {
-      toast.error('Error al eliminar el elemento');
-      console.error(error);
+      console.error('❌ ERROR ELIMINANDO ELEMENTO:', {
+        error: error,
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      
+      const errorMsg = error.response?.data?.msg || 
+                      error.response?.data?.message || 
+                      error.message || 
+                      'Error desconocido';
+      
+      toast.error(`Error al eliminar el elemento: ${errorMsg}`);
     }
   };
 
@@ -1623,6 +1716,12 @@ const EnhancedSectoresManager = () => {
           readOnly={modalType === 'view-vehiculo'}
         />
       )}
+      
+      {/* Custom Confirmation Modals */}
+      <SectorDeleteConfirmation />
+      <SubsectorDeleteConfirmation />
+      <IndiciadoDeleteConfirmation />
+      <VehiculoDeleteConfirmation />
     </Container>
   );
 };

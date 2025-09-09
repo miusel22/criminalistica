@@ -8,6 +8,7 @@ interface UserFormProps {
   onSuccess: () => void;
   onCancel: () => void;
   loading?: boolean;
+  confirmUpdate?: (user: UserType | null, changes: any) => Promise<boolean>;
 }
 
 const Overlay = styled.div`
@@ -210,7 +211,8 @@ const UserForm: React.FC<UserFormProps> = ({
   user,
   onSuccess,
   onCancel,
-  loading = false
+  loading,
+  confirmUpdate
 }) => {
   const [formData, setFormData] = useState<UserFormData>({
     nombre: '',
@@ -296,24 +298,32 @@ const UserForm: React.FC<UserFormProps> = ({
       return;
     }
 
+    // Preparar datos de actualización
+    const updateData: any = {
+      nombre: formData.nombre,
+      apellidos: formData.apellidos,
+      email: formData.email,
+      role: formData.role,
+      isActive: formData.isActive
+    };
+    
+    // Solo incluir contraseña si se proporciona
+    if (formData.password) {
+      updateData.password = formData.password;
+    }
+
+    // Solicitar confirmación si está disponible
+    if (confirmUpdate) {
+      const confirmed = await confirmUpdate(user || null, updateData);
+      if (!confirmed) {
+        return; // Usuario canceló
+      }
+    }
+
     setSubmitting(true);
     
     try {
       if (isEditing) {
-        // When editing, only send changed fields
-        const updateData: any = {
-          nombre: formData.nombre,
-          apellidos: formData.apellidos,
-          email: formData.email,
-          role: formData.role,
-          isActive: formData.isActive
-        };
-        
-        // Only include password if it's provided
-        if (formData.password) {
-          updateData.password = formData.password;
-        }
-        
         await UserService.updateUser(user!.id, updateData);
       } else {
         await UserService.createUser(formData);

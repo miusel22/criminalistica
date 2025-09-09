@@ -12,6 +12,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { IndiciadoDocumentosService, DocumentoIndiciado } from '../services/indiciadoDocumentosService';
+import { useCustomConfirmation } from '../hooks/useCustomConfirmation';
 import '../styles/DocumentosIndiciado.css';
 
 interface DocumentosIndiciadoProps {
@@ -39,6 +40,9 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const updateFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Custom confirmation hook
+  const { showConfirmation, ConfirmationComponent } = useCustomConfirmation();
 
   // Tipos de documentos disponibles
   const tiposDocumento = [
@@ -154,7 +158,22 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
     console.log('🗑️ Nombre del archivo:', nombreArchivo);
     console.log('🗑️ IndiciadoId:', indiciadoId);
     
-    if (!window.confirm(`¿Estás seguro de eliminar el documento "${nombreArchivo}"?`)) {
+    const confirmed = await showConfirmation({
+      title: 'Eliminar Documento',
+      message: '¿Estás completamente seguro de que deseas eliminar este documento?',
+      confirmText: 'Eliminar Documento',
+      cancelText: 'Cancelar',
+      variant: 'delete',
+      isDestructive: true,
+      userInfo: {
+        name: nombreArchivo,
+        email: 'Documento de indiciado',
+        role: 'documento'
+      },
+      warningMessage: 'Esta acción no se puede deshacer. El documento se eliminará permanentemente del sistema.'
+    });
+    
+    if (!confirmed) {
       console.log('❌ Eliminación cancelada por el usuario');
       return;
     }
@@ -826,7 +845,9 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
           </div>
         </div>
       )}
-
+      
+      {/* Custom Confirmation Modal */}
+      <ConfirmationComponent />
     </div>
   );
 };

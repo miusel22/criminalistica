@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { testConnection, User } = require('../models/sequelize');
+const { testConnection } = require('../config/database');
+const { User } = require('../models/sequelize');
 require('dotenv').config();
 
 async function createAdminUser() {

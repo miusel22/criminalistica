@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { UserService, User, UserStats } from '../services/userService';
+import { useDeleteUserConfirmation, useToggleUserStatusConfirmation, useUpdateUserConfirmation } from '../hooks/useCustomConfirmation';
 import UserForm from './UserForm';
 import UserStatsPanel from './UserStatsPanel';
 
@@ -315,6 +316,11 @@ const UserManagement: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
+  // Custom confirmation hooks
+  const { confirmDeleteUser, ConfirmationComponent: DeleteConfirmation } = useDeleteUserConfirmation();
+  const { confirmToggleUserStatus, ConfirmationComponent: ToggleStatusConfirmation } = useToggleUserStatusConfirmation();
+  const { confirmUpdateUser, ConfirmationComponent: UpdateConfirmation } = useUpdateUserConfirmation();
+
   const usersPerPage = 10;
 
   // Debug: verificar permisos al cargar el componente
@@ -384,10 +390,9 @@ const UserManagement: React.FC = () => {
   };
 
   const handleDeleteUser = async (user: User) => {
-    if (!window.confirm(
-      `¿Estás seguro de eliminar al usuario "${UserService.getFullName(user)}"?\n\n` +
-      `Esta acción no se puede deshacer.`
-    )) {
+    const confirmed = await confirmDeleteUser(user);
+    
+    if (!confirmed) {
       return;
     }
 
@@ -403,11 +408,9 @@ const UserManagement: React.FC = () => {
   };
 
   const handleToggleUserStatus = async (user: User) => {
-    const action = user.isActive ? 'desactivar' : 'activar';
+    const confirmed = await confirmToggleUserStatus(user);
     
-    if (!window.confirm(
-      `¿Estás seguro de ${action} al usuario "${UserService.getFullName(user)}"?`
-    )) {
+    if (!confirmed) {
       return;
     }
 
@@ -683,6 +686,11 @@ const UserManagement: React.FC = () => {
           loading={formLoading}
         />
       )}
+      
+      {/* Custom Confirmation Modals */}
+      <DeleteConfirmation />
+      <ToggleStatusConfirmation />
+      <UpdateConfirmation />
     </Container>
   );
 };

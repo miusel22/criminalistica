@@ -1,5 +1,5 @@
 const express = require('express');
-const { Sector, User } = require('../models/sequelize');
+const { Sector, User, Indiciado, Vehiculo } = require('../models/sequelize');
 const { Op } = require('sequelize');
 const authMiddleware = require('../middleware/auth');
 
@@ -291,32 +291,87 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       });
     }
 
-    // Verificar si tiene subsectores activos
-    const subsectores = await Sector.count({
+    // Obtener subsectores del sector para eliminación en cascada
+    const subsectores = await Sector.findAll({
       where: {
         parentId: sector.id,
         activo: true
       }
     });
 
-    if (subsectores > 0) {
-      return res.status(400).json({
-        error: `No se puede eliminar el sector porque tiene ${subsectores} subsectores activos`
-      });
-    }
+    console.log(`📊 Sector tiene ${subsectores.length} subsectores que serán eliminados en cascada`);
 
-    // TODO: Verificar si tiene indiciados o vehículos relacionados
-    // const indiciados = await Indiciado.count({ where: { subsectorId: sector.id } });
-    // const vehiculos = await Vehiculo.count({ where: { subsectorId: sector.id } });
+    // Variables para contar elementos eliminados
+    let totalIndiciados = 0;
+    let totalVehiculos = 0;
+
+    // Eliminar en cascada: indiciados, vehículos y subsectores (soft delete)
+    if (subsectores.length > 0) {
+      
+      // Eliminar indiciados y vehículos de cada subsector
+      for (const subsector of subsectores) {
+        // Eliminar indiciados del subsector
+        const indiciadosResult = await Indiciado.update(
+          { activo: false }, 
+          { 
+            where: { 
+              subsectorId: subsector.id, 
+              activo: true 
+            } 
+          }
+        );
+        totalIndiciados += indiciadosResult[0] || 0;
+        
+        // Eliminar vehículos del subsector
+        const vehiculosResult = await Vehiculo.update(
+          { activo: false }, 
+          { 
+            where: { 
+              subsectorId: subsector.id, 
+              activo: true 
+            } 
+          }
+        );
+        totalVehiculos += vehiculosResult[0] || 0;
+      }
+      
+      console.log(`📈 Eliminados: ${totalIndiciados} indiciados, ${totalVehiculos} vehículos`);
+      
+      // Eliminar subsectores (soft delete)
+      await Sector.update(
+        { activo: false },
+        {
+          where: {
+            parentId: sector.id,
+            activo: true
+          }
+        }
+      );
+      
+      console.log(`✅ Eliminación en cascada completada: ${subsectores.length} subsectores, ${totalIndiciados} indiciados, ${totalVehiculos} vehículos`);
+    }
     
-    // Soft delete - marcar como inactivo
+    // Eliminar el sector principal (soft delete)
     sector.activo = false;
     await sector.save();
     
     console.log('✅ Sector eliminado (soft delete):', sector.id);
 
+    // Preparar mensaje de respuesta con estadísticas
+    let message = 'Sector eliminado exitosamente';
+    if (subsectores.length > 0) {
+      message += ` junto con ${subsectores.length} subsectores`;
+      if (totalIndiciados > 0) message += `, ${totalIndiciados} indiciados`;
+      if (totalVehiculos > 0) message += `, ${totalVehiculos} vehículos`;
+    }
+
     res.json({
-      message: 'Sector eliminado exitosamente'
+      message,
+      eliminacionCascada: {
+        subsectores: subsectores.length,
+        indiciados: totalIndiciados,
+        vehiculos: totalVehiculos
+      }
     });
   } catch (error) {
     console.error('❌ Error eliminando sector:', error);

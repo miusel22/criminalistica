@@ -12,6 +12,7 @@ import {
   Car
 } from 'lucide-react';
 import { VehiculoDocumentosService, DocumentoVehiculo } from '../services/vehiculoDocumentosService';
+import { useCustomConfirmation } from '../hooks/useCustomConfirmation';
 import '../styles/DocumentosIndiciado.css'; // Reutilizar los mismos estilos
 
 interface DocumentosVehiculoProps {
@@ -41,6 +42,9 @@ export const DocumentosVehiculo: React.FC<DocumentosVehiculoProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const updateFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Custom confirmation hook
+  const { showConfirmation, ConfirmationComponent } = useCustomConfirmation();
 
   // Tipos de documentos disponibles para vehículos
   const tiposDocumento = [
@@ -169,7 +173,22 @@ export const DocumentosVehiculo: React.FC<DocumentosVehiculoProps> = ({
       return;
     }
     
-    if (!window.confirm(`¿Estás seguro de eliminar el documento "${nombreArchivo}"?`)) {
+    const confirmed = await showConfirmation({
+      title: 'Eliminar Documento',
+      message: '¿Estás completamente seguro de que deseas eliminar este documento del vehículo?',
+      confirmText: 'Eliminar Documento',
+      cancelText: 'Cancelar',
+      variant: 'delete',
+      isDestructive: true,
+      userInfo: {
+        name: nombreArchivo,
+        email: 'Documento de vehículo',
+        role: 'documento'
+      },
+      warningMessage: 'Esta acción no se puede deshacer. El documento se eliminará permanentemente del sistema.'
+    });
+    
+    if (!confirmed) {
       console.log('❌ Eliminación cancelada por el usuario');
       return;
     }
@@ -790,7 +809,9 @@ export const DocumentosVehiculo: React.FC<DocumentosVehiculoProps> = ({
           </div>
         </div>
       )}
-
+      
+      {/* Custom Confirmation Modal */}
+      <ConfirmationComponent />
     </div>
   );
 };
