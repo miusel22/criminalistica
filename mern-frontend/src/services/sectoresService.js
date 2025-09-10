@@ -37,8 +37,16 @@ class SectoresService {
 
   // Crear sector
   async createSector(data) {
-    const response = await axios.post(SECTORES_API, data);
-    return response.data;
+    try {
+      console.log('🆕 Creando sector:', data);
+      const response = await axios.post(SECTORES_API, data);
+      console.log('✅ Sector creado exitosamente:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error creando sector:', error);
+      // Re-lanzar el error para manejo en el componente
+      throw error;
+    }
   }
 
   // Obtener todos los sectores
@@ -80,8 +88,16 @@ class SectoresService {
 
   // Crear subsector
   async createSubsector(data) {
-    const response = await axios.post(SUBSECTORES_API, data);
-    return response.data;
+    try {
+      console.log('🆕 Creando subsector:', data);
+      const response = await axios.post(SUBSECTORES_API, data);
+      console.log('✅ Subsector creado exitosamente:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error creando subsector:', error);
+      // Re-lanzar el error para manejo en el componente
+      throw error;
+    }
   }
 
   // Obtener todos los subsectores

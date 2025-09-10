@@ -31,15 +31,21 @@ class SectoresService {
   }
   
   static async crearSector(data: Partial<SectorData>): Promise<{ message: string; sector: SectorData }> {
-    console.log('🆕 Creando sector:', data);
-    const response = await axios.post('/sectores', {
-      nombre: data.nombre,
-      descripcion: data.descripcion || '',
-      codigo: data.codigo || '',
-      ubicacion: data.ubicacion || ''
-    });
-    console.log('✅ Sector creado:', response.data);
-    return response.data;
+    try {
+      console.log('🆕 Creando sector:', data);
+      const response = await axios.post('/sectores', {
+        nombre: data.nombre,
+        descripcion: data.descripcion || '',
+        codigo: data.codigo || '',
+        ubicacion: data.ubicacion || ''
+      });
+      console.log('✅ Sector creado:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error creando sector:', error);
+      // Re-lanzar el error para que sea manejado por el componente
+      throw error;
+    }
   }
   
   static async actualizarSector(id: string, data: Partial<SectorData>): Promise<{ message: string; sector: SectorData }> {
@@ -82,16 +88,22 @@ class SectoresService {
   }
   
   static async crearSubsector(data: Partial<SubsectorData>): Promise<{ message: string; subsector: SectorData }> {
-    console.log('🆕 Creando subsector:', data);
-    const response = await axios.post('/subsectores', {
-      nombre: data.nombre,
-      descripcion: data.descripcion || '',
-      codigo: data.codigo || '',
-      ubicacion: data.ubicacion || '',
-      parentId: data.parentId
-    });
-    console.log('✅ Subsector creado:', response.data);
-    return response.data;
+    try {
+      console.log('🆕 Creando subsector:', data);
+      const response = await axios.post('/subsectores', {
+        nombre: data.nombre,
+        descripcion: data.descripcion || '',
+        codigo: data.codigo || '',
+        ubicacion: data.ubicacion || '',
+        parentId: data.parentId
+      });
+      console.log('✅ Subsector creado:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error creando subsector:', error);
+      // Re-lanzar el error para que sea manejado por el componente
+      throw error;
+    }
   }
   
   static async actualizarSubsector(id: string, data: Partial<SubsectorData>): Promise<{ message: string; subsector: SectorData }> {

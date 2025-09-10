@@ -59,28 +59,37 @@ function ThemedToaster() {
 
   return (
     <Toaster
-      position="top-right"
+      position="top-center"
       toastOptions={{
-        duration: 4000,
+        duration: 6000,
         style: {
-          background: currentTheme.colors.toastBg,
-          color: currentTheme.colors.toastText,
-          border: `1px solid ${currentTheme.colors.border}`,
+          background: '#ffffff',
+          color: '#333333',
+          border: '1px solid #e0e0e0',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          fontSize: '14px',
+          fontWeight: '500',
+          padding: '12px 16px',
+          minWidth: '300px',
+          maxWidth: '500px',
+          zIndex: 9999,
         },
         success: {
-          duration: 3000,
+          duration: 4000,
           style: {
-            background: currentTheme.colors.toastBg,
-            color: currentTheme.colors.toastText,
-            border: `1px solid ${currentTheme.colors.success}`,
+            background: '#f0f9ff',
+            color: '#0c4a6e',
+            border: '1px solid #0ea5e9',
           },
         },
         error: {
-          duration: 5000,
+          duration: 8000,
           style: {
-            background: currentTheme.colors.toastBg,
-            color: currentTheme.colors.toastText,
-            border: `1px solid ${currentTheme.colors.danger}`,
+            background: '#fef2f2',
+            color: '#991b1b',
+            border: '1px solid #ef4444',
+            fontWeight: '600',
           },
         },
       }}

@@ -1,5 +1,5 @@
 const express = require('express');
-const { Sector, User } = require('../models/sequelize');
+const { Sector, User, Indiciado, Vehiculo } = require('../models/sequelize');
 const { Op } = require('sequelize');
 const authMiddleware = require('../middleware/auth');
 
@@ -82,7 +82,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
 
     if (!subsector) {
       return res.status(404).json({
-        error: 'Subsector no encontrado'
+        msg: 'Subsector no encontrado'
       });
     }
 
@@ -121,13 +121,13 @@ router.post('/', authMiddleware, async (req, res) => {
 
     if (!nombre || nombre.trim() === '') {
       return res.status(400).json({
-        error: 'El nombre del subsector es requerido'
+        msg: 'El nombre del subsector es requerido'
       });
     }
 
     if (!parentId) {
       return res.status(400).json({
-        error: 'El sector padre es requerido'
+        msg: 'El sector padre es requerido'
       });
     }
 
@@ -141,7 +141,7 @@ router.post('/', authMiddleware, async (req, res) => {
     
     if (!sectorPadre) {
       return res.status(404).json({
-        error: 'Sector padre no encontrado'
+        msg: 'Sector padre no encontrado'
       });
     }
 
@@ -156,7 +156,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
     if (existingSubsector) {
       return res.status(409).json({
-        error: `Ya existe un subsector con el nombre '${nombre}' en este sector`
+        msg: `Ya existe un subsector con el nombre '${nombre}' en este sector`
       });
     }
 
@@ -170,7 +170,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
       if (existingCodigo) {
         return res.status(409).json({
-          error: `Ya existe un subsector con el código '${codigo}'`
+          msg: `Ya existe un subsector con el código '${codigo}'`
         });
       }
     }
@@ -314,7 +314,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /api/subsectores/:id - Eliminar subsector (soft delete)
+// DELETE /api/subsectores/:id - Eliminar subsector (ELIMINACIÓN REAL)
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     console.log('🗑️ Eliminando subsector:', req.params.id);
@@ -332,24 +332,30 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       });
     }
 
-    // TODO: Verificar si tiene indiciados o vehículos relacionados
-    // const indiciados = await Indiciado.count({ where: { subsectorId: subsector.id } });
-    // const vehiculos = await Vehiculo.count({ where: { subsectorId: subsector.id } });
+    // Eliminar indiciados y vehículos relacionados (ELIMINACIÓN REAL)
+    console.log('📈 Eliminando indiciados y vehículos del subsector...');
     
-    // if (indiciados > 0 || vehiculos > 0) {
-    //   return res.status(400).json({
-    //     error: `No se puede eliminar el subsector porque tiene ${indiciados} indiciados y ${vehiculos} vehículos relacionados`
-    //   });
-    // }
+    const indiciadosEliminados = await Indiciado.destroy({
+      where: { subsectorId: subsector.id }
+    });
     
-    // Soft delete - marcar como inactivo
-    subsector.activo = false;
-    await subsector.save();
+    const vehiculosEliminados = await Vehiculo.destroy({
+      where: { subsectorId: subsector.id }
+    });
     
-    console.log('✅ Subsector eliminado (soft delete):', subsector.id);
+    console.log(`📈 Eliminados: ${indiciadosEliminados} indiciados, ${vehiculosEliminados} vehículos`);
+    
+    // Eliminar el subsector (ELIMINACIÓN REAL)
+    await subsector.destroy();
+    
+    console.log('✅ Subsector eliminado permanentemente:', subsector.id);
 
     res.json({
-      message: 'Subsector eliminado exitosamente'
+      message: 'Subsector eliminado exitosamente',
+      eliminacionCascada: {
+        indiciados: indiciadosEliminados,
+        vehiculos: vehiculosEliminados
+      }
     });
   } catch (error) {
     console.error('❌ Error eliminando subsector:', error);

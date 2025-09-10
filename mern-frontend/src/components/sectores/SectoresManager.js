@@ -621,8 +621,41 @@ const SectoresManager = () => {
       setShowModal(false);
       loadHierarchy();
     } catch (error) {
-      toast.error('Error al guardar el elemento');
-      console.error(error);
+      console.error('Error al guardar elemento:', error);
+      
+      // Manejo específico de errores
+      let errorMessage = 'Error al guardar el elemento';
+      
+      if (error.response) {
+        // Error HTTP del servidor
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 409) {
+          // Error de conflicto (elemento ya existe)
+          errorMessage = data.error || data.message || 'Ya existe un elemento con ese nombre';
+        } else if (status === 400) {
+          // Error de validación
+          errorMessage = data.error || data.message || 'Datos de validación incorrectos';
+        } else if (status === 401) {
+          // No autorizado
+          errorMessage = 'No tiene permisos para realizar esta acción';
+        } else if (status === 500) {
+          // Error del servidor
+          errorMessage = 'Error interno del servidor. Intente nuevamente.';
+        } else {
+          // Otros errores HTTP
+          errorMessage = data.error || data.message || `Error del servidor (${status})`;
+        }
+      } else if (error.request) {
+        // Error de red/conexión
+        errorMessage = 'Error de conexión. Verifique su conexión a internet.';
+      } else {
+        // Error desconocido
+        errorMessage = error.message || 'Error desconocido';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setModalLoading(false);
     }

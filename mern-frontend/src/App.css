@@ -38,3 +38,30 @@ code {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Asegurar visibilidad de toasts */
+[data-react-hot-toast] {
+  z-index: 99999 !important;
+}
+
+.react-hot-toast {
+  z-index: 99999 !important;
+  position: fixed !important;
+}
+
+/* Toast específicamente para errores */
+[data-react-hot-toast] [role="alert"] {
+  max-width: 500px !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+  line-height: 1.4 !important;
+}
+
+/* Asegurar que modals no interfieran con toasts */
+.modal-overlay {
+  z-index: 1000;
+}
+
+.modal {
+  z-index: 1001;
+}

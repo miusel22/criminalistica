@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const { User } = require('../models/sequelize');
 
 /**
  * Middleware de permisos para el sistema de roles
@@ -95,25 +95,20 @@ const canAdmin = (req, res, next) => {
 };
 
 /**
- * Función helper para modificar queries para acceso global
- * Los viewers y editors pueden ver todos los registros, no solo los propios
+ * Función helper para construir consultas Sequelize con acceso global
+ * Los viewers, editors y admins pueden ver todos los registros
  */
 const buildGlobalQuery = (userRole, baseQuery = {}) => {
-  // Si es admin, puede ver todo sin restricciones adicionales
-  if (userRole === 'admin') {
-    return baseQuery;
+  // Para PostgreSQL/Sequelize, simplemente retornamos la consulta base
+  // ya que el control de acceso se maneja a nivel de middleware
+  if (['admin', 'editor', 'viewer'].includes(userRole)) {
+    return baseQuery; // Acceso global - sin filtrar por ownerId
   }
   
-  // Si es editor o viewer, puede ver todos los registros activos
-  // Removemos la restricción de ownerId para permitir acceso global
-  if (['editor', 'viewer'].includes(userRole)) {
-    return baseQuery; // Sin filtrar por ownerId
-  }
-  
-  // Fallback: si no es un rol reconocido, restringir a registros propios
+  // Fallback: si no es un rol reconocido, no permitir acceso
   return {
     ...baseQuery,
-    ownerId: null // Esto causará que no encuentre registros como medida de seguridad
+    id: null // Esto causará que no encuentre registros como medida de seguridad
   };
 };
 

@@ -39,6 +39,9 @@ import SectoresService from '../../services/sectoresService';
 import { IndiciadoService } from '../../services/indiciadoService';
 import { VehiculoService } from '../../services/vehiculoService';
 
+// Debug utilities
+import '../../utils/debugSectorError.js';
+
 // Custom confirmation modals
 import { 
   useDeleteSectorConfirmation, 
@@ -611,6 +614,20 @@ const EnhancedSectoresManager = () => {
   const [modalLoading, setModalLoading] = useState(false);
   const [showIndiciadoForm, setShowIndiciadoForm] = useState(false);
   const [showVehiculoForm, setShowVehiculoForm] = useState(false);
+  
+  // Estado para notificación personalizada
+  const [notification, setNotification] = useState(null);
+  
+  // Función para mostrar notificación personalizada
+  const showCustomNotification = (message, type = 'error', duration = 6000) => {
+    console.log('📢 Mostrando notificación personalizada:', { message, type });
+    setNotification({ message, type });
+    
+    // Auto-ocultar después del tiempo especificado
+    setTimeout(() => {
+      setNotification(null);
+    }, duration);
+  };
 
   // Custom confirmation hooks
   const { confirmDeleteSector, ConfirmationComponent: SectorDeleteConfirmation } = useDeleteSectorConfirmation();
@@ -883,7 +900,9 @@ const EnhancedSectoresManager = () => {
                            item.type === 'indiciado' ? 'Indiciado' : 
                            item.type === 'vehiculo' ? 'Vehículo' : 'Elemento';
         
-        toast.success(`${elementType} eliminado exitosamente`);
+        const successMessage = `${elementType} eliminado exitosamente`;
+        showCustomNotification(successMessage, 'success');
+        toast.success(successMessage);
         
         console.log('🔄 Recargando jerarquía...');
         await loadHierarchy();
@@ -903,7 +922,9 @@ const EnhancedSectoresManager = () => {
                       error.message || 
                       'Error desconocido';
       
-      toast.error(`Error al eliminar el elemento: ${errorMsg}`);
+      const fullErrorMessage = `Error al eliminar el elemento: ${errorMsg}`;
+      showCustomNotification(fullErrorMessage, 'error');
+      toast.error(fullErrorMessage);
     }
   };
 
@@ -1407,10 +1428,10 @@ const EnhancedSectoresManager = () => {
           <SidebarTitle>Acciones Rápidas</SidebarTitle>
           
           <QuickActions>
-            <QuickAction onClick={handleCreateSector}>
-              <Folder size={16} />
-              Nuevo Sector
-            </QuickAction>
+              <QuickAction onClick={handleCreateSector}>
+                <Folder size={16} />
+                Nuevo Sector
+              </QuickAction>
             
            {/* <QuickAction onClick={() => navigate('/dashboard/reports')}>
               <BarChart3 size={16} />
@@ -1607,11 +1628,14 @@ const EnhancedSectoresManager = () => {
                   await SectoresService.updateSubsector(editingItem.id, formData);
                   break;
               }
-              toast.success(`${editingItem.type} actualizado exitosamente`);
+              const successMessage = `${editingItem.type === 'sector' ? 'Sector' : 'Subsector'} actualizado exitosamente`;
+              showCustomNotification(successMessage, 'success');
+              toast.success(successMessage);
             } else {
               switch (modalType) {
                 case 'sector':
                   await SectoresService.createSector(formData);
+                  showCustomNotification('Sector creado exitosamente', 'success');
                   toast.success('Sector creado exitosamente');
                   break;
                 case 'subsector':
@@ -1622,6 +1646,7 @@ const EnhancedSectoresManager = () => {
                   };
                   console.log('🔄 Creando subsector con datos:', subsectorData);
                   await SectoresService.createSubsector(subsectorData);
+                  showCustomNotification('Subsector creado exitosamente', 'success');
                   toast.success('Subsector creado exitosamente');
                   break;
               }
@@ -1630,8 +1655,54 @@ const EnhancedSectoresManager = () => {
             setShowModal(false);
             loadHierarchy();
           } catch (error) {
-            toast.error('Error al guardar el elemento');
-            console.error(error);
+            console.error('❌ Error al guardar el elemento:', error);
+            console.log('🔍 Detalles completos del error:', {
+              message: error.message,
+              response: error.response,
+              status: error.response?.status,
+              data: error.response?.data,
+              fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
+            });
+            
+            // Extraer mensaje específico del error
+            let errorMessage = 'Error desconocido al guardar el elemento';
+            
+            if (error.response) {
+              const { status, data } = error.response;
+              console.log('📄 Procesando respuesta de error:', { status, data });
+              
+              switch (status) {
+                case 409:
+                  errorMessage = data.msg || data.message || 'Ya existe un elemento con ese nombre';
+                  console.log('⚠️ Error 409 detectado, mensaje:', errorMessage);
+                  break;
+                case 400:
+                  errorMessage = data.msg || data.message || 'Datos inválidos';
+                  break;
+                case 404:
+                  errorMessage = 'Elemento no encontrado';
+                  break;
+                case 500:
+                  errorMessage = 'Error interno del servidor';
+                  break;
+                default:
+                  errorMessage = data.msg || data.message || `Error ${status}: ${data.error || 'Error desconocido'}`;
+              }
+            } else if (error.message) {
+              errorMessage = error.message;
+            }
+            
+            console.log('🎆 Mostrando toast con mensaje:', errorMessage);
+            
+            // Mostrar notificación personalizada
+            showCustomNotification(errorMessage, 'error');
+            
+            // También intentar mostrar toast como respaldo
+            try {
+              toast.error(errorMessage);
+            } catch (toastError) {
+              console.error('❌ Error mostrando toast:', toastError);
+            }
           } finally {
             setModalLoading(false);
           }
@@ -1673,6 +1744,7 @@ const EnhancedSectoresManager = () => {
                 timestamp: new Date().toISOString()
               });
               
+              showCustomNotification(message, 'success');
               toast.success(message);
               setShowIndiciadoForm(false);
               setParentItem(null);
@@ -1705,6 +1777,7 @@ const EnhancedSectoresManager = () => {
             const message = modalType === 'edit-vehiculo' 
               ? 'Vehículo actualizado exitosamente' 
               : 'Vehículo creado exitosamente';
+            showCustomNotification(message, 'success');
             toast.success(message);
             setShowVehiculoForm(false);
             setParentItem(null);
@@ -1722,8 +1795,55 @@ const EnhancedSectoresManager = () => {
       <SubsectorDeleteConfirmation />
       <IndiciadoDeleteConfirmation />
       <VehiculoDeleteConfirmation />
+      
+      {/* Notificación Personalizada */}
+      {notification && (
+        <CustomNotification
+          type={notification.type}
+          onClick={() => setNotification(null)}
+        >
+          {notification.type === 'error' ? '❌' : '✅'} {notification.message}
+        </CustomNotification>
+      )}
     </Container>
   );
 };
+
+// Componente de Notificación Personalizada
+const CustomNotification = styled.div`
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: ${props => props.type === 'error' ? '#fee2e2' : '#ecfdf5'};
+  color: ${props => props.type === 'error' ? '#991b1b' : '#166534'};
+  border: 2px solid ${props => props.type === 'error' ? '#fca5a5' : '#86efac'};
+  border-radius: 12px;
+  padding: 16px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  z-index: 999999;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  animation: slideIn 0.3s ease-out;
+  cursor: pointer;
+  
+  @keyframes slideIn {
+    from {
+      transform: translateX(-50%) translateY(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  &:hover {
+    transform: translateX(-50%) scale(1.02);
+  }
+`;
 
 export default EnhancedSectoresManager;

@@ -10,7 +10,7 @@ require('dotenv').config();
 
 // Import routes
 const authRoutes = require('./routes/auth');
-const invitationRoutes = require('./routes/invitations');
+// const invitationRoutes = require('./routes/invitations');
 const carpetasRoutes = require('./routes/carpetas');
 const indiciadosRoutes = require('./routes/indiciados');
 const indiciadoDocumentosRoutes = require('./routes/indiciadoDocumentos');
@@ -97,7 +97,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/criminali
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/invitations', invitationRoutes);
+// app.use('/api/invitations', invitationRoutes);
 app.use('/api/carpetas', carpetasRoutes);
 app.use('/api/indiciados', indiciadosRoutes);
 app.use('/api/indiciados', indiciadoDocumentosRoutes); // Rutas de documentos de indiciados

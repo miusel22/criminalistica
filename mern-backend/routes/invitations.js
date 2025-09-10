@@ -1,7 +1,6 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
-const InvitationCode = require('../models/InvitationCode');
+const { User, InvitationCode } = require('../models/sequelize');
 const authMiddleware = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/roleAuth');
 const emailService = require('../services/emailService');

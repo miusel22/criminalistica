@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const { User } = require('../models/sequelize');
 
 /**
  * Middleware to check if user has required role
@@ -48,24 +48,17 @@ const requireRole = (requiredRoles) => {
 /**
  * Middleware specifically for admin access
  */
-const requireAdmin = requireRole(User.USER_ROLES.ADMIN);
+const requireAdmin = requireRole('admin');
 
 /**
  * Middleware for admin or editor access
  */
-const requireEditorOrAdmin = requireRole([
-  User.USER_ROLES.ADMIN,
-  User.USER_ROLES.EDITOR
-]);
+const requireEditorOrAdmin = requireRole(['admin', 'editor']);
 
 /**
  * Middleware that allows any authenticated user (all roles)
  */
-const requireAnyRole = requireRole([
-  User.USER_ROLES.ADMIN,
-  User.USER_ROLES.EDITOR,
-  User.USER_ROLES.VIEWER
-]);
+const requireAnyRole = requireRole(['admin', 'editor', 'viewer']);
 
 module.exports = {
   requireRole,

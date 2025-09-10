@@ -145,10 +145,15 @@ Sector.prototype.toDict = function() {
 };
 
 // Métodos estáticos
+// Obtiene jerarquía de sectores. Si se pasa ownerId, puede usarse para filtrar; si es null/undefined, devuelve global.
 Sector.getHierarchy = async function(ownerId, includeInactive = false) {
-  const whereClause = { ownerId, type: 'sector' };
+  const whereClause = { type: 'sector' };
   if (!includeInactive) {
     whereClause.activo = true;
+  }
+  // Solo filtrar por ownerId si viene definido de forma explícita
+  if (ownerId) {
+    whereClause.ownerId = ownerId;
   }
 
   const sectores = await this.findAll({
@@ -173,20 +178,25 @@ Sector.getHierarchy = async function(ownerId, includeInactive = false) {
   return sectores.map(sector => sector.toDict());
 };
 
+// Busca sectores de forma global si ownerId no se provee
 Sector.searchAll = async function(ownerId, searchTerm) {
   const searchRegex = `%${searchTerm}%`;
-  
+  const whereClause = {
+    activo: true,
+    [sequelize.Sequelize.Op.or]: [
+      { nombre: { [sequelize.Sequelize.Op.iLike]: searchRegex } },
+      { descripcion: { [sequelize.Sequelize.Op.iLike]: searchRegex } },
+      { codigo: { [sequelize.Sequelize.Op.iLike]: searchRegex } },
+      { ubicacion: { [sequelize.Sequelize.Op.iLike]: searchRegex } }
+    ]
+  };
+  // Solo limitar por ownerId si se envía de forma explícita
+  if (ownerId) {
+    whereClause.ownerId = ownerId;
+  }
+
   const results = await this.findAll({
-    where: {
-      ownerId,
-      activo: true,
-      [sequelize.Sequelize.Op.or]: [
-        { nombre: { [sequelize.Sequelize.Op.iLike]: searchRegex } },
-        { descripcion: { [sequelize.Sequelize.Op.iLike]: searchRegex } },
-        { codigo: { [sequelize.Sequelize.Op.iLike]: searchRegex } },
-        { ubicacion: { [sequelize.Sequelize.Op.iLike]: searchRegex } }
-      ]
-    },
+    where: whereClause,
     limit: 50
   });
 

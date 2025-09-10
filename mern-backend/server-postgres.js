@@ -14,13 +14,13 @@ const { testConnection, syncDatabase } = require('./models/sequelize');
 const authRoutes = require('./routes/auth');
 const invitationRoutes = require('./routes/invitations-postgres');
 const usersRoutes = require('./routes/users-postgres');
-const carpetasRoutes = require('./routes/carpetas');
+// const carpetasRoutes = require('./routes/carpetas'); // Temporalmente deshabilitado - usa MongoDB
 const indiciadosRoutes = require('./routes/indiciadosPostgres');
 const indiciadoDocumentosRoutes = require('./routes/indiciadoDocumentos');
 const vehiculoDocumentosRoutes = require('./routes/vehiculoDocumentos');
-const documentosRoutes = require('./routes/documentos');
-const sectoresRoutes = require('./routes/sectores-simple');
-const subsectoresRoutes = require('./routes/subsectores-simple');
+// const documentosRoutes = require('./routes/documentos'); // Temporalmente deshabilitado - usa MongoDB
+const sectoresRoutes = require('./routes/sectores');
+const subsectoresRoutes = require('./routes/subsectores');
 const vehiculosRoutes = require('./routes/vehiculos-simple');
 const colombiaRoutes = require('./routes/colombia');
 
@@ -127,11 +127,11 @@ const initializeDatabase = async () => {
 app.use('/api/auth', authRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/users', usersRoutes);
-app.use('/api/carpetas', carpetasRoutes);
+// app.use('/api/carpetas', carpetasRoutes); // Temporalmente deshabilitado - usa MongoDB
 app.use('/api/indiciados', indiciadosRoutes);
 app.use('/api/indiciados', indiciadoDocumentosRoutes);
 app.use('/api/vehiculos', vehiculoDocumentosRoutes);
-app.use('/api/documentos', documentosRoutes);
+// app.use('/api/documentos', documentosRoutes); // Temporalmente deshabilitado - usa MongoDB
 app.use('/api/sectores', sectoresRoutes);
 app.use('/api/subsectores', subsectoresRoutes);
 app.use('/api/vehiculos', vehiculosRoutes);
