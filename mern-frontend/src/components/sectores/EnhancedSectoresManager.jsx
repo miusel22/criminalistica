@@ -1531,61 +1531,6 @@ const EnhancedSectoresManager = () => {
               </QuickAction>
           </QuickActions>
         </SidebarSection>
-        
-        <SidebarSection>
-          <SidebarTitle $theme={theme} className="sidebar-title">Resumen</SidebarTitle>
-          <div style={{ 
-            background: getTheme(theme).colors.backgroundSecondary, 
-            padding: '1rem', 
-            borderRadius: '8px', 
-            border: `1px solid ${getTheme(theme).colors.border}` 
-          }}>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: '1fr 1fr', 
-              gap: '0.5rem', 
-              fontSize: '0.85rem' 
-            }}>
-              <div>
-                <span style={{ color: getTheme(theme).colors.textSecondary }}>Sectores:</span>
-                <div style={{ fontWeight: '600', fontSize: '1.1rem', color: getTheme(theme).colors.textPrimary }}>
-                  {stats.sectores}
-                </div>
-              </div>
-              <div>
-                <span style={{ color: getTheme(theme).colors.textSecondary }}>Subsectores:</span>
-                <div style={{ fontWeight: '600', fontSize: '1.1rem', color: getTheme(theme).colors.textPrimary }}>
-                  {stats.subsectores}
-                </div>
-              </div>
-              <div>
-                <span style={{ color: getTheme(theme).colors.textSecondary }}>Indiciados:</span>
-                <div style={{ fontWeight: '600', fontSize: '1.1rem', color: getTheme(theme).colors.textPrimary }}>
-                  {stats.indiciados}
-                </div>
-              </div>
-              <div>
-                <span style={{ color: getTheme(theme).colors.textSecondary }}>Vehículos:</span>
-                <div style={{ fontWeight: '600', fontSize: '1.1rem', color: getTheme(theme).colors.textPrimary }}>
-                  {stats.vehiculos}
-                </div>
-              </div>
-            </div>
-            
-            {(filterText || filterType !== 'all') && (
-              <div style={{ 
-                marginTop: '0.75rem', 
-                paddingTop: '0.75rem', 
-                borderTop: `1px solid ${getTheme(theme).colors.border}` 
-              }}>
-                <span style={{ fontSize: '0.8rem', color: getTheme(theme).colors.textSecondary }}>
-                  Mostrando: {getFilteredHierarchy().length} elementos filtrados
-                </span>
-              </div>
-            )}
-          </div>
-        </SidebarSection>
-        
         {selectedItem && (
           <SidebarSection>
             <SidebarTitle $theme={theme} className="sidebar-title">Elemento Seleccionado</SidebarTitle>
