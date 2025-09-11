@@ -465,10 +465,7 @@ export const IndiciadoDetail: React.FC = () => {
           
           <ProfileName $theme={theme}>{indiciado.nombre}</ProfileName>
           <ProfileMeta $theme={theme}>
-            {indiciado.documentoTipo} {indiciado.documentoNumero}
-            <br />
             {indiciado.edad} años
-            <StatusBadge $theme={theme}>Activo</StatusBadge>
           </ProfileMeta>
         </ProfileCard>
 
@@ -492,19 +489,19 @@ export const IndiciadoDetail: React.FC = () => {
             </DetailRow>
             <DetailRow $theme={theme}>
               <DetailLabel $theme={theme}>Tipo de documento:</DetailLabel>
-              {renderDetailValue(indiciado.documentoTipo)}
+              {renderDetailValue(indiciado.documentoIdentidad.tipo)}
             </DetailRow>
             <DetailRow $theme={theme}>
               <DetailLabel $theme={theme}>Número de documento:</DetailLabel>
-              {renderDetailValue(indiciado.documentoNumero)}
+              {renderDetailValue(indiciado.documentoIdentidad.numero)}
             </DetailRow>
             <DetailRow $theme={theme}>
               <DetailLabel $theme={theme}>Fecha de nacimiento:</DetailLabel>
-              <DetailValue $theme={theme}>{formatDate(indiciado.fechaNacimiento)}</DetailValue>
+              <DetailValue $theme={theme}>{formatDate(indiciado.fechaNacimiento.fecha)}</DetailValue>
             </DetailRow>
             <DetailRow $theme={theme}>
               <DetailLabel $theme={theme}>Lugar de nacimiento:</DetailLabel>
-              {renderDetailValue(indiciado.lugarNacimiento)}
+              {renderDetailValue(indiciado.fechaNacimiento.lugar)}
             </DetailRow>
             <DetailRow $theme={theme}>
               <DetailLabel $theme={theme}>Edad:</DetailLabel>
@@ -555,7 +552,7 @@ export const IndiciadoDetail: React.FC = () => {
             </DetailRow>
             <DetailRow $theme={theme}>
               <DetailLabel $theme={theme}>Documento expedido en:</DetailLabel>
-              {renderDetailValue(indiciado.documentoExpedidoEn)}
+              {renderDetailValue(indiciado.documentoIdentidad.expedidoEn)}
             </DetailRow>
           </Section>
 

@@ -1486,12 +1486,6 @@ const EnhancedSectoresManager = () => {
       <SidebarHeader $theme={theme} className="sidebar-header">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h3 className="sidebar-title" style={{ margin: 0, color: getTheme(theme).colors.textPrimary }}>Filtros y Acciones</h3>
-          <SecondaryButton 
-            onClick={() => setShowSidebar(false)}
-            style={{ padding: '0.5rem', minWidth: 'auto' }}
-          >
-            <X size={16} />
-          </SecondaryButton>
         </div>
       </SidebarHeader>
       
@@ -1537,41 +1531,6 @@ const EnhancedSectoresManager = () => {
                 <Folder size={16} />
                 Nuevo Sector
               </QuickAction>
-              
-              <QuickAction $theme={theme}
-                className="quick-action" 
-                onClick={() => {
-                  console.log('🔄 Recargando jerarquía...');
-                  loadHierarchy();
-                  showCustomNotification('Datos actualizados', 'success');
-                }}
-              >
-                <ArrowLeft size={16} style={{ transform: 'rotate(90deg)' }} />
-                Actualizar Datos
-              </QuickAction>
-              
-              <QuickAction $theme={theme}
-                className="quick-action" 
-                onClick={() => {
-                  setFilterText('');
-                  setFilterType('all');
-                  setSearchTerm('');
-                  showCustomNotification('Filtros limpiados', 'success');
-                }}
-              >
-                <X size={16} />
-                Limpiar Filtros
-              </QuickAction>
-            
-           {/* <QuickAction onClick={() => navigate('/dashboard/reports')}>
-              <BarChart3 size={16} />
-              Ver Reportes
-            </QuickAction>
-            
-            <QuickAction onClick={() => navigate('/dashboard/settings')}>
-              <Settings size={16} />
-              Configuración
-            </QuickAction>*/}
           </QuickActions>
         </SidebarSection>
         

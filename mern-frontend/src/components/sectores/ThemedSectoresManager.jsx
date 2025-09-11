@@ -1198,9 +1198,6 @@ export default function ThemedSectoresManager() {
         <Sidebar $theme={theme} isOpen={sidebarOpen}>
           <SidebarHeader $theme={theme}>
             <h3>Filtros y Acciones</h3>
-            <CloseButton $theme={theme} onClick={() => setSidebarOpen(false)}>
-              <X size={18} />
-            </CloseButton>
           </SidebarHeader>
           
           <SidebarContent>
