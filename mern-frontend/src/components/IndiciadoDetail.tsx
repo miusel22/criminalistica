@@ -291,14 +291,11 @@ export const IndiciadoDetail: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('🔍 Cargando datos del indiciado:', indiciadoId);
       
       const data = await IndiciadoService.getIndiciado(indiciadoId);
-      console.log('✅ Datos del indiciado cargados:', data);
-      
+
       setIndiciado(data);
     } catch (error: any) {
-      console.error('❌ Error al cargar indiciado:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Error desconocido';
       setError(`Error al cargar los datos del indiciado: ${errorMessage}`);
       toast.error(errorMessage);
@@ -327,9 +324,16 @@ export const IndiciadoDetail: React.FC = () => {
   const getImageUrl = (foto: any) => {
     if (!foto) return null;
     
-    // Si foto es un objeto con filename (como en la base de datos)
-    if (typeof foto === 'object' && foto.filename) {
-      return IndiciadoService.obtenerUrlFoto(foto.filename);
+    // Si foto es un objeto, priorizar path (URL de Cloudinary) sobre filename
+    if (typeof foto === 'object') {
+      // Priorizar path que viene de Cloudinary
+      if (foto.path && foto.path.startsWith('https://')) {
+        return foto.path;
+      }
+      // Fallback a filename para compatibilidad con archivos antiguos
+      if (foto.filename) {
+        return IndiciadoService.obtenerUrlFoto(foto.filename);
+      }
     }
     
     // Si foto es un string directo (filename)
@@ -409,15 +413,10 @@ export const IndiciadoDetail: React.FC = () => {
       </Container>
     );
   }
-
-  // Debug: Log para ver cómo está estructurada la foto
-  console.log('🖼️ Datos de foto del indiciado:', indiciado.foto);
   
   const imageUrl = getImageUrl(indiciado.foto);
   const initials = getInitials(indiciado.nombre);
-  
-  console.log('🔗 URL de imagen generada:', imageUrl);
-  console.log('Dios mio el indiciado', indiciado);
+
 
   return (
     <Container $theme={theme}>

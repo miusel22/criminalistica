@@ -444,7 +444,13 @@ export class IndiciadoService {
   // Obtener URL de la foto
   static obtenerUrlFoto(filename?: string): string | null {
     if (!filename) return null;
-    // Usar la URL del API PostgreSQL
+    
+    // Si el filename ya es una URL completa de Cloudinary, devolverlo tal como está
+    if (filename.startsWith('https://res.cloudinary.com')) {
+      return filename;
+    }
+    
+    // Si no, construir la URL local para compatibilidad con archivos antiguos
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5004/api';
     const baseUrl = apiUrl.replace('/api', '');
     return `${baseUrl}/uploads/${filename}`;
