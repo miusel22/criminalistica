@@ -27,9 +27,29 @@ const colombiaRoutes = require('./routes/colombia');
 const app = express();
 
 // CORS - Configurar ANTES de helmet para evitar conflictos
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001', 
+  'https://shadowdocket.vercel.app',
+  process.env.CORS_ORIGIN
+].filter(Boolean); // Remove any undefined values
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.log('❌ CORS blocked origin:', origin);
+      console.log('✅ Allowed origins:', allowedOrigins);
+      return callback(new Error('Not allowed by CORS policy'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Security middleware - Configurar después de CORS
