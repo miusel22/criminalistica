@@ -167,6 +167,35 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Manual database sync route (para actualizaciones de producción)
+app.get('/api/admin/sync-database', async (req, res) => {
+  try {
+    console.log('🔄 Iniciando sincronización manual de base de datos...');
+    
+    // Importar syncDatabase
+    const { syncDatabase } = require('./models/sequelize');
+    
+    // Sincronizar con alter: true para agregar nuevas columnas
+    await syncDatabase(false, { alter: true });
+    
+    console.log('✅ Sincronización completada');
+    
+    res.json({
+      success: true,
+      message: 'Base de datos sincronizada exitosamente',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Error en sincronización manual:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error sincronizando base de datos',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
