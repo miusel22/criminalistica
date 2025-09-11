@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import styled from 'styled-components';
 import { 
   Upload, 
@@ -585,7 +586,10 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
       }
     } catch (error: any) {
       console.error('Error cargando documentos:', error);
-      alert('Error cargando documentos: ' + (error.response?.data?.message || error.message));
+      toast.error('Error cargando documentos: ' + (error.response?.data?.message || error.message), {
+        duration: 6000,
+        id: 'documents-load-error'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -608,7 +612,10 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
     });
 
     if (errores.length > 0) {
-      alert('Algunos archivos no son válidos:\n' + errores.join('\n'));
+      toast.error('Archivos inválidos: ' + errores.join(', '), {
+        duration: 6000,
+        id: 'invalid-files-error'
+      });
     }
 
     if (archivosValidos.length > 0) {
@@ -643,10 +650,16 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
       setTipo('General');
       setShowUploadModal(false);
       
-      alert('Documentos subidos exitosamente');
+      toast.success('Documentos cargados correctamente', {
+        duration: 4000,
+        id: 'documents-uploaded-success'
+      });
     } catch (error: any) {
       console.error('Error subiendo documentos:', error);
-      alert('Error subiendo documentos: ' + (error.response?.data?.message || error.message));
+      toast.error('Error subiendo documentos: ' + (error.response?.data?.message || error.message), {
+        duration: 6000,
+        id: 'documents-upload-error'
+      });
     } finally {
       setIsUploading(false);
     }
@@ -686,14 +699,20 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
       await cargarDocumentos();
       
       console.log('✅ Lista de documentos actualizada');
-      alert('Documento eliminado exitosamente');
+      toast.success('Documento eliminado exitosamente', {
+        duration: 4000,
+        id: 'document-deleted-success'
+      });
     } catch (error: any) {
       console.error('❌ Error eliminando documento:', {
         status: error.response?.status,
         message: error.message,
         data: error.response?.data
       });
-      alert('Error eliminando documento: ' + (error.response?.data?.message || error.message));
+      toast.error('Error eliminando documento: ' + (error.response?.data?.message || error.message), {
+        duration: 6000,
+        id: 'document-delete-error'
+      });
     }
   };
 
@@ -850,14 +869,10 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
     console.error('❌ === DESCARGA FALLIDA ===');
     console.error('❌ Todos los métodos de descarga fallaron para:', documento);
     
-    alert(
-      'Error: No se pudo descargar el documento "' + documento.originalName + '".\n\n' +
-      'Posibles causas:\n' +
-      '1. El archivo no existe en el servidor\n' +
-      '2. Problemas de conexión\n' +
-      '3. Bloqueador de popups del navegador\n\n' +
-      'Filename: ' + documento.filename
-    );
+    toast.error('No se pudo descargar el documento "' + documento.originalName + '"', {
+      duration: 8000,
+      id: 'document-download-error'
+    });
   };
 
   const cancelarSubida = () => {
@@ -889,7 +904,10 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
       if (validacion.valido) {
         setArchivoActualizacion(file);
       } else {
-        alert(`Archivo no válido: ${validacion.error}`);
+        toast.error(`Archivo no válido: ${validacion.error}`, {
+          duration: 4000,
+          id: 'update-file-invalid'
+        });
         if (updateFileInputRef.current) {
           updateFileInputRef.current.value = '';
         }
@@ -919,10 +937,16 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
       // Limpiar estado
       cancelarActualizacion();
       
-      alert('Documento actualizado exitosamente');
+      toast.success('Documento actualizado exitosamente', {
+        duration: 4000,
+        id: 'document-updated-success'
+      });
     } catch (error: any) {
       console.error('Error actualizando documento:', error);
-      alert('Error actualizando documento: ' + (error.response?.data?.message || error.message));
+      toast.error('Error actualizando documento: ' + (error.response?.data?.message || error.message), {
+        duration: 6000,
+        id: 'document-update-error'
+      });
     } finally {
       setIsUpdating(false);
     }

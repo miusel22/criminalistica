@@ -259,9 +259,27 @@ const UserRole = styled.div`
 `;
 
 const WarningBox = styled.div`
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 1px solid #fbbf24;
-  color: #92400e;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    if (theme.name === 'dark') {
+      return 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.2) 100%)';
+    }
+    return 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
+  }};
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    if (theme.name === 'dark') {
+      return 'rgba(245, 158, 11, 0.4)';
+    }
+    return '#fbbf24';
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    if (theme.name === 'dark') {
+      return theme.colors.textPrimary;
+    }
+    return '#92400e';
+  }};
   padding: 1rem;
   border-radius: 8px;
   margin: 1rem 0;
@@ -513,7 +531,7 @@ const CustomConfirmationModal = ({
         )}
 
         {warningMessage && (
-          <WarningBox>
+          <WarningBox $theme={theme}>
             <AlertTriangle size={16} style={{ minWidth: '16px', marginTop: '2px' }} />
             <div>{warningMessage}</div>
           </WarningBox>

@@ -26,7 +26,9 @@ import { IndiciadoService } from '../services/indiciadoService';
 import { SectorService } from '../services/sectorService';
 import { transformBackendDataToFormData } from '../utils/indiciadoTransforms';
 import { DocumentosIndiciado } from './DocumentosIndiciado';
+import { DocumentUploader, DocumentToUpload } from './DocumentUploader';
 import styled from 'styled-components';
+import toast from 'react-hot-toast';
 import { useTheme } from '../contexts/ThemeContext';
 import { getTheme } from '../theme/theme';
 import '../styles/ComponentStyles.css'; // Para loading spinner y otros estilos
@@ -664,6 +666,7 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
   const [subsectorOptions, setSubsectorOptions] = useState<Array<{ value: string; label: string; level: number }>>([]);
   const [loadingSubsectors, setLoadingSubsectors] = useState(false);
+  const [documentsToUpload, setDocumentsToUpload] = useState<DocumentToUpload[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -749,12 +752,18 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        alert('La imagen no puede ser mayor a 5MB');
+        toast.error('La imagen no puede ser mayor a 5MB', {
+          duration: 4000,
+          id: 'image-size-error'
+        });
         return;
       }
 
       if (!['image/jpeg', 'image/jpg', 'image/png', 'image/gif'].includes(file.type)) {
-        alert('Solo se permiten archivos de imagen (JPEG, PNG, GIF)');
+        toast.error('Solo se permiten archivos de imagen (JPEG, PNG, GIF)', {
+          duration: 4000,
+          id: 'image-type-error'
+        });
         return;
       }
 
@@ -774,6 +783,11 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  // Manejar cambios en documentos
+  const handleDocumentsChange = (documents: DocumentToUpload[]) => {
+    setDocumentsToUpload(documents);
   };
 
   // Calcular edad automáticamente
@@ -899,6 +913,9 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
     console.log('  - selectedPhoto size:', selectedPhoto?.size);
     console.log('  - selectedPhoto type:', selectedPhoto?.type);
     console.log('  - photoPreview URL:', photoPreview);
+    console.log('📁 ===== INFORMACIÓN DE DOCUMENTOS =====');
+    console.log('  - documentsToUpload:', documentsToUpload);
+    console.log('  - cantidad de documentos:', documentsToUpload.length);
     console.log('🔗 Props del componente:', { isEdit, isEditing, readOnly });
     console.log('🎯 Campos críticos del formulario:');
     console.log('  - alias:', data.alias);
@@ -912,7 +929,8 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
     try {
       const formDataWithPhoto = {
         ...data,
-        foto: selectedPhoto || undefined
+        foto: selectedPhoto || undefined,
+        documentos: documentsToUpload
       };
 
       let result;
@@ -943,7 +961,10 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
               console.log('✅ Confirmado: El indiciado existe en la base de datos');
             } else {
               console.log('❌ PROBLEMA: El indiciado NO se encontró en la base de datos');
-              alert('ADVERTENCIA: El indiciado parece haberse creado pero no se encuentra en la base de datos. Revisa los logs del backend.');
+              toast.error('Problema al verificar creación', {
+                duration: 8000,
+                id: 'verification-error'
+              });
             }
           } catch (error) {
             console.log('❌ Error verificando existencia:', error);
@@ -954,10 +975,31 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
       if (onSuccess) {
         onSuccess(result.indiciado);
       } else {
-        alert(result.msg);
-        if (!isEditMode) {
+        // Mostrar toast de éxito personalizado
+        if (isEditMode) {
+          toast.success('¡Indiciado actualizado!', {
+            duration: 4000,
+            id: 'indiciado-updated'
+          });
+        } else {
+          toast.success('¡Indiciado creado exitosamente!', {
+            duration: 4000,
+            id: 'indiciado-created'
+          });
+          
+          // Si hay documentos, mostrar toast adicional
+          if (documentsToUpload.length > 0) {
+            setTimeout(() => {
+              toast.success(`Documentos cargados correctamente (${documentsToUpload.length})`, {
+                duration: 3000,
+                id: 'documents-uploaded'
+              });
+            }, 500);
+          }
+          
           reset();
           removePhoto();
+          setDocumentsToUpload([]);
         }
       }
     } catch (error: any) {
@@ -968,7 +1010,10 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
         status: error.response?.status
       });
       const errorMessage = error.response?.data?.msg || error.response?.data?.message || error.message || 'Error desconocido';
-      alert(`Error: ${errorMessage}`);
+      toast.error(`Error al guardar: ${errorMessage}`, {
+        duration: 8000,
+        id: 'save-error'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -1691,6 +1736,26 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
               />
             </FormGrid>
           </FormSection>
+
+          {/* Sección de Documentos */}
+          {!readOnly && (
+            <FormSection $theme={theme}>
+              <SectionHeader $theme={theme}>
+                <SectionIcon $theme={theme}>
+                  <FileText size={20} />
+                </SectionIcon>
+                <SectionTitle $theme={theme}>Documentos Relacionados</SectionTitle>
+              </SectionHeader>
+              <div style={{ marginTop: '1rem' }}>
+                <DocumentUploader
+                  onDocumentsChange={handleDocumentsChange}
+                  maxFiles={10}
+                  acceptedFileTypes={['application/pdf', 'image/*', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']}
+                  theme={theme}
+                />
+              </div>
+            </FormSection>
+          )}
         </FormSections>
 
         {/* Sección de Foto */}
