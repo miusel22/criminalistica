@@ -1132,8 +1132,8 @@ const EnhancedSectoresManager = () => {
 
   const getItemIcon = (item, size = 20) => {
     // Si es un indiciado con foto, mostrar la foto
-    if (item.type === 'indiciado' && (item.foto?.filename || item.fotoUrl)) {
-      const imageUrl = item.fotoUrl || (item.foto?.filename ? getPhotoUrl(item.foto.filename) : null);
+    if (item.type === 'indiciado' && item.foto) {
+      const imageUrl = getIndiciadoImageUrl(item);
       if (imageUrl) {
         return (
           <div style={{ display: 'inline-block', position: 'relative' }}>
@@ -1191,6 +1191,35 @@ const EnhancedSectoresManager = () => {
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5002/api';
     const baseUrl = apiUrl.replace('/api', '');
     return `${baseUrl}/uploads/${filename}`;
+  };
+
+  // Helper function to get indiciado image URL (prioritizes Cloudinary)
+  const getIndiciadoImageUrl = (item) => {
+    if (!item.foto) return null;
+    
+    // Si foto es un objeto, priorizar path (URL de Cloudinary) sobre filename
+    if (typeof item.foto === 'object') {
+      // Priorizar path que viene de Cloudinary
+      if (item.foto.path && item.foto.path.startsWith('https://')) {
+        return item.foto.path;
+      }
+      // Fallback a filename para compatibilidad con archivos antiguos
+      if (item.foto.filename) {
+        return getPhotoUrl(item.foto.filename);
+      }
+    }
+    
+    // Si foto es un string directo (filename)
+    if (typeof item.foto === 'string') {
+      return getPhotoUrl(item.foto);
+    }
+    
+    // Fallback adicional para fotoUrl
+    if (item.fotoUrl) {
+      return item.fotoUrl;
+    }
+    
+    return null;
   };
 
   const getTypeColor = (type) => {

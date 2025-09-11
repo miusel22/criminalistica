@@ -791,12 +791,30 @@ const SectoresManager = () => {
 
   // Función auxiliar para obtener URL de imagen
   const getImageUrl = (item) => {
-    if (item.foto) {
+    if (!item.foto) return null;
+    
+    // Si foto es un objeto, priorizar path (URL de Cloudinary) sobre filename
+    if (typeof item.foto === 'object') {
+      // Priorizar path que viene de Cloudinary
+      if (item.foto.path && item.foto.path.startsWith('https://')) {
+        return item.foto.path;
+      }
+      // Fallback a filename para compatibilidad con archivos antiguos
+      if (item.foto.filename) {
+        return IndiciadoService.obtenerUrlFoto(item.foto.filename);
+      }
+    }
+    
+    // Si foto es un string directo (filename)
+    if (typeof item.foto === 'string') {
       return IndiciadoService.obtenerUrlFoto(item.foto);
     }
+    
+    // Fallback adicional para fotoUrl
     if (item.fotoUrl) {
       return item.fotoUrl;
     }
+    
     return null;
   };
 
