@@ -854,9 +854,31 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
 
   // Cargar imagen existente si hay datos iniciales
   useEffect(() => {
-    if (initialData?.foto?.filename || initialData?.fotoUrl) {
-      const imageUrl = initialData.fotoUrl || 
-        (initialData.foto?.filename ? IndiciadoService.obtenerUrlFoto(initialData.foto.filename) : null);
+    if (initialData?.foto || initialData?.fotoUrl) {
+      let imageUrl = null;
+      
+      // Priorizar fotoUrl si existe
+      if (initialData.fotoUrl) {
+        imageUrl = initialData.fotoUrl;
+      }
+      // Si foto es un objeto, priorizar path (Cloudinary) sobre filename
+      else if (initialData.foto) {
+        if (typeof initialData.foto === 'object') {
+          // Priorizar path que viene de Cloudinary
+          if (initialData.foto.path && initialData.foto.path.startsWith('https://')) {
+            imageUrl = initialData.foto.path;
+          }
+          // Fallback a filename para compatibilidad con archivos antiguos
+          else if (initialData.foto.filename) {
+            imageUrl = IndiciadoService.obtenerUrlFoto(initialData.foto.filename);
+          }
+        }
+        // Si foto es un string directo (filename)
+        else if (typeof initialData.foto === 'string') {
+          imageUrl = IndiciadoService.obtenerUrlFoto(initialData.foto);
+        }
+      }
+      
       if (imageUrl) {
         setPhotoPreview(imageUrl);
       }

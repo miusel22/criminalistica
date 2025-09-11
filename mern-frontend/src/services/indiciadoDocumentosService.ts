@@ -131,7 +131,7 @@ export class IndiciadoDocumentosService {
 
   // Obtener múltiples URLs posibles para un documento
   static obtenerUrlsPosiblesDocumento(filename: string): string[] {
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5004/api';
+    const apiUrl = process.env.REACT_APP_POSTGRES_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5004/api';
     const baseUrl = apiUrl.replace('/api', '');
     
     // Basándose en las herramientas de desarrollador, el patrón parece ser:
@@ -151,8 +151,20 @@ export class IndiciadoDocumentosService {
   }
 
   // Obtener URL para descargar/ver documento (método principal)
-  static obtenerUrlDocumento(filename: string): string {
-    // Obtener la primera URL posible (la más probable)
+  static obtenerUrlDocumento(documento: DocumentoIndiciado | string): string {
+    // Si recibe un objeto documento completo
+    if (typeof documento === 'object' && documento.path) {
+      // Verificar si ya es una URL completa de Cloudinary
+      if (documento.path.includes('cloudinary.com') || documento.path.startsWith('http')) {
+        console.log('📎 Usando URL completa de Cloudinary:', documento.path);
+        return documento.path;
+      }
+    }
+    
+    // Si es un string, asumimos que es filename
+    const filename = typeof documento === 'string' ? documento : documento.filename;
+    
+    // Fallback a URLs locales (para documentos legacy)
     const urls = this.obtenerUrlsPosiblesDocumento(filename);
     return urls[0];
   }

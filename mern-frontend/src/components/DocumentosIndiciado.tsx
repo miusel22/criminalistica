@@ -571,10 +571,10 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
     try {
       const docs = await IndiciadoDocumentosService.obtenerDocumentos(indiciadoId);
       
-      // Agregar URLs a los documentos si no las tienen
+      // Agregar URLs a los documentos priorizando Cloudinary
       const docsConUrl = docs.map(doc => ({
         ...doc,
-        url: doc.url || IndiciadoDocumentosService.obtenerUrlDocumento(doc.filename)
+        url: doc.url || IndiciadoDocumentosService.obtenerUrlDocumento(doc)
       }));
       setDocumentos(docsConUrl);
       
@@ -739,9 +739,39 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
     console.log('📥 Documento a descargar:', documento);
     console.log('📥 IndiciadoId:', indiciadoId);
     
-    // Método 1: Descarga directa desde la ruta de archivos estáticos del servidor
+    // Priorizar URL de Cloudinary si está disponible
+    if (documento.path && (documento.path.includes('cloudinary.com') || documento.path.startsWith('http'))) {
+      console.log('📎 Descargando desde Cloudinary:', documento.path);
+      
+      try {
+        const response = await fetch(documento.path, {
+          method: 'GET'
+        });
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          console.log('📦 Blob recibido desde Cloudinary:', { size: blob.size, type: blob.type });
+          
+          if (blob.size > 0) {
+            const filename = documento.originalName || documento.filename || 'documento';
+            if (descargarBlob(blob, filename)) {
+              console.log('✅ ¡Descarga exitosa desde Cloudinary!');
+              return;
+            }
+          }
+        } else {
+          console.log('⚠️ Error descargando desde Cloudinary:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('⚠️ Error accediendo a Cloudinary:', error);
+      }
+    }
+    
+    // Método 1 (Fallback): Descarga directa desde la ruta de archivos estáticos del servidor
     // (sin usar axios para evitar el prefijo /api/)
-    const staticUrl = `http://localhost:5004/uploads/documentos/${documento.filename}`;
+    const apiUrl = process.env.REACT_APP_POSTGRES_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5004/api';
+    const baseUrl = apiUrl.replace('/api', '');
+    const staticUrl = `${baseUrl}/uploads/documentos/${documento.filename}`;
     
     // Función helper para intentar descarga con retry
     const intentarDescargaConRetry = async (maxIntentos = 3, delay = 1000) => {
@@ -809,7 +839,7 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
     try {
       console.log('🔄 Método 2: Fallback con window.open...');
       
-      const staticUrl = `http://localhost:5004/uploads/${documento.filename}`;
+      const staticUrl = `${baseUrl}/uploads/${documento.filename}`;
       console.log('🔄 URL estática para window.open:', staticUrl);
       
       // Intentar abrir en nueva ventana
@@ -838,7 +868,7 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
     try {
       console.log('🔄 Método 3: Enlace de descarga directo...');
       
-      const staticUrl = `http://localhost:5004/uploads/${documento.filename}`;
+      const staticUrl = `${baseUrl}/uploads/${documento.filename}`;
       const filename = documento.originalName || documento.filename || 'documento';
       
       // Crear enlace temporal
@@ -1218,7 +1248,9 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
                 {documentoSeleccionado.mimeType.startsWith('image/') && (
                   <ImagePreview $theme={theme}>
                     <img 
-                      src={documentoSeleccionado.url} 
+                      src={documentoSeleccionado.path && (documentoSeleccionado.path.includes('cloudinary.com') || documentoSeleccionado.path.startsWith('http')) 
+                        ? documentoSeleccionado.path 
+                        : documentoSeleccionado.url} 
                       alt={documentoSeleccionado.originalName}
                     />
                   </ImagePreview>
