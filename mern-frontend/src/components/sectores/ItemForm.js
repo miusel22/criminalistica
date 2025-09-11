@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { X, MapPin, Plus } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
+import { getTheme } from '../../theme/theme';
 import colombiaService from '../../services/colombiaService';
 import toast from 'react-hot-toast';
+
+// Type definitions for styled components with theme prop
+interface ThemeProps {
+  $theme?: string;
+}
 
 const Overlay = styled.div`
   position: fixed;
@@ -18,17 +25,27 @@ const Overlay = styled.div`
 `;
 
 const Modal = styled.div`
-  background: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundCard;
+  }};
   border-radius: 12px;
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.shadows.lg;
+  }};
 `;
 
 const Header = styled.div`
   padding: 1.5rem;
-  border-bottom: 1px solid #e1e5e9;
+  border-bottom: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -36,7 +53,10 @@ const Header = styled.div`
 
 const Title = styled.h2`
   margin: 0;
-  color: #333;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   font-size: 1.25rem;
 `;
 
@@ -46,10 +66,16 @@ const CloseButton = styled.button`
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
-  color: #666;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   
   &:hover {
-    background: #f5f5f5;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.hover;
+    }};
   }
 `;
 
@@ -64,22 +90,42 @@ const FormGroup = styled.div`
 const Label = styled.label`
   display: block;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   font-weight: 500;
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBorder;
+  }};
   border-radius: 6px;
   font-size: 16px;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputText;
+  }};
   transition: border-color 0.2s ease;
   
   &:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.inputFocus;
+    }};
+    box-shadow: 0 0 0 2px ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.shadowFocus;
+    }};
   }
 `;
 
@@ -103,7 +149,10 @@ const TextArea = styled.textarea`
 
 const Footer = styled.div`
   padding: 1.5rem;
-  border-top: 1px solid #e1e5e9;
+  border-top: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
@@ -119,11 +168,20 @@ const Button = styled.button`
 `;
 
 const PrimaryButton = styled(Button)`
-  background: #007bff;
-  color: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.primary;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
   
   &:hover:not(:disabled) {
-    background: #0056b3;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.primaryHover;
+    }};
   }
   
   &:disabled {
@@ -133,47 +191,84 @@ const PrimaryButton = styled(Button)`
 `;
 
 const SecondaryButton = styled(Button)`
-  background: #6c757d;
-  color: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
   
   &:hover {
-    background: #545b62;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.textPrimary;
+    }};
   }
 `;
 
 const Select = styled.select`
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBorder;
+  }};
   border-radius: 6px;
   font-size: 16px;
-  background: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputText;
+  }};
   cursor: pointer;
   transition: border-color 0.2s ease;
   
   &:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.inputFocus;
+    }};
+    box-shadow: 0 0 0 2px ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.shadowFocus;
+    }};
   }
   
   &:disabled {
-    background: #f8f9fa;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.disabled;
+    }};
     cursor: not-allowed;
   }
 `;
 
 const UbicacionSection = styled.div`
-  background: #f8f9fa;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundSecondary;
+  }};
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1.5rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
 `;
 
 const SectionTitle = styled.h4`
   margin: 0 0 1rem 0;
-  color: #495057;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   font-size: 0.9rem;
   display: flex;
   align-items: center;
@@ -199,8 +294,14 @@ const CustomCityContainer = styled.div`
 
 const SmallButton = styled.button`
   padding: 8px;
-  background: #28a745;
-  color: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.success;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -209,7 +310,11 @@ const SmallButton = styled.button`
   font-size: 12px;
   
   &:hover {
-    background: #218838;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.success;
+    }};
+    opacity: 0.9;
   }
 `;
 
@@ -222,6 +327,8 @@ const ItemForm = ({
   loading = false,
   type = 'sector' // sector, subsector, indiciado
 }) => {
+  // Get current theme from context
+  const { theme } = useTheme();
   const [formData, setFormData] = useState({
     nombre: item?.nombre || '',
     // Ubicación solo para sectores
@@ -347,10 +454,10 @@ const ItemForm = ({
 
   return (
     <Overlay onClick={onClose}>
-      <Modal onClick={(e) => e.stopPropagation()}>
-        <Header>
-          <Title>{title || `${item ? 'Editar' : 'Crear'} ${typeLabels[type] || 'Elemento'}`}</Title>
-          <CloseButton onClick={onClose}>
+      <Modal onClick={(e) => e.stopPropagation()} $theme={theme}>
+        <Header $theme={theme}>
+          <Title $theme={theme}>{title || `${item ? 'Editar' : 'Crear'} ${typeLabels[type] || 'Elemento'}`}</Title>
+          <CloseButton onClick={onClose} $theme={theme}>
             <X size={20} />
           </CloseButton>
         </Header>
@@ -359,15 +466,15 @@ const ItemForm = ({
           <Body>
             {/* Show location section first for sectors, then name field */}
             {type === 'sector' && (
-              <UbicacionSection>
-                <SectionTitle>
+              <UbicacionSection $theme={theme}>
+                <SectionTitle $theme={theme}>
                   <MapPin size={16} />
                   Ubicación Geográfica
                 </SectionTitle>
                 
                 <Row>
                   <FormGroup>
-                    <Label htmlFor="departamentoId">Departamento *</Label>
+                    <Label htmlFor="departamentoId" $theme={theme}>Departamento *</Label>
                     <Select
                       id="departamentoId"
                       name="departamentoId"
@@ -375,6 +482,7 @@ const ItemForm = ({
                       onChange={handleChange}
                       disabled={loadingUbicacion}
                       required={type === 'sector'}
+                      $theme={theme}
                     >
                       <option value="">{loadingUbicacion ? 'Cargando...' : 'Seleccionar departamento'}</option>
                       {departamentos.map(dept => (
@@ -386,7 +494,7 @@ const ItemForm = ({
                   </FormGroup>
                   
                   <FormGroup>
-                    <Label htmlFor="ciudadId">Ciudad/Municipio *</Label>
+                    <Label htmlFor="ciudadId" $theme={theme}>Ciudad/Municipio *</Label>
                     <Select
                       id="ciudadId"
                       name="ciudadId"
@@ -394,6 +502,7 @@ const ItemForm = ({
                       onChange={handleChange}
                       disabled={!formData.departamentoId || loadingUbicacion || showCustomCity}
                       required={type === 'sector' && !showCustomCity}
+                      $theme={theme}
                     >
                       <option value="">{loadingUbicacion ? 'Cargando...' : 'Seleccionar ciudad'}</option>
                       {ciudades.map(city => (
@@ -408,7 +517,7 @@ const ItemForm = ({
                 <FormGroup>
                   <CustomCityContainer>
                     <div style={{ flex: 1 }}>
-                      <Label>¿No encuentras tu ciudad?</Label>
+                      <Label $theme={theme}>¿No encuentras tu ciudad?</Label>
                       {showCustomCity ? (
                         <Input
                           name="ciudadPersonalizada"
@@ -417,6 +526,7 @@ const ItemForm = ({
                           onChange={handleChange}
                           placeholder="Escribir nombre de la ciudad"
                           required={showCustomCity}
+                          $theme={theme}
                         />
                       ) : (
                         <SmallButton 
@@ -425,6 +535,7 @@ const ItemForm = ({
                             setShowCustomCity(true);
                             setFormData(prev => ({ ...prev, ciudadId: '' }));
                           }}
+                          $theme={theme}
                         >
                           <Plus size={14} style={{ marginRight: '4px' }} />
                           Agregar ciudad manualmente
@@ -439,6 +550,7 @@ const ItemForm = ({
                           setFormData(prev => ({ ...prev, ciudadPersonalizada: '' }));
                         }}
                         style={{ background: '#dc3545', marginTop: '24px' }}
+                        $theme={theme}
                       >
                         Cancelar
                       </SmallButton>
@@ -449,7 +561,7 @@ const ItemForm = ({
             )}
 
             <FormGroup>
-              <Label htmlFor="nombre">Nombre *</Label>
+              <Label htmlFor="nombre" $theme={theme}>Nombre *</Label>
               <Input
                 id="nombre"
                 name="nombre"
@@ -466,19 +578,19 @@ const ItemForm = ({
                 required
                 maxLength={100}
                 readOnly={type === 'sector' && !isEditMode && !formData.nombre}
+                $theme={theme}
                 style={{
-                  backgroundColor: type === 'sector' && !isEditMode && !formData.nombre ? '#f8f9fa' : 'white',
                   cursor: type === 'sector' && !isEditMode && !formData.nombre ? 'not-allowed' : 'text'
                 }}
               />
             </FormGroup>
           </Body>
 
-          <Footer>
-            <SecondaryButton type="button" onClick={onClose}>
+          <Footer $theme={theme}>
+            <SecondaryButton type="button" onClick={onClose} $theme={theme}>
               Cancelar
             </SecondaryButton>
-            <PrimaryButton type="submit" disabled={loading || !formData.nombre.trim()}>
+            <PrimaryButton type="submit" disabled={loading || !formData.nombre.trim()} $theme={theme}>
               {loading ? 'Guardando...' : (item ? 'Actualizar' : 'Crear')}
             </PrimaryButton>
           </Footer>

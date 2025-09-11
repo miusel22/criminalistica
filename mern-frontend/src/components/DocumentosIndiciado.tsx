@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import styled from 'styled-components';
 import { 
   Upload, 
   File, 
@@ -13,7 +14,503 @@ import {
 } from 'lucide-react';
 import { IndiciadoDocumentosService, DocumentoIndiciado } from '../services/indiciadoDocumentosService';
 import { useCustomConfirmation } from '../hooks/useCustomConfirmation';
+import { useTheme } from '../contexts/ThemeContext';
+import { getTheme } from '../theme/theme';
 import '../styles/DocumentosIndiciado.css';
+
+// Tipos para props de tema
+interface ThemeProps {
+  $theme: 'light' | 'dark';
+}
+
+interface StyleProps {
+  $theme: 'light' | 'dark';
+  $variant?: 'primary' | 'secondary' | 'danger' | 'warning' | 'outline';
+  $size?: 'small' | 'medium' | 'large';
+  $disabled?: boolean;
+}
+
+// Styled Components
+const DocumentsSection = styled.div<ThemeProps>`
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
+  border-radius: 8px;
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+`;
+
+const SectionTitle = styled.h3<ThemeProps>`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+`;
+
+const NoDocuments = styled.div<ThemeProps>`
+  text-align: center;
+  padding: 2rem;
+  color: ${({ $theme }) => getTheme($theme).colors.textSecondary};
+`;
+
+const DocumentsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+`;
+
+const DocumentCard = styled.div<ThemeProps>`
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
+  border: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+`;
+
+const DocumentIcon = styled.div`
+  flex-shrink: 0;
+`;
+
+const DocumentInfo = styled.div`
+  flex-grow: 1;
+  min-width: 0;
+`;
+
+const DocumentName = styled.h4<ThemeProps>`
+  margin: 0 0 0.25rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+`;
+
+const DocumentDetails = styled.p<ThemeProps>`
+  margin: 0 0 0.25rem 0;
+  font-size: 0.8rem;
+  color: ${({ $theme }) => getTheme($theme).colors.textSecondary};
+`;
+
+const DocumentDescription = styled.p<ThemeProps>`
+  margin: 0 0 0.25rem 0;
+  font-size: 0.8rem;
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+  font-style: italic;
+  opacity: 0.8;
+`;
+
+const DocumentDate = styled.p<ThemeProps>`
+  margin: 0;
+  font-size: 0.7rem;
+  color: ${({ $theme }) => getTheme($theme).colors.textSecondary};
+  opacity: 0.7;
+`;
+
+const DocumentActions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: column;
+`;
+
+// Botones estilizados
+const BtnIcon = styled.button<StyleProps>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+  
+  &:hover {
+    background: ${({ $theme }) => getTheme($theme).colors.hover};
+  }
+  
+  ${({ $variant, $theme }) => {
+    if ($variant === 'danger') {
+      return `
+        color: ${getTheme($theme).colors.danger};
+        border-color: ${getTheme($theme).colors.danger};
+        
+        &:hover {
+          background: ${getTheme($theme).colors.dangerHover};
+        }
+      `;
+    }
+    if ($variant === 'warning') {
+      return `
+        color: ${getTheme($theme).colors.warning};
+        border-color: ${getTheme($theme).colors.warning};
+        
+        &:hover {
+          background: ${getTheme($theme).colors.warning};
+        }
+      `;
+    }
+    return '';
+  }}
+`;
+
+const BtnPrimary = styled.button<StyleProps>`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: ${({ $theme }) => getTheme($theme).colors.primary};
+  color: ${({ $theme }) => getTheme($theme).colors.textInverse};
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  
+  &:hover:not(:disabled) {
+    background: ${({ $theme }) => getTheme($theme).colors.primaryHover};
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  ${({ $size }) => {
+    if ($size === 'small') {
+      return `
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+      `;
+    }
+    return '';
+  }}
+`;
+
+const BtnSecondary = styled.button<StyleProps>`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+  border: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  
+  &:hover:not(:disabled) {
+    background: ${({ $theme }) => getTheme($theme).colors.hover};
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const BtnOutline = styled.button<StyleProps>`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid ${({ $theme }) => getTheme($theme).colors.primary};
+  background: transparent;
+  color: ${({ $theme }) => getTheme($theme).colors.primary};
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  
+  &:hover:not(:disabled) {
+    background: ${({ $theme }) => getTheme($theme).colors.primary};
+    color: ${({ $theme }) => getTheme($theme).colors.textInverse};
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const BtnClose = styled.button<ThemeProps>`
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: ${({ $theme }) => getTheme($theme).colors.textSecondary};
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: ${({ $theme }) => getTheme($theme).colors.hover};
+    color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+  }
+`;
+
+// Modales
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div<ThemeProps & { $large?: boolean }>`
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
+  border-radius: 8px;
+  width: 90%;
+  max-width: ${({ $large }) => $large ? '700px' : '500px'};
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+`;
+
+const ModalHeader = styled.div<ThemeProps>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundSecondary};
+`;
+
+const ModalTitle = styled.h3<ThemeProps>`
+  margin: 0;
+  font-size: 1.1rem;
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+`;
+
+const ModalBody = styled.div<ThemeProps>`
+  padding: 1rem;
+  overflow-y: auto;
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
+`;
+
+const ModalFooter = styled.div<ThemeProps>`
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding: 1rem;
+  border-top: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundSecondary};
+`;
+
+// Componentes de carga
+const LoadingContainer = styled.div<ThemeProps>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+`;
+
+const LoadingSpinner = styled.div<ThemeProps>`
+  width: 32px;
+  height: 32px;
+  border: 3px solid ${({ $theme }) => getTheme($theme).colors.border};
+  border-top: 3px solid ${({ $theme }) => getTheme($theme).colors.primary};
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+const SelectedFile = styled.div<ThemeProps>`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundSecondary};
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  border: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
+`;
+
+const FileInfo = styled.span<ThemeProps>`
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+  font-size: 0.875rem;
+`;
+
+// Componentes de formulario
+const FormGroup = styled.div<ThemeProps>`
+  margin-bottom: 1rem;
+  
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+    font-size: 0.875rem;
+  }
+`;
+
+const FormSelect = styled.select<ThemeProps>`
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
+  border-radius: 4px;
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+  font-size: 0.875rem;
+  
+  &:focus {
+    outline: none;
+    border-color: ${({ $theme }) => getTheme($theme).colors.primary};
+  }
+  
+  option {
+    background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
+    color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+  }
+`;
+
+const FormTextarea = styled.textarea<ThemeProps>`
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
+  border-radius: 4px;
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+  
+  &:focus {
+    outline: none;
+    border-color: ${({ $theme }) => getTheme($theme).colors.primary};
+  }
+  
+  &::placeholder {
+    color: ${({ $theme }) => getTheme($theme).colors.textSecondary};
+  }
+`;
+
+const SelectedFiles = styled.div<ThemeProps>`
+  margin-bottom: 1rem;
+  
+  h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+  }
+`;
+
+// Componentes de información detallada
+const DocumentPreview = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const DocumentInfoDetailed = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`;
+
+const InfoRow = styled.div<ThemeProps>`
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  
+  strong {
+    min-width: 120px;
+    font-weight: 600;
+    color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+  }
+  
+  span {
+    flex: 1;
+    word-break: break-word;
+    color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+  }
+`;
+
+const ImagePreview = styled.div<ThemeProps>`
+  text-align: center;
+  padding: 1rem;
+  border: 2px dashed ${({ $theme }) => getTheme($theme).colors.border};
+  border-radius: 8px;
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundSecondary};
+  
+  img {
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+  }
+`;
+
+const DocumentInfoSection = styled.div<ThemeProps>`
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
+  
+  h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
+  }
+`;
+
+const CurrentDocument = styled.div<ThemeProps>`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundSecondary};
+  border-radius: 6px;
+  border: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
+`;
+
+const BtnRemove = styled.button<ThemeProps>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: ${({ $theme }) => getTheme($theme).colors.danger};
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  margin-left: auto;
+  flex-shrink: 0;
+  
+  &:hover {
+    background: ${({ $theme }) => getTheme($theme).colors.dangerHover};
+  }
+`;
 
 interface DocumentosIndiciadoProps {
   indiciadoId: string;
@@ -40,6 +537,9 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const updateFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Theme hook
+  const { theme } = useTheme();
 
   // Custom confirmation hook
   const { showConfirmation, ConfirmationComponent } = useCustomConfirmation();
@@ -448,35 +948,40 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
 
   if (isLoading) {
     return (
-      <div className="documents-section">
-        <div className="section-header">
-          <File className="section-icon" size={20} />
-          <h3>Documentos Relacionados</h3>
-        </div>
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
+      <DocumentsSection $theme={theme}>
+        <SectionHeader>
+          <SectionTitle $theme={theme}>
+            <File size={20} />
+            Documentos Relacionados
+          </SectionTitle>
+        </SectionHeader>
+        <LoadingContainer $theme={theme}>
+          <LoadingSpinner $theme={theme} />
           <p>Cargando documentos...</p>
-        </div>
-      </div>
+        </LoadingContainer>
+      </DocumentsSection>
     );
   }
 
   return (
-    <div className="documents-section">
-      <div className="section-header">
-        <File className="section-icon" size={20} />
-        <h3>Documentos Relacionados</h3>
+    <DocumentsSection $theme={theme}>
+      <SectionHeader>
+        <SectionTitle $theme={theme}>
+          <File size={20} />
+          Documentos Relacionados
+        </SectionTitle>
         {!readOnly && (
-          <button
+          <BtnPrimary
             onClick={() => fileInputRef.current?.click()}
-            className="btn btn-primary btn-sm"
+            $theme={theme}
+            $size="small"
             disabled={isUploading}
           >
             <Plus size={16} />
             Agregar Documentos
-          </button>
+          </BtnPrimary>
         )}
-      </div>
+      </SectionHeader>
 
       {/* Input de archivos oculto */}
       <input
@@ -490,150 +995,152 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
 
       {/* Lista de documentos */}
       {documentos.length === 0 ? (
-        <div className="no-documents">
-          <File size={48} color="#ccc" />
+        <NoDocuments $theme={theme}>
+          <File size={48} style={{ color: theme === 'dark' ? '#666' : '#ccc' }} />
           <p>No hay documentos adjuntos</p>
           {!readOnly && (
-            <button
+            <BtnSecondary
               onClick={() => fileInputRef.current?.click()}
-              className="btn btn-secondary"
+              $theme={theme}
             >
               <Upload size={16} />
               Subir primer documento
-            </button>
+            </BtnSecondary>
           )}
-        </div>
+        </NoDocuments>
       ) : (
-        <div className="documents-grid">
+        <DocumentsGrid>
           {documentos.map((documento) => (
-            <div key={documento.id} className="document-card">
-              <div className="document-icon">
+            <DocumentCard key={documento.id} $theme={theme}>
+              <DocumentIcon>
                 <span style={{ fontSize: '24px' }}>
                   {IndiciadoDocumentosService.obtenerIconoTipoArchivo(documento.mimeType)}
                 </span>
-              </div>
+              </DocumentIcon>
               
-              <div className="document-info">
-                <h4 className="document-name" title={documento.originalName}>
+              <DocumentInfo>
+                <DocumentName $theme={theme} title={documento.originalName}>
                   {documento.originalName}
-                </h4>
-                <p className="document-details">
+                </DocumentName>
+                <DocumentDetails $theme={theme}>
                   {IndiciadoDocumentosService.formatearTamano(documento.size)} • {documento.tipo}
-                </p>
+                </DocumentDetails>
                 {documento.descripcion && (
-                  <p className="document-description">{documento.descripcion}</p>
+                  <DocumentDescription $theme={theme}>{documento.descripcion}</DocumentDescription>
                 )}
-                <p className="document-date">
+                <DocumentDate $theme={theme}>
                   Subido: {new Date(documento.fechaSubida).toLocaleDateString()}
-                </p>
-              </div>
+                </DocumentDate>
+              </DocumentInfo>
 
-              <div className="document-actions">
-                <button
+              <DocumentActions>
+                <BtnIcon
                   onClick={() => verDocumento(documento)}
-                  className="btn-icon"
+                  $theme={theme}
                   title="Ver detalles"
                 >
                   <Eye size={16} />
-                </button>
-                <button
+                </BtnIcon>
+                <BtnIcon
                   onClick={() => descargarDocumento(documento)}
-                  className="btn-icon"
+                  $theme={theme}
                   title="Descargar"
                 >
                   <Download size={16} />
-                </button>
+                </BtnIcon>
                 {!readOnly && (
                   <>
-                    <button
+                    <BtnIcon
                       onClick={() => iniciarActualizacionDocumento(documento)}
-                      className="btn-icon btn-warning"
+                      $theme={theme}
+                      $variant="warning"
                       title="Actualizar"
                     >
                       <Edit3 size={16} />
-                    </button>
-                    <button
+                    </BtnIcon>
+                    <BtnIcon
                       onClick={() => eliminarDocumento(documento.id, documento.originalName)}
-                      className="btn-icon btn-danger"
+                      $theme={theme}
+                      $variant="danger"
                       title="Eliminar"
                     >
                       <Trash2 size={16} />
-                    </button>
+                    </BtnIcon>
                   </>
                 )}
-              </div>
-            </div>
+              </DocumentActions>
+            </DocumentCard>
           ))}
-        </div>
+        </DocumentsGrid>
       )}
 
       {/* Modal de subida */}
       {showUploadModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Subir Documentos</h3>
-              <button onClick={cancelarSubida} className="btn-close">
+        <ModalOverlay>
+          <ModalContent $theme={theme}>
+            <ModalHeader $theme={theme}>
+              <ModalTitle $theme={theme}>Subir Documentos</ModalTitle>
+              <BtnClose onClick={cancelarSubida} $theme={theme}>
                 <X size={20} />
-              </button>
-            </div>
+              </BtnClose>
+            </ModalHeader>
 
-            <div className="modal-body">
-              <div className="selected-files">
+            <ModalBody $theme={theme}>
+              <SelectedFiles $theme={theme}>
                 <h4>Archivos seleccionados:</h4>
                 {selectedFiles.map((file, index) => (
-                  <div key={index} className="selected-file">
-                    <span className="file-icon">
+                  <SelectedFile key={index} $theme={theme}>
+                    <span>
                       {IndiciadoDocumentosService.obtenerIconoTipoArchivo(file.type)}
                     </span>
-                    <span className="file-info">
+                    <FileInfo $theme={theme}>
                       {file.name} ({IndiciadoDocumentosService.formatearTamano(file.size)})
-                    </span>
-                  </div>
+                    </FileInfo>
+                  </SelectedFile>
                 ))}
-              </div>
+              </SelectedFiles>
 
-              <div className="form-group">
+              <FormGroup $theme={theme}>
                 <label>Tipo de Documento:</label>
-                <select
+                <FormSelect
                   value={tipo}
                   onChange={(e) => setTipo(e.target.value)}
-                  className="form-select"
+                  $theme={theme}
                 >
                   {tiposDocumento.map(tipoDoc => (
                     <option key={tipoDoc} value={tipoDoc}>{tipoDoc}</option>
                   ))}
-                </select>
-              </div>
+                </FormSelect>
+              </FormGroup>
 
-              <div className="form-group">
+              <FormGroup $theme={theme}>
                 <label>Descripción (opcional):</label>
-                <textarea
+                <FormTextarea
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
                   placeholder="Descripción del documento..."
-                  className="form-textarea"
+                  $theme={theme}
                   rows={3}
                 />
-              </div>
-            </div>
+              </FormGroup>
+            </ModalBody>
 
-            <div className="modal-footer">
-              <button
+            <ModalFooter $theme={theme}>
+              <BtnSecondary
                 onClick={cancelarSubida}
-                className="btn btn-secondary"
-                disabled={isUploading}
+                $theme={theme}
+                $disabled={isUploading}
               >
                 Cancelar
-              </button>
-              <button
+              </BtnSecondary>
+              <BtnPrimary
                 onClick={subirDocumentos}
-                className="btn btn-primary"
-                disabled={isUploading}
+                $theme={theme}
+                $disabled={isUploading}
               >
                 {isUploading ? (
                   <>
-                    <div className="loading-spinner" style={{ width: 16, height: 16 }} />
+                    <LoadingSpinner $theme={theme} style={{ width: 16, height: 16 }} />
                     Subiendo...
                   </>
                 ) : (
@@ -642,96 +1149,95 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
                     Subir {selectedFiles.length} archivo{selectedFiles.length > 1 ? 's' : ''}
                   </>
                 )}
-              </button>
-            </div>
-          </div>
-        </div>
+              </BtnPrimary>
+            </ModalFooter>
+          </ModalContent>
+        </ModalOverlay>
       )}
 
       {/* Modal de vista de documento */}
       {showViewModal && documentoSeleccionado && (
-        <div className="modal-overlay">
-          <div className="modal-content modal-large">
-            <div className="modal-header">
-              <h3>Detalles del Documento</h3>
-              <button onClick={cerrarModalVista} className="btn-close">
+        <ModalOverlay>
+          <ModalContent $theme={theme} $large>
+            <ModalHeader $theme={theme}>
+              <ModalTitle $theme={theme}>Detalles del Documento</ModalTitle>
+              <BtnClose onClick={cerrarModalVista} $theme={theme}>
                 <X size={20} />
-              </button>
-            </div>
+              </BtnClose>
+            </ModalHeader>
 
-            <div className="modal-body">
-              <div className="document-preview">
-                <div className="document-info-detailed">
-                  <div className="info-row">
+            <ModalBody $theme={theme}>
+              <DocumentPreview>
+                <DocumentInfoDetailed>
+                  <InfoRow $theme={theme}>
                     <strong>Nombre:</strong>
                     <span>{documentoSeleccionado.originalName}</span>
-                  </div>
-                  <div className="info-row">
+                  </InfoRow>
+                  <InfoRow $theme={theme}>
                     <strong>Tipo:</strong>
                     <span>{documentoSeleccionado.tipo}</span>
-                  </div>
-                  <div className="info-row">
+                  </InfoRow>
+                  <InfoRow $theme={theme}>
                     <strong>Tamaño:</strong>
                     <span>{IndiciadoDocumentosService.formatearTamano(documentoSeleccionado.size)}</span>
-                  </div>
-                  <div className="info-row">
+                  </InfoRow>
+                  <InfoRow $theme={theme}>
                     <strong>Tipo MIME:</strong>
                     <span>{documentoSeleccionado.mimeType}</span>
-                  </div>
-                  <div className="info-row">
+                  </InfoRow>
+                  <InfoRow $theme={theme}>
                     <strong>Fecha de subida:</strong>
                     <span>{new Date(documentoSeleccionado.fechaSubida).toLocaleString()}</span>
-                  </div>
+                  </InfoRow>
                   {documentoSeleccionado.descripcion && (
-                    <div className="info-row">
+                    <InfoRow $theme={theme}>
                       <strong>Descripción:</strong>
                       <span>{documentoSeleccionado.descripcion}</span>
-                    </div>
+                    </InfoRow>
                   )}
-                </div>
+                </DocumentInfoDetailed>
                 
                 {/* Vista previa si es imagen */}
                 {documentoSeleccionado.mimeType.startsWith('image/') && (
-                  <div className="image-preview">
+                  <ImagePreview $theme={theme}>
                     <img 
                       src={documentoSeleccionado.url} 
                       alt={documentoSeleccionado.originalName}
-                      style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' }}
                     />
-                  </div>
+                  </ImagePreview>
                 )}
-              </div>
-            </div>
+              </DocumentPreview>
+            </ModalBody>
 
-            <div className="modal-footer">
-              <button
+            <ModalFooter $theme={theme}>
+              <BtnPrimary
                 onClick={() => descargarDocumento(documentoSeleccionado)}
-                className="btn btn-primary"
+                $theme={theme}
               >
                 <Download size={16} />
                 Descargar
-              </button>
-              <button
+              </BtnPrimary>
+              <BtnSecondary
                 onClick={cerrarModalVista}
-                className="btn btn-secondary"
+                $theme={theme}
               >
                 Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
+              </BtnSecondary>
+            </ModalFooter>
+          </ModalContent>
+        </ModalOverlay>
       )}
 
       {/* Modal de actualización de documento */}
       {showUpdateModal && documentoSeleccionado && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Actualizar Documento</h3>
-              <button onClick={cancelarActualizacion} className="btn-close">
+        <ModalOverlay>
+          <ModalContent $theme={theme}>
+            <ModalHeader $theme={theme}>
+              <ModalTitle $theme={theme}>Actualizar Documento</ModalTitle>
+              <BtnClose onClick={cancelarActualizacion} $theme={theme}>
                 <X size={20} />
-              </button>
-            </div>
+              </BtnClose>
+            </ModalHeader>
 
             {/* Input oculto para actualización de archivo */}
             <input
@@ -742,64 +1248,64 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
               style={{ display: 'none' }}
             />
 
-            <div className="modal-body">
-              <div className="document-info-section">
+            <ModalBody $theme={theme}>
+              <DocumentInfoSection $theme={theme}>
                 <h4>Documento actual:</h4>
-                <div className="current-document">
-                  <span className="file-icon">
+                <CurrentDocument $theme={theme}>
+                  <span>
                     {IndiciadoDocumentosService.obtenerIconoTipoArchivo(documentoSeleccionado.mimeType)}
                   </span>
-                  <span className="file-info">
+                  <FileInfo $theme={theme}>
                     {documentoSeleccionado.originalName} 
                     ({IndiciadoDocumentosService.formatearTamano(documentoSeleccionado.size)})
-                  </span>
-                </div>
-              </div>
+                  </FileInfo>
+                </CurrentDocument>
+              </DocumentInfoSection>
 
-              <div className="form-group">
+              <FormGroup $theme={theme}>
                 <label>Tipo de Documento:</label>
-                <select
+                <FormSelect
                   value={tipo}
                   onChange={(e) => setTipo(e.target.value)}
-                  className="form-select"
+                  $theme={theme}
                 >
                   {tiposDocumento.map(tipoDoc => (
                     <option key={tipoDoc} value={tipoDoc}>{tipoDoc}</option>
                   ))}
-                </select>
-              </div>
+                </FormSelect>
+              </FormGroup>
 
-              <div className="form-group">
+              <FormGroup $theme={theme}>
                 <label>Descripción:</label>
-                <textarea
+                <FormTextarea
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
                   placeholder="Descripción del documento..."
-                  className="form-textarea"
+                  $theme={theme}
                   rows={3}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
+              <FormGroup $theme={theme}>
                 <label>Reemplazar archivo (opcional):</label>
-                <button
+                <BtnOutline
                   type="button"
                   onClick={() => updateFileInputRef.current?.click()}
-                  className="btn btn-outline"
+                  $theme={theme}
                 >
                   <Upload size={16} />
                   {archivoActualizacion ? 'Cambiar archivo' : 'Seleccionar nuevo archivo'}
-                </button>
+                </BtnOutline>
                 {archivoActualizacion && (
-                  <div className="selected-file" style={{ marginTop: '0.5rem' }}>
-                    <span className="file-icon">
+                  <SelectedFile $theme={theme} style={{ marginTop: '0.5rem' }}>
+                    <span>
                       {IndiciadoDocumentosService.obtenerIconoTipoArchivo(archivoActualizacion.type)}
                     </span>
-                    <span className="file-info">
+                    <FileInfo $theme={theme}>
                       {archivoActualizacion.name} 
                       ({IndiciadoDocumentosService.formatearTamano(archivoActualizacion.size)})
-                    </span>
-                    <button
+                    </FileInfo>
+                    <BtnRemove
                       type="button"
                       onClick={() => {
                         setArchivoActualizacion(null);
@@ -807,31 +1313,31 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
                           updateFileInputRef.current.value = '';
                         }
                       }}
-                      className="btn-remove"
+                      $theme={theme}
                     >
                       <X size={12} />
-                    </button>
-                  </div>
+                    </BtnRemove>
+                  </SelectedFile>
                 )}
-              </div>
-            </div>
+              </FormGroup>
+            </ModalBody>
 
-            <div className="modal-footer">
-              <button
+            <ModalFooter $theme={theme}>
+              <BtnSecondary
                 onClick={cancelarActualizacion}
-                className="btn btn-secondary"
-                disabled={isUpdating}
+                $theme={theme}
+                $disabled={isUpdating}
               >
                 Cancelar
-              </button>
-              <button
+              </BtnSecondary>
+              <BtnPrimary
                 onClick={actualizarDocumento}
-                className="btn btn-primary"
-                disabled={isUpdating}
+                $theme={theme}
+                $disabled={isUpdating}
               >
                 {isUpdating ? (
                   <>
-                    <div className="loading-spinner" style={{ width: 16, height: 16 }} />
+                    <LoadingSpinner $theme={theme} style={{ width: 16, height: 16 }} />
                     Actualizando...
                   </>
                 ) : (
@@ -840,14 +1346,14 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
                     Actualizar
                   </>
                 )}
-              </button>
-            </div>
-          </div>
-        </div>
+              </BtnPrimary>
+            </ModalFooter>
+          </ModalContent>
+        </ModalOverlay>
       )}
       
       {/* Custom Confirmation Modal */}
       <ConfirmationComponent />
-    </div>
+    </DocumentsSection>
   );
 };

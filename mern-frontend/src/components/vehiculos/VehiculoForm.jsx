@@ -14,6 +14,8 @@ import {
   AlertCircle,
   Check
 } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
+import { getTheme } from '../../theme/theme';
 import toast from 'react-hot-toast';
 import { VehiculoService } from '../../services/vehiculoService';
 import { 
@@ -23,6 +25,9 @@ import {
   TIPOS_DOCUMENTO_PROPIETARIO 
 } from '../../types/vehiculo';
 import { DocumentosVehiculo } from '../DocumentosVehiculo';
+
+// Type definitions for styled components with theme prop
+// ThemeProps: { $theme?: string }
 
 // Styled Components
 const Modal = styled.div`
@@ -41,13 +46,19 @@ const Modal = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundCard;
+  }};
   border-radius: 16px;
   width: 100%;
   max-width: 1200px;
   max-height: 95vh;
   overflow-y: auto;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.shadows.xl;
+  }};
   position: relative;
 `;
 
@@ -122,17 +133,26 @@ const SectionHeader = styled.div`
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 2px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
 `;
 
 const SectionIcon = styled.div`
-  color: #17a2b8;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.primary;
+  }};
   margin-right: 0.75rem;
 `;
 
 const SectionTitle = styled.h3`
   margin: 0;
-  color: #333;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   font-size: 1.25rem;
   font-weight: 600;
 `;
@@ -150,54 +170,107 @@ const FieldGroup = styled.div`
 
 const Label = styled.label`
   font-weight: 600;
-  color: #495057;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
   
   &.required::after {
     content: ' *';
-    color: #dc3545;
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.danger;
+    }};
   }
 `;
 
 const Input = styled.input`
   padding: 0.75rem 1rem;
-  border: 2px solid #e9ecef;
+  border: 2px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBorder;
+  }};
   border-radius: 8px;
   font-size: 0.95rem;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputText;
+  }};
   transition: border-color 0.2s, box-shadow 0.2s;
   
   &:focus {
     outline: none;
-    border-color: #17a2b8;
-    box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.inputFocus;
+    }};
+    box-shadow: 0 0 0 3px ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.shadowFocus;
+    }};
   }
   
   &:invalid {
-    border-color: #dc3545;
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.danger;
+    }};
   }
 `;
 
 const Select = styled.select`
   padding: 0.75rem 1rem;
-  border: 2px solid #e9ecef;
+  border: 2px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBorder;
+  }};
   border-radius: 8px;
   font-size: 0.95rem;
-  background: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputText;
+  }};
   cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s;
   
   &:focus {
     outline: none;
-    border-color: #17a2b8;
-    box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.inputFocus;
+    }};
+    box-shadow: 0 0 0 3px ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.shadowFocus;
+    }};
   }
 `;
 
 const TextArea = styled.textarea`
   padding: 0.75rem 1rem;
-  border: 2px solid #e9ecef;
+  border: 2px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBorder;
+  }};
   border-radius: 8px;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputText;
+  }};
   font-size: 0.95rem;
   resize: vertical;
   min-height: 100px;
@@ -206,8 +279,14 @@ const TextArea = styled.textarea`
   
   &:focus {
     outline: none;
-    border-color: #17a2b8;
-    box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.inputFocus;
+    }};
+    box-shadow: 0 0 0 3px ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.shadowFocus;
+    }};
   }
 `;
 
@@ -319,18 +398,36 @@ const ValidityIndicator = styled.div`
   font-size: 0.85rem;
   
   &.valid {
-    background: #d4edda;
-    color: #155724;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.successBg;
+    }};
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.successText;
+    }};
   }
   
   &.invalid {
-    background: #f8d7da;
-    color: #721c24;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.dangerBg;
+    }};
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.dangerText;
+    }};
   }
   
   &.warning {
-    background: #fff3cd;
-    color: #856404;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.warningBg;
+    }};
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.warningText;
+    }};
   }
 `;
 
@@ -339,8 +436,14 @@ const ButtonGroup = styled.div`
   justify-content: flex-end;
   gap: 1rem;
   padding: 1.5rem 2rem;
-  border-top: 1px solid #e9ecef;
-  background: #f8f9fa;
+  border-top: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundSecondary;
+  }};
 `;
 
 const Button = styled.button`
@@ -361,21 +464,39 @@ const Button = styled.button`
 `;
 
 const PrimaryButton = styled(Button)`
-  background: #17a2b8;
-  color: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.primary;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
   
   &:hover:not(:disabled) {
-    background: #138496;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.primaryHover;
+    }};
     transform: translateY(-1px);
   }
 `;
 
 const SecondaryButton = styled(Button)`
-  background: #6c757d;
-  color: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
   
   &:hover:not(:disabled) {
-    background: #545b62;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.textPrimary;
+    }};
   }
 `;
 
@@ -401,6 +522,8 @@ const VehiculoForm = ({
   subsectorId = null,
   readOnly = false 
 }) => {
+  // Get current theme from context
+  const { theme } = useTheme();
   // Estados del formulario
   const [formData, setFormData] = useState({
     sectorQueOpera: '',
@@ -594,7 +717,7 @@ const VehiculoForm = ({
 
   return (
     <Modal onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <ModalContent>
+      <ModalContent $theme={theme}>
         <Header>
           <HeaderContent>
             <HeaderIcon>
@@ -619,17 +742,18 @@ const VehiculoForm = ({
         <Form onSubmit={handleSubmit}>
           {/* Información Básica */}
           <Section>
-            <SectionHeader>
-              <SectionIcon>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
                 <Car size={20} />
               </SectionIcon>
-              <SectionTitle>Información del Vehículo</SectionTitle>
+              <SectionTitle $theme={theme}>Información del Vehículo</SectionTitle>
             </SectionHeader>
             
             <FieldGrid>
               <FieldGroup>
-                <Label className="required">Sector que Opera</Label>
+                <Label $theme={theme} className="required">Sector que Opera</Label>
                 <Input
+                  $theme={theme}
                   name="sectorQueOpera"
                   value={formData.sectorQueOpera}
                   onChange={handleInputChange}
@@ -640,8 +764,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label className="required">Tipo de Vehículo</Label>
+                <Label $theme={theme} className="required">Tipo de Vehículo</Label>
                 <Select
+                  $theme={theme}
                   name="tipoVehiculo"
                   value={formData.tipoVehiculo}
                   onChange={handleInputChange}
@@ -655,8 +780,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Marca</Label>
+                <Label $theme={theme}>Marca</Label>
                 <Input
+                  $theme={theme}
                   name="marca"
                   value={formData.marca}
                   onChange={handleInputChange}
@@ -666,8 +792,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Línea</Label>
+                <Label $theme={theme}>Línea</Label>
                 <Input
+                  $theme={theme}
                   name="linea"
                   value={formData.linea}
                   onChange={handleInputChange}
@@ -677,8 +804,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Modelo</Label>
+                <Label $theme={theme}>Modelo</Label>
                 <Input
+                  $theme={theme}
                   name="modelo"
                   value={formData.modelo}
                   onChange={handleInputChange}
@@ -688,8 +816,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Placa</Label>
+                <Label $theme={theme}>Placa</Label>
                 <Input
+                  $theme={theme}
                   name="placa"
                   value={formData.placa}
                   onChange={handleInputChange}
@@ -700,8 +829,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Número de Chasis</Label>
+                <Label $theme={theme}>Número de Chasis</Label>
                 <Input
+                  $theme={theme}
                   name="numeroChasis"
                   value={formData.numeroChasis}
                   onChange={handleInputChange}
@@ -711,8 +841,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Número de Motor</Label>
+                <Label $theme={theme}>Número de Motor</Label>
                 <Input
+                  $theme={theme}
                   name="numeroMotor"
                   value={formData.numeroMotor}
                   onChange={handleInputChange}
@@ -722,8 +853,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Color</Label>
+                <Label $theme={theme}>Color</Label>
                 <Input
+                  $theme={theme}
                   name="color"
                   value={formData.color}
                   onChange={handleInputChange}
@@ -733,8 +865,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Cilindraje</Label>
+                <Label $theme={theme}>Cilindraje</Label>
                 <Input
+                  $theme={theme}
                   name="cilindraje"
                   value={formData.cilindraje}
                   onChange={handleInputChange}
@@ -744,8 +877,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Combustible</Label>
+                <Label $theme={theme}>Combustible</Label>
                 <Select
+                  $theme={theme}
                   name="combustible"
                   value={formData.combustible}
                   onChange={handleInputChange}
@@ -759,8 +893,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Estado</Label>
+                <Label $theme={theme}>Estado</Label>
                 <Select
+                  $theme={theme}
                   name="estado"
                   value={formData.estado}
                   onChange={handleInputChange}
@@ -776,17 +911,18 @@ const VehiculoForm = ({
 
           {/* Información del Propietario */}
           <Section>
-            <SectionHeader>
-              <SectionIcon>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
                 <User size={20} />
               </SectionIcon>
-              <SectionTitle>Información del Propietario</SectionTitle>
+              <SectionTitle $theme={theme}>Información del Propietario</SectionTitle>
             </SectionHeader>
             
             <FieldGrid>
               <FieldGroup>
-                <Label>Nombre del Propietario</Label>
+                <Label $theme={theme}>Nombre del Propietario</Label>
                 <Input
+                  $theme={theme}
                   name="propietarioNombre"
                   value={formData.propietarioNombre}
                   onChange={handleInputChange}
@@ -796,8 +932,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Tipo de Documento</Label>
+                <Label $theme={theme}>Tipo de Documento</Label>
                 <Select
+                  $theme={theme}
                   name="propietarioDocumentoTipo"
                   value={formData.propietarioDocumentoTipo}
                   onChange={handleInputChange}
@@ -810,8 +947,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Número de Documento</Label>
+                <Label $theme={theme}>Número de Documento</Label>
                 <Input
+                  $theme={theme}
                   name="propietarioDocumentoNumero"
                   value={formData.propietarioDocumentoNumero}
                   onChange={handleInputChange}
@@ -821,8 +959,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Teléfono</Label>
+                <Label $theme={theme}>Teléfono</Label>
                 <Input
+                  $theme={theme}
                   name="propietarioTelefono"
                   value={formData.propietarioTelefono}
                   onChange={handleInputChange}
@@ -832,8 +971,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup style={{ gridColumn: '1 / -1' }}>
-                <Label>Dirección</Label>
+                <Label $theme={theme}>Dirección</Label>
                 <Input
+                  $theme={theme}
                   name="propietarioDireccion"
                   value={formData.propietarioDireccion}
                   onChange={handleInputChange}
@@ -846,17 +986,18 @@ const VehiculoForm = ({
 
           {/* Documentos Legales */}
           <Section>
-            <SectionHeader>
-              <SectionIcon>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
                 <FileText size={20} />
               </SectionIcon>
-              <SectionTitle>Documentos Legales</SectionTitle>
+              <SectionTitle $theme={theme}>Documentos Legales</SectionTitle>
             </SectionHeader>
             
             <FieldGrid>
               <FieldGroup>
-                <Label>SOAT - Número de Póliza</Label>
+                <Label $theme={theme}>SOAT - Número de Póliza</Label>
                 <Input
+                  $theme={theme}
                   name="soatNumeroPoliza"
                   value={formData.soatNumeroPoliza}
                   onChange={handleInputChange}
@@ -866,8 +1007,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>SOAT - Vigencia</Label>
+                <Label $theme={theme}>SOAT - Vigencia</Label>
                 <Input
+                  $theme={theme}
                   type="date"
                   name="soatVigencia"
                   value={formData.soatVigencia}
@@ -875,7 +1017,7 @@ const VehiculoForm = ({
                   readOnly={readOnly}
                 />
                 {soatStatus && (
-                  <ValidityIndicator className={soatStatus.type}>
+                  <ValidityIndicator $theme={theme} className={soatStatus.type}>
                     {soatStatus.type === 'valid' && <Check size={16} />}
                     {soatStatus.type !== 'valid' && <AlertCircle size={16} />}
                     <span style={{ marginLeft: '0.5rem' }}>{soatStatus.message}</span>
@@ -884,8 +1026,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>SOAT - Aseguradora</Label>
+                <Label $theme={theme}>SOAT - Aseguradora</Label>
                 <Input
+                  $theme={theme}
                   name="soatAseguradora"
                   value={formData.soatAseguradora}
                   onChange={handleInputChange}
@@ -895,8 +1038,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Tecnomecánica - Número</Label>
+                <Label $theme={theme}>Tecnomecánica - Número</Label>
                 <Input
+                  $theme={theme}
                   name="tecnomecanicaNumero"
                   value={formData.tecnomecanicaNumero}
                   onChange={handleInputChange}
@@ -906,8 +1050,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Tecnomecánica - Vigencia</Label>
+                <Label $theme={theme}>Tecnomecánica - Vigencia</Label>
                 <Input
+                  $theme={theme}
                   type="date"
                   name="tecnomecanicaVigencia"
                   value={formData.tecnomecanicaVigencia}
@@ -915,7 +1060,7 @@ const VehiculoForm = ({
                   readOnly={readOnly}
                 />
                 {tecnomecanicaStatus && (
-                  <ValidityIndicator className={tecnomecanicaStatus.type}>
+                  <ValidityIndicator $theme={theme} className={tecnomecanicaStatus.type}>
                     {tecnomecanicaStatus.type === 'valid' && <Check size={16} />}
                     {tecnomecanicaStatus.type !== 'valid' && <AlertCircle size={16} />}
                     <span style={{ marginLeft: '0.5rem' }}>{tecnomecanicaStatus.message}</span>
@@ -924,8 +1069,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>CDA</Label>
+                <Label $theme={theme}>CDA</Label>
                 <Input
+                  $theme={theme}
                   name="tecnomecanicaCda"
                   value={formData.tecnomecanicaCda}
                   onChange={handleInputChange}
@@ -938,17 +1084,18 @@ const VehiculoForm = ({
 
           {/* Información del Incidente */}
           <Section>
-            <SectionHeader>
-              <SectionIcon>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
                 <MapPin size={20} />
               </SectionIcon>
-              <SectionTitle>Información del Incidente</SectionTitle>
+              <SectionTitle $theme={theme}>Información del Incidente</SectionTitle>
             </SectionHeader>
             
             <FieldGrid>
               <FieldGroup>
-                <Label>Fecha del Incidente</Label>
+                <Label $theme={theme}>Fecha del Incidente</Label>
                 <Input
+                  $theme={theme}
                   type="date"
                   name="fechaIncidente"
                   value={formData.fechaIncidente}
@@ -958,8 +1105,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup>
-                <Label>Tipo de Incidente</Label>
+                <Label $theme={theme}>Tipo de Incidente</Label>
                 <Input
+                  $theme={theme}
                   name="tipoIncidente"
                   value={formData.tipoIncidente}
                   onChange={handleInputChange}
@@ -969,8 +1117,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup style={{ gridColumn: '1 / -1' }}>
-                <Label>Lugar del Incidente</Label>
+                <Label $theme={theme}>Lugar del Incidente</Label>
                 <Input
+                  $theme={theme}
                   name="lugarIncidente"
                   value={formData.lugarIncidente}
                   onChange={handleInputChange}
@@ -980,8 +1129,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup style={{ gridColumn: '1 / -1' }}>
-                <Label>URL de Google Earth</Label>
+                <Label $theme={theme}>URL de Google Earth</Label>
                 <Input
+                  $theme={theme}
                   name="googleEarthUrl"
                   value={formData.googleEarthUrl}
                   onChange={handleInputChange}
@@ -994,17 +1144,18 @@ const VehiculoForm = ({
 
           {/* Observaciones */}
           <Section>
-            <SectionHeader>
-              <SectionIcon>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
                 <FileText size={20} />
               </SectionIcon>
-              <SectionTitle>Observaciones</SectionTitle>
+              <SectionTitle $theme={theme}>Observaciones</SectionTitle>
             </SectionHeader>
             
             <FieldGrid>
               <FieldGroup style={{ gridColumn: '1 / -1' }}>
-                <Label>Características Particulares</Label>
+                <Label $theme={theme}>Características Particulares</Label>
                 <TextArea
+                  $theme={theme}
                   name="caracteristicasParticulares"
                   value={formData.caracteristicasParticulares}
                   onChange={handleInputChange}
@@ -1014,8 +1165,9 @@ const VehiculoForm = ({
               </FieldGroup>
 
               <FieldGroup style={{ gridColumn: '1 / -1' }}>
-                <Label>Observaciones Generales</Label>
+                <Label $theme={theme}>Observaciones Generales</Label>
                 <TextArea
+                  $theme={theme}
                   name="observaciones"
                   value={formData.observaciones}
                   onChange={handleInputChange}
@@ -1041,12 +1193,12 @@ const VehiculoForm = ({
         </Form>
 
         {/* Buttons */}
-        <ButtonGroup>
-          <SecondaryButton type="button" onClick={onClose}>
+        <ButtonGroup $theme={theme}>
+          <SecondaryButton $theme={theme} type="button" onClick={onClose}>
             Cancelar
           </SecondaryButton>
           {!readOnly && (
-            <PrimaryButton type="submit" disabled={loading} onClick={handleSubmit}>
+            <PrimaryButton $theme={theme} type="submit" disabled={loading} onClick={handleSubmit}>
               {loading ? (
                 <LoadingSpinner />
               ) : (

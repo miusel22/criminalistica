@@ -4,91 +4,89 @@ import styled from 'styled-components';
 import { 
   ArrowLeft, 
   User, 
-  Calendar, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  FileText, 
-  Camera, 
   Edit,
-  Save,
-  X,
   GraduationCap,
-  Briefcase,
   Eye,
   Shield,
   MessageSquare,
-  Home,
-  Heart
+  Home
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { IndiciadoService } from '../services/indiciadoService';
 import { IndiciadoForm } from './IndiciadoForm';
+import { DocumentosIndiciado } from './DocumentosIndiciado';
+import { useTheme } from '../contexts/ThemeContext';
+import { getTheme } from '../theme/theme';
 import { transformBackendDataToFormData } from '../utils/indiciadoTransforms';
 
-const Container = styled.div`
+// Tipos para props de tema
+interface ThemeProps {
+  $theme: 'light' | 'dark';
+}
+
+const Container = styled.div<ThemeProps>`
   min-height: 100vh;
-  background: #f8f9fa;
+  background: ${({ $theme }) => getTheme($theme).colors.background};
   padding: 2rem;
 `;
 
-const Header = styled.div`
-  background: white;
+const Header = styled.div<ThemeProps>`
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: ${({ $theme }) => $theme === 'dark' ? '0 2px 8px rgba(0, 0, 0, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)'};
   display: flex;
   align-items: center;
   justify-content: space-between;
 `;
 
-const HeaderLeft = styled.div`
+const HeaderLeft = styled.div<ThemeProps>`
   display: flex;
   align-items: center;
   gap: 1rem;
 `;
 
-const BackButton = styled.button`
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+const BackButton = styled.button<ThemeProps>`
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundSecondary};
+  border: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
   padding: 0.75rem;
   border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #6c757d;
+  color: ${({ $theme }) => getTheme($theme).colors.textSecondary};
   font-weight: 500;
   transition: all 0.2s ease;
 
   &:hover {
-    background: #e9ecef;
-    color: #495057;
+    background: ${({ $theme }) => getTheme($theme).colors.hover};
+    color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
   }
 `;
 
-const HeaderTitle = styled.div`
+const HeaderTitle = styled.div<ThemeProps>`
   h1 {
     margin: 0;
-    color: #333;
+    color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
     font-size: 1.5rem;
     font-weight: 600;
   }
   
   p {
     margin: 0.25rem 0 0 0;
-    color: #6c757d;
+    color: ${({ $theme }) => getTheme($theme).colors.textSecondary};
     font-size: 0.9rem;
   }
 `;
 
-const Actions = styled.div`
+const Actions = styled.div<ThemeProps>`
   display: flex;
   gap: 0.75rem;
 `;
 
-const ActionButton = styled.button`
+const ActionButton = styled.button<ThemeProps>`
   padding: 0.75rem 1rem;
   border: none;
   border-radius: 8px;
@@ -100,16 +98,16 @@ const ActionButton = styled.button`
   transition: all 0.2s ease;
   
   &.edit {
-    background: #007bff;
-    color: white;
+    background: ${({ $theme }) => getTheme($theme).colors.primary};
+    color: ${({ $theme }) => getTheme($theme).colors.textInverse};
     
     &:hover {
-      background: #0056b3;
+      background: ${({ $theme }) => getTheme($theme).colors.primaryHover};
     }
   }
 `;
 
-const Content = styled.div`
+const Content = styled.div<ThemeProps>`
   display: grid;
   grid-template-columns: 300px 1fr;
   gap: 2rem;
@@ -119,29 +117,29 @@ const Content = styled.div`
   }
 `;
 
-const ProfileCard = styled.div`
-  background: white;
+const ProfileCard = styled.div<ThemeProps>`
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: ${({ $theme }) => $theme === 'dark' ? '0 2px 8px rgba(0, 0, 0, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)'};
   height: fit-content;
 `;
 
-const ProfileImageContainer = styled.div`
+const ProfileImageContainer = styled.div<ThemeProps>`
   text-align: center;
   margin-bottom: 2rem;
 `;
 
-const ProfileImage = styled.img`
+const ProfileImage = styled.img<ThemeProps>`
   width: 150px;
   height: 150px;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid #e9ecef;
+  border: 4px solid ${({ $theme }) => getTheme($theme).colors.border};
   margin-bottom: 1rem;
 `;
 
-const ProfileImagePlaceholder = styled.div`
+const ProfileImagePlaceholder = styled.div<ThemeProps>`
   width: 150px;
   height: 150px;
   border-radius: 50%;
@@ -155,38 +153,38 @@ const ProfileImagePlaceholder = styled.div`
   margin: 0 auto 1rem auto;
 `;
 
-const ProfileName = styled.h2`
+const ProfileName = styled.h2<ThemeProps>`
   margin: 0 0 0.5rem 0;
-  color: #333;
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
   font-size: 1.25rem;
   text-align: center;
 `;
 
-const ProfileMeta = styled.div`
+const ProfileMeta = styled.div<ThemeProps>`
   text-align: center;
-  color: #6c757d;
+  color: ${({ $theme }) => getTheme($theme).colors.textSecondary};
   font-size: 0.9rem;
 `;
 
-const StatusBadge = styled.span`
+const StatusBadge = styled.span<ThemeProps>`
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   font-size: 0.8rem;
   font-weight: 500;
   margin-top: 0.5rem;
-  background: #d4edda;
-  color: #155724;
+  background: ${({ $theme }) => getTheme($theme).colors.success};
+  color: ${({ $theme }) => getTheme($theme).colors.textInverse};
 `;
 
-const DetailsGrid = styled.div`
-  background: white;
+const DetailsGrid = styled.div<ThemeProps>`
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: ${({ $theme }) => $theme === 'dark' ? '0 2px 8px rgba(0, 0, 0, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)'};
 `;
 
-const Section = styled.div`
+const Section = styled.div<ThemeProps>`
   margin-bottom: 2.5rem;
   
   &:last-child {
@@ -194,19 +192,19 @@ const Section = styled.div`
   }
 `;
 
-const SectionTitle = styled.h3`
+const SectionTitle = styled.h3<ThemeProps>`
   margin: 0 0 1.5rem 0;
-  color: #333;
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
   font-size: 1.25rem;
   font-weight: 600;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 2px solid ${({ $theme }) => getTheme($theme).colors.border};
   display: flex;
   align-items: center;
   gap: 0.75rem;
 `;
 
-const DetailRow = styled.div`
+const DetailRow = styled.div<ThemeProps>`
   display: grid;
   grid-template-columns: 200px 1fr;
   gap: 1rem;
@@ -219,79 +217,46 @@ const DetailRow = styled.div`
   }
 `;
 
-const DetailLabel = styled.span`
+const DetailLabel = styled.span<ThemeProps>`
   font-weight: 600;
-  color: #495057;
+  color: ${({ $theme }) => getTheme($theme).colors.textSecondary};
 `;
 
-const DetailValue = styled.span`
-  color: #333;
+const DetailValue = styled.span<ThemeProps>`
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
   word-wrap: break-word;
   
   &.empty {
-    color: #6c757d;
+    color: ${({ $theme }) => getTheme($theme).colors.textSecondary};
     font-style: italic;
   }
 `;
 
-const ImagesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-`;
 
-const ImageCard = styled.div`
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  overflow: hidden;
-`;
-
-const ImagePreview = styled.img`
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  
-  &:hover {
-    transform: scale(1.02);
-  }
-`;
-
-const ImageLabel = styled.div`
-  padding: 0.75rem;
-  text-align: center;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #495057;
-`;
-
-const LoadingState = styled.div`
+const LoadingState = styled.div<ThemeProps>`
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 400px;
-  color: #6c757d;
+  color: ${({ $theme }) => getTheme($theme).colors.textSecondary};
   font-size: 1.1rem;
 `;
 
-const ErrorState = styled.div`
-  background: white;
+const ErrorState = styled.div<ThemeProps>`
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
   border-radius: 12px;
   padding: 3rem;
   text-align: center;
-  color: #dc3545;
+  color: ${({ $theme }) => getTheme($theme).colors.danger};
 `;
 
-const ModalOverlay = styled.div`
+const ModalOverlay = styled.div<ThemeProps>`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: ${({ $theme }) => $theme === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)'};
   z-index: 1001;
   overflow: auto;
 `;
@@ -308,6 +273,9 @@ export const IndiciadoDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Theme hook
+  const { theme } = useTheme();
 
   useEffect(() => {
     loadIndiciadoData();
@@ -397,15 +365,15 @@ export const IndiciadoDetail: React.FC = () => {
 
   const renderDetailValue = (value: any) => {
     if (value === null || value === undefined || value === '') {
-      return <DetailValue className="empty">No especificado</DetailValue>;
+      return <DetailValue $theme={theme} className="empty">No especificado</DetailValue>;
     }
-    return <DetailValue>{String(value)}</DetailValue>;
+    return <DetailValue $theme={theme}>{String(value)}</DetailValue>;
   };
 
   if (loading) {
     return (
-      <Container>
-        <LoadingState>
+      <Container $theme={theme}>
+        <LoadingState $theme={theme}>
           Cargando información del indiciado...
         </LoadingState>
       </Container>
@@ -414,11 +382,11 @@ export const IndiciadoDetail: React.FC = () => {
 
   if (error) {
     return (
-      <Container>
-        <ErrorState>
+      <Container $theme={theme}>
+        <ErrorState $theme={theme}>
           <h3>Error</h3>
           <p>{error}</p>
-          <ActionButton onClick={handleBack} style={{ marginTop: '1rem' }}>
+          <ActionButton $theme={theme} onClick={handleBack} style={{ marginTop: '1rem' }}>
             <ArrowLeft size={16} />
             Volver
           </ActionButton>
@@ -429,11 +397,11 @@ export const IndiciadoDetail: React.FC = () => {
 
   if (!indiciado) {
     return (
-      <Container>
-        <ErrorState>
+      <Container $theme={theme}>
+        <ErrorState $theme={theme}>
           <h3>Indiciado no encontrado</h3>
           <p>No se pudo encontrar la información del indiciado solicitado.</p>
-          <ActionButton onClick={handleBack} style={{ marginTop: '1rem' }}>
+          <ActionButton $theme={theme} onClick={handleBack} style={{ marginTop: '1rem' }}>
             <ArrowLeft size={16} />
             Volver
           </ActionButton>
@@ -452,32 +420,32 @@ export const IndiciadoDetail: React.FC = () => {
   console.log('Dios mio el indiciado', indiciado);
 
   return (
-    <Container>
-      <Header>
-        <HeaderLeft>
-          <BackButton onClick={handleBack}>
+    <Container $theme={theme}>
+      <Header $theme={theme}>
+        <HeaderLeft $theme={theme}>
+          <BackButton $theme={theme} onClick={handleBack}>
             <ArrowLeft size={18} />
             Volver a Sectores
           </BackButton>
-          <HeaderTitle>
+          <HeaderTitle $theme={theme}>
             <h1>Detalles del Indiciado</h1>
             <p>Información completa y actualizada</p>
           </HeaderTitle>
         </HeaderLeft>
         
-        <Actions>
-          <ActionButton className="edit" onClick={handleEdit}>
+        <Actions $theme={theme}>
+          <ActionButton $theme={theme} className="edit" onClick={handleEdit}>
             <Edit size={16} />
             Editar
           </ActionButton>
         </Actions>
       </Header>
 
-      <Content>
-        <ProfileCard>
-          <ProfileImageContainer>
+      <Content $theme={theme}>
+        <ProfileCard $theme={theme}>
+          <ProfileImageContainer $theme={theme}>
             {imageUrl ? (
-              <ProfileImage 
+              <ProfileImage $theme={theme} 
                 src={imageUrl} 
                 alt={indiciado.nombre}
                 onError={(e) => {
@@ -489,153 +457,153 @@ export const IndiciadoDetail: React.FC = () => {
                 }}
               />
             ) : (
-              <ProfileImagePlaceholder>
+              <ProfileImagePlaceholder $theme={theme}>
                 {initials}
               </ProfileImagePlaceholder>
             )}
           </ProfileImageContainer>
           
-          <ProfileName>{indiciado.nombre}</ProfileName>
-          <ProfileMeta>
+          <ProfileName $theme={theme}>{indiciado.nombre}</ProfileName>
+          <ProfileMeta $theme={theme}>
             {indiciado.documentoTipo} {indiciado.documentoNumero}
             <br />
             {indiciado.edad} años
-            <StatusBadge>Activo</StatusBadge>
+            <StatusBadge $theme={theme}>Activo</StatusBadge>
           </ProfileMeta>
         </ProfileCard>
 
-        <DetailsGrid>
-          <Section>
-            <SectionTitle>
+        <DetailsGrid $theme={theme}>
+          <Section $theme={theme}>
+            <SectionTitle $theme={theme}>
               <User size={20} />
               Información Personal
             </SectionTitle>
-            <DetailRow>
-              <DetailLabel>Nombre completo:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Nombre completo:</DetailLabel>
               {renderDetailValue(indiciado.nombre)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Apellidos:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Apellidos:</DetailLabel>
               {renderDetailValue(indiciado.apellidos)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Alias:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Alias:</DetailLabel>
               {renderDetailValue(indiciado.alias)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Tipo de documento:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Tipo de documento:</DetailLabel>
               {renderDetailValue(indiciado.documentoTipo)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Número de documento:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Número de documento:</DetailLabel>
               {renderDetailValue(indiciado.documentoNumero)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Fecha de nacimiento:</DetailLabel>
-              <DetailValue>{formatDate(indiciado.fechaNacimiento)}</DetailValue>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Fecha de nacimiento:</DetailLabel>
+              <DetailValue $theme={theme}>{formatDate(indiciado.fechaNacimiento)}</DetailValue>
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Lugar de nacimiento:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Lugar de nacimiento:</DetailLabel>
               {renderDetailValue(indiciado.lugarNacimiento)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Edad:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Edad:</DetailLabel>
               {renderDetailValue(indiciado.edad)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Hijo de:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Hijo de:</DetailLabel>
               {renderDetailValue(indiciado.hijoDe)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Género:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Género:</DetailLabel>
               {renderDetailValue(indiciado.genero)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Estado civil:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Estado civil:</DetailLabel>
               {renderDetailValue(indiciado.estadoCivil)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Nacionalidad:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Nacionalidad:</DetailLabel>
               {renderDetailValue(indiciado.nacionalidad)}
             </DetailRow>
           </Section>
 
-          <Section>
-            <SectionTitle>
+          <Section $theme={theme}>
+            <SectionTitle $theme={theme}>
               <Home size={20} />
               Información de Contacto y Residencia
             </SectionTitle>
-            <DetailRow>
-              <DetailLabel>Residencia:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Residencia:</DetailLabel>
               {renderDetailValue(indiciado.residencia)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Dirección:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Dirección:</DetailLabel>
               {renderDetailValue(indiciado.direccion)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Teléfono:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Teléfono:</DetailLabel>
               {renderDetailValue(indiciado.telefono)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Email:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Email:</DetailLabel>
               {renderDetailValue(indiciado.email)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Sector que opera:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Sector que opera:</DetailLabel>
               {renderDetailValue(indiciado.sectorQueOpera)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Documento expedido en:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Documento expedido en:</DetailLabel>
               {renderDetailValue(indiciado.documentoExpedidoEn)}
             </DetailRow>
           </Section>
 
-          <Section>
-            <SectionTitle>
+          <Section $theme={theme}>
+            <SectionTitle $theme={theme}>
               <GraduationCap size={20} />
               Información Académica y Laboral
             </SectionTitle>
-            <DetailRow>
-              <DetailLabel>Estudios realizados:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Estudios realizados:</DetailLabel>
               {renderDetailValue(indiciado.estudiosRealizados)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Profesión:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Profesión:</DetailLabel>
               {renderDetailValue(indiciado.profesion)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Oficio:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Oficio:</DetailLabel>
               {renderDetailValue(indiciado.oficio)}
             </DetailRow>
           </Section>
 
-          <Section>
-            <SectionTitle>
+          <Section $theme={theme}>
+            <SectionTitle $theme={theme}>
               <Shield size={20} />
               Información Delictiva
             </SectionTitle>
-            <DetailRow>
-              <DetailLabel>Banda delincuencial:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Banda delincuencial:</DetailLabel>
               {renderDetailValue(indiciado.bandaDelincuencial)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Delitos atribuidos:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Delitos atribuidos:</DetailLabel>
               {renderDetailValue(indiciado.delitosAtribuidos)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Situación jurídica:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Situación jurídica:</DetailLabel>
               {renderDetailValue(indiciado.situacionJuridica)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Antecedentes:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Antecedentes:</DetailLabel>
               {renderDetailValue(indiciado.antecedentes)}
             </DetailRow>
           </Section>
 
           {/* Sección de Señales Físicas */}
-          <Section>
-            <SectionTitle>
+          <Section $theme={theme}>
+            <SectionTitle $theme={theme}>
               <Eye size={20} />
               Señales Físicas
             </SectionTitle>
@@ -643,32 +611,32 @@ export const IndiciadoDetail: React.FC = () => {
             {/* Obtener señales físicas del objeto senalesFisicas (con 's') */}
             {indiciado.senalesFisicas && (
               <>
-                <DetailRow>
-                  <DetailLabel>Estatura:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Estatura:</DetailLabel>
                   {renderDetailValue(indiciado.senalesFisicas.estatura)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Peso:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Peso:</DetailLabel>
                   {renderDetailValue(indiciado.senalesFisicas.peso)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Contextura física:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Contextura física:</DetailLabel>
                   {renderDetailValue(indiciado.senalesFisicas.contexturaFisica)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Color de piel:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Color de piel:</DetailLabel>
                   {renderDetailValue(indiciado.senalesFisicas.colorPiel)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Color de ojos:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Color de ojos:</DetailLabel>
                   {renderDetailValue(indiciado.senalesFisicas.colorOjos)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Color de cabello:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Color de cabello:</DetailLabel>
                   {renderDetailValue(indiciado.senalesFisicas.colorCabello)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Marcas especiales:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Marcas especiales:</DetailLabel>
                   {renderDetailValue(indiciado.senalesFisicas.marcasEspeciales)}
                 </DetailRow>
               </>
@@ -677,55 +645,55 @@ export const IndiciadoDetail: React.FC = () => {
             {/* Si también existen señales físicas detalladas del objeto señalesFisicas (con ñ) */}
             {indiciado.señalesFisicas && (
               <>
-                <DetailRow>
-                  <DetailLabel>Complexión (detallada):</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Complexión (detallada):</DetailLabel>
                   {renderDetailValue(indiciado.señalesFisicas.complexion)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Forma de cara:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Forma de cara:</DetailLabel>
                   {renderDetailValue(indiciado.señalesFisicas.formaCara)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Tipo de cabello:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Tipo de cabello:</DetailLabel>
                   {renderDetailValue(indiciado.señalesFisicas.tipoCabello)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Largo de cabello:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Largo de cabello:</DetailLabel>
                   {renderDetailValue(indiciado.señalesFisicas.largoCabello)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Forma de ojos:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Forma de ojos:</DetailLabel>
                   {renderDetailValue(indiciado.señalesFisicas.formaOjos)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Forma de nariz:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Forma de nariz:</DetailLabel>
                   {renderDetailValue(indiciado.señalesFisicas.formaNariz)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Forma de boca:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Forma de boca:</DetailLabel>
                   {renderDetailValue(indiciado.señalesFisicas.formaBoca)}
                 </DetailRow>
-                <DetailRow>
-                  <DetailLabel>Forma de labios:</DetailLabel>
+                <DetailRow $theme={theme}>
+                  <DetailLabel $theme={theme}>Forma de labios:</DetailLabel>
                   {renderDetailValue(indiciado.señalesFisicas.formaLabios)}
                 </DetailRow>
               </>
             )}
           </Section>
           
-          <Section>
-            <SectionTitle>
+          <Section $theme={theme}>
+            <SectionTitle $theme={theme}>
               <MessageSquare size={20} />
               Observaciones Adicionales
             </SectionTitle>
-            <DetailRow>
-              <DetailLabel>Observaciones:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Observaciones:</DetailLabel>
               {renderDetailValue(indiciado.observaciones)}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>URL de Google Earth:</DetailLabel>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>URL de Google Earth:</DetailLabel>
               {indiciado.googleEarthUrl ? (
-                <DetailValue>
+                <DetailValue $theme={theme}>
                   <a 
                     href={indiciado.googleEarthUrl} 
                     target="_blank" 
@@ -736,55 +704,30 @@ export const IndiciadoDetail: React.FC = () => {
                   </a>
                 </DetailValue>
               ) : (
-                <DetailValue className="empty">No especificado</DetailValue>
+                <DetailValue $theme={theme} className="empty">No especificado</DetailValue>
               )}
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Fecha de registro:</DetailLabel>
-              <DetailValue>{formatDate(indiciado.fechaRegistro || indiciado.createdAt)}</DetailValue>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Fecha de registro:</DetailLabel>
+              <DetailValue $theme={theme}>{formatDate(indiciado.fechaRegistro || indiciado.createdAt)}</DetailValue>
             </DetailRow>
-            <DetailRow>
-              <DetailLabel>Última actualización:</DetailLabel>
-              <DetailValue>{formatDate(indiciado.updatedAt)}</DetailValue>
+            <DetailRow $theme={theme}>
+              <DetailLabel $theme={theme}>Última actualización:</DetailLabel>
+              <DetailValue $theme={theme}>{formatDate(indiciado.updatedAt)}</DetailValue>
             </DetailRow>
           </Section>
 
-          {/* Sección de Documentos/Imágenes */}
-          {indiciado.documentos && indiciado.documentos.length > 0 && (
-            <Section>
-              <SectionTitle>
-                <Camera size={20} />
-                Documentos y Fotos
-              </SectionTitle>
-              <ImagesGrid>
-                {indiciado.documentos.map((documento: any, index: number) => {
-                  const imageUrl = getImageUrl(documento.archivo || documento.filename || documento.fileName);
-                  
-                  if (imageUrl) {
-                    return (
-                      <ImageCard key={index}>
-                        <ImagePreview 
-                          src={imageUrl}
-                          alt={documento.tipo || `Documento ${index + 1}`}
-                          onClick={() => window.open(imageUrl, '_blank')}
-                        />
-                        <ImageLabel>
-                          {documento.tipo || documento.tipoDocumento || `Documento ${index + 1}`}
-                        </ImageLabel>
-                      </ImageCard>
-                    );
-                  }
-                  return null;
-                })}
-              </ImagesGrid>
-            </Section>
-          )}
+          {/* Sección de Documentos Relacionados */}
+          <DocumentosIndiciado 
+            indiciadoId={indiciado.id || indiciado._id}
+            readOnly={false}
+          />
         </DetailsGrid>
       </Content>
 
       {/* Modal de edición */}
       {isEditing && (
-        <ModalOverlay>
+        <ModalOverlay $theme={theme}>
           <IndiciadoForm
             initialData={{
               id: indiciado.id || indiciado._id,

@@ -106,7 +106,10 @@ const BreadcrumbContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #666;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   font-size: 0.9rem;
   flex: 1;
   min-width: 200px;
@@ -117,17 +120,26 @@ const BreadcrumbItem = styled.span`
   align-items: center;
   gap: 0.25rem;
   cursor: ${props => props.clickable ? 'pointer' : 'default'};
-  color: ${props => props.clickable ? '#007bff' : '#666'};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return props.clickable ? theme.colors.primary : theme.colors.textSecondary;
+  }};
   transition: color 0.2s;
   
   &:hover {
-    color: ${props => props.clickable ? '#0056b3' : '#666'};
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return props.clickable ? theme.colors.primaryHover : theme.colors.textSecondary;
+    }};
   }
 `;
 
 const Title = styled.h1`
   margin: 0;
-  color: #333;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   font-size: 1.5rem;
   font-weight: 700;
 `;
@@ -235,10 +247,16 @@ const StatsContainer = styled.div`
 `;
 
 const StatCard = styled.div`
-  background: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundCard;
+  }};
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.shadows.md;
+  }};
   transition: transform 0.2s;
   
   &:hover {
@@ -261,12 +279,18 @@ const StatIcon = styled.div`
 const StatValue = styled.div`
   font-size: 2rem;
   font-weight: 700;
-  color: #333;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   margin-bottom: 0.25rem;
 `;
 
 const StatLabel = styled.div`
-  color: #666;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   font-size: 0.9rem;
   font-weight: 500;
 `;
@@ -294,9 +318,15 @@ const ViewButton = styled.button`
 `;
 
 const HierarchyArea = styled.div`
-  background: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundCard;
+  }};
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.shadows.md;
+  }};
   overflow: hidden;
   flex: 1;
   display: flex;
@@ -305,11 +335,17 @@ const HierarchyArea = styled.div`
 
 const HierarchyHeader = styled.div`
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #f8f9fa;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundSecondary;
+  }};
 `;
 
 const HierarchyContent = styled.div`
@@ -382,13 +418,25 @@ const ActionIcon = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8f9fa;
-  color: #666;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundSecondary;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   transition: all 0.2s;
   
   &:hover {
-    background: ${props => props.hoverColor || '#007bff'};
-    color: white;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return props.hoverColor || theme.colors.primary;
+    }};
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.textInverse;
+    }};
   }
 `;
 
@@ -421,7 +469,10 @@ const CardStat = styled.div`
 `;
 
 const TreeItem = styled.div`
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
   
   &:last-child {
     border-bottom: none;
@@ -436,7 +487,10 @@ const TreeItemHeader = styled.div`
   transition: all 0.2s;
   
   &:hover {
-    background: #f8f9fa;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.hover;
+    }};
   }
 `;
 
@@ -452,13 +506,19 @@ const TreeItemInfo = styled.div`
 `;
 
 const TreeItemName = styled.div`
-  color: #333;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   font-weight: 600;
   margin-bottom: 0.25rem;
 `;
 
 const TreeItemMeta = styled.div`
-  color: #666;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   font-size: 0.85rem;
 `;
 
@@ -474,7 +534,10 @@ const TreeItemActions = styled.div`
 `;
 
 const ChildrenArea = styled.div`
-  background: #f8f9fa;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundSecondary;
+  }};
   padding-left: 3rem;
 `;
 
@@ -496,9 +559,15 @@ const EmptyIcon = styled.div`
 
 const Sidebar = styled.div`
   width: 320px;
-  background: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundCard;
+  }};
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.shadows.lg;
+  }};
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -515,8 +584,14 @@ const Sidebar = styled.div`
 
 const SidebarHeader = styled.div`
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
+  border-bottom: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundSecondary;
+  }};
 `;
 
 const SidebarContent = styled.div`
@@ -531,7 +606,10 @@ const SidebarSection = styled.div`
 
 const SidebarTitle = styled.h4`
   margin: 0 0 1rem 0;
-  color: #333;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   font-size: 0.9rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -544,7 +622,10 @@ const FilterGroup = styled.div`
 
 const FilterLabel = styled.label`
   display: block;
-  color: #666;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   font-size: 0.85rem;
   margin-bottom: 0.5rem;
 `;
@@ -552,14 +633,26 @@ const FilterLabel = styled.label`
 const FilterSelect = styled.select`
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
   border-radius: 6px;
-  background: white;
-  color: #333;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundCard;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   
   &:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.primary;
+    }};
   }
 `;
 
@@ -576,15 +669,27 @@ const QuickAction = styled.button`
   padding: 0.75rem;
   border: none;
   border-radius: 8px;
-  background: #f8f9fa;
-  color: #666;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundSecondary;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
   
   &:hover {
-    background: #e9ecef;
-    color: #333;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.hover;
+    }};
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.textPrimary;
+    }};
   }
 `;
 
@@ -1240,20 +1345,20 @@ const EnhancedSectoresManager = () => {
 
   // Render Functions
   const renderBreadcrumb = () => (
-    <BreadcrumbContainer>
-      <BreadcrumbItem clickable onClick={() => navigate('/dashboard')}>
+    <BreadcrumbContainer $theme={theme} className="breadcrumb-container">
+      <BreadcrumbItem $theme={theme} className="breadcrumb-item" clickable data-clickable="true" onClick={() => navigate('/dashboard')}>
         <Home size={16} />
         Inicio
       </BreadcrumbItem>
       <ChevronRight size={14} />
-      <BreadcrumbItem>
+      <BreadcrumbItem $theme={theme} className="breadcrumb-item">
         <Folder size={16} />
         Gestión de Sectores
       </BreadcrumbItem>
       {selectedItem && (
         <>
           <ChevronRight size={14} />
-          <BreadcrumbItem>
+          <BreadcrumbItem $theme={theme} className="breadcrumb-item">
             {getItemIcon(selectedItem, 16)}
             {selectedItem.nombre}
           </BreadcrumbItem>
@@ -1270,11 +1375,11 @@ const EnhancedSectoresManager = () => {
       
       return (
         <div key={`${item.type}-${item.id}`}>
-          <TreeItem>
-            <TreeItemHeader onClick={() => hasChildren && toggleExpanded(item.id)}>
+          <TreeItem $theme={theme}>
+            <TreeItemHeader $theme={theme} onClick={() => hasChildren && toggleExpanded(item.id)}>
               {hasChildren && (
                 <div style={{ marginRight: '0.5rem', marginLeft: `${level * 1.5}rem` }}>
-                  {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                  {isExpanded ? <ChevronDown size={16} color={getTheme(theme).colors.textSecondary} /> : <ChevronRight size={16} color={getTheme(theme).colors.textSecondary} />}
                 </div>
               )}
               
@@ -1284,8 +1389,8 @@ const EnhancedSectoresManager = () => {
                 </CardIcon>
                 
                 <TreeItemInfo>
-                  <TreeItemName>{item.nombre} {item.apellidos}</TreeItemName>
-                  <TreeItemMeta>
+                  <TreeItemName $theme={theme}>{item.nombre} {item.apellidos}</TreeItemName>
+                  <TreeItemMeta $theme={theme}>
                     {item.type}
                     {item.descripcion && ` • ${item.descripcion.substring(0, 50)}...`}
                     {item.alias && ` • Alias: ${item.alias}`}
@@ -1296,9 +1401,9 @@ const EnhancedSectoresManager = () => {
                 
                 <TreeItemActions>
                   {item.type === 'sector' && (
-                    <ActionIcon 
+                    <ActionIcon $theme={theme}
                       onClick={(e) => { e.stopPropagation(); handleCreateSubsector(item); }}
-                      hoverColor="#28a745"
+                      hoverColor={getTheme(theme).colors.success}
                       title="Crear Subsector"
                     >
                       <Plus size={14} />
@@ -1307,16 +1412,16 @@ const EnhancedSectoresManager = () => {
                   
                   {item.type === 'subsector' && (
                     <>
-                      <ActionIcon 
+                      <ActionIcon $theme={theme}
                         onClick={(e) => { e.stopPropagation(); handleCreateIndiciado(item); }}
-                        hoverColor="#ffc107"
+                        hoverColor={getTheme(theme).colors.warning}
                         title="Crear Indiciado"
                       >
                         <User size={14} />
                       </ActionIcon>
-                      <ActionIcon 
+                      <ActionIcon $theme={theme}
                         onClick={(e) => { e.stopPropagation(); handleCreateVehiculo(item); }}
-                        hoverColor="#17a2b8"
+                        hoverColor={getTheme(theme).colors.info}
                         title="Crear Vehículo"
                       >
                         <Car size={14} />
@@ -1325,28 +1430,28 @@ const EnhancedSectoresManager = () => {
                   )}
                   
                   {(item.type === 'indiciado' || item.type === 'vehiculo') && (
-                    <ActionIcon 
+                    <ActionIcon $theme={theme}
                       onClick={(e) => { 
                         e.stopPropagation(); 
                         item.type === 'indiciado' ? handleViewIndiciado(item) : handleViewVehiculo(item);
                       }}
-                      hoverColor="#28a745"
+                      hoverColor={getTheme(theme).colors.success}
                       title="Ver Detalles"
                     >
                       <Eye size={14} />
                     </ActionIcon>
                   )}
                   
-                  <ActionIcon 
+                  <ActionIcon $theme={theme}
                     onClick={(e) => { e.stopPropagation(); handleEdit(item); }}
                     title="Editar"
                   >
                     <Edit size={14} />
                   </ActionIcon>
                   
-                  <ActionIcon 
+                  <ActionIcon $theme={theme}
                     onClick={(e) => { e.stopPropagation(); handleDelete(item); }}
-                    hoverColor="#dc3545"
+                    hoverColor={getTheme(theme).colors.danger}
                     title="Eliminar"
                   >
                     <Trash2 size={14} />
@@ -1357,7 +1462,7 @@ const EnhancedSectoresManager = () => {
           </TreeItem>
           
           {isExpanded && hasChildren && (
-            <ChildrenArea>
+            <ChildrenArea $theme={theme}>
               {item.subsectores?.map(subsector => renderTreeItem(subsector, level + 1))}
               {item.indiciados?.map(indiciado => renderTreeItem(indiciado, level + 1))}
               {item.vehiculos?.map(vehiculo => renderTreeItem(vehiculo, level + 1))}
@@ -1377,10 +1482,10 @@ const EnhancedSectoresManager = () => {
   };
 
   const renderSidebar = () => (
-    <Sidebar show={showSidebar}>
-      <SidebarHeader>
+    <Sidebar $theme={theme} show={showSidebar} className="sidebar">
+      <SidebarHeader $theme={theme} className="sidebar-header">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ margin: 0, color: '#333' }}>Filtros y Acciones</h3>
+          <h3 className="sidebar-title" style={{ margin: 0, color: getTheme(theme).colors.textPrimary }}>Filtros y Acciones</h3>
           <SecondaryButton 
             onClick={() => setShowSidebar(false)}
             style={{ padding: '0.5rem', minWidth: 'auto' }}
@@ -1392,10 +1497,10 @@ const EnhancedSectoresManager = () => {
       
       <SidebarContent>
         <SidebarSection>
-          <SidebarTitle>Filtros</SidebarTitle>
+          <SidebarTitle $theme={theme} className="sidebar-title">Filtros</SidebarTitle>
           
           <FilterGroup>
-            <FilterLabel>Buscar por nombre, alias o placa</FilterLabel>
+            <FilterLabel $theme={theme} className="filter-label">Buscar por nombre, alias o placa</FilterLabel>
             <SearchInput
               type="text"
               placeholder="Filtrar por nombre, alias o placa..."
@@ -1410,8 +1515,8 @@ const EnhancedSectoresManager = () => {
           </FilterGroup>
           
           <FilterGroup>
-            <FilterLabel>Tipo de elemento</FilterLabel>
-            <FilterSelect 
+            <FilterLabel $theme={theme} className="filter-label">Tipo de elemento</FilterLabel>
+            <FilterSelect $theme={theme}
               value={filterType} 
               onChange={(e) => setFilterType(e.target.value)}
             >
@@ -1425,12 +1530,37 @@ const EnhancedSectoresManager = () => {
         </SidebarSection>
         
         <SidebarSection>
-          <SidebarTitle>Acciones Rápidas</SidebarTitle>
+          <SidebarTitle $theme={theme} className="sidebar-title">Acciones Rápidas</SidebarTitle>
           
           <QuickActions>
-              <QuickAction onClick={handleCreateSector}>
+              <QuickAction $theme={theme} className="quick-action" onClick={handleCreateSector}>
                 <Folder size={16} />
                 Nuevo Sector
+              </QuickAction>
+              
+              <QuickAction $theme={theme}
+                className="quick-action" 
+                onClick={() => {
+                  console.log('🔄 Recargando jerarquía...');
+                  loadHierarchy();
+                  showCustomNotification('Datos actualizados', 'success');
+                }}
+              >
+                <ArrowLeft size={16} style={{ transform: 'rotate(90deg)' }} />
+                Actualizar Datos
+              </QuickAction>
+              
+              <QuickAction $theme={theme}
+                className="quick-action" 
+                onClick={() => {
+                  setFilterText('');
+                  setFilterType('all');
+                  setSearchTerm('');
+                  showCustomNotification('Filtros limpiados', 'success');
+                }}
+              >
+                <X size={16} />
+                Limpiar Filtros
               </QuickAction>
             
            {/* <QuickAction onClick={() => navigate('/dashboard/reports')}>
@@ -1445,9 +1575,63 @@ const EnhancedSectoresManager = () => {
           </QuickActions>
         </SidebarSection>
         
+        <SidebarSection>
+          <SidebarTitle $theme={theme} className="sidebar-title">Resumen</SidebarTitle>
+          <div style={{ 
+            background: getTheme(theme).colors.backgroundSecondary, 
+            padding: '1rem', 
+            borderRadius: '8px', 
+            border: `1px solid ${getTheme(theme).colors.border}` 
+          }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr', 
+              gap: '0.5rem', 
+              fontSize: '0.85rem' 
+            }}>
+              <div>
+                <span style={{ color: getTheme(theme).colors.textSecondary }}>Sectores:</span>
+                <div style={{ fontWeight: '600', fontSize: '1.1rem', color: getTheme(theme).colors.textPrimary }}>
+                  {stats.sectores}
+                </div>
+              </div>
+              <div>
+                <span style={{ color: getTheme(theme).colors.textSecondary }}>Subsectores:</span>
+                <div style={{ fontWeight: '600', fontSize: '1.1rem', color: getTheme(theme).colors.textPrimary }}>
+                  {stats.subsectores}
+                </div>
+              </div>
+              <div>
+                <span style={{ color: getTheme(theme).colors.textSecondary }}>Indiciados:</span>
+                <div style={{ fontWeight: '600', fontSize: '1.1rem', color: getTheme(theme).colors.textPrimary }}>
+                  {stats.indiciados}
+                </div>
+              </div>
+              <div>
+                <span style={{ color: getTheme(theme).colors.textSecondary }}>Vehículos:</span>
+                <div style={{ fontWeight: '600', fontSize: '1.1rem', color: getTheme(theme).colors.textPrimary }}>
+                  {stats.vehiculos}
+                </div>
+              </div>
+            </div>
+            
+            {(filterText || filterType !== 'all') && (
+              <div style={{ 
+                marginTop: '0.75rem', 
+                paddingTop: '0.75rem', 
+                borderTop: `1px solid ${getTheme(theme).colors.border}` 
+              }}>
+                <span style={{ fontSize: '0.8rem', color: getTheme(theme).colors.textSecondary }}>
+                  Mostrando: {getFilteredHierarchy().length} elementos filtrados
+                </span>
+              </div>
+            )}
+          </div>
+        </SidebarSection>
+        
         {selectedItem && (
           <SidebarSection>
-            <SidebarTitle>Elemento Seleccionado</SidebarTitle>
+            <SidebarTitle $theme={theme} className="sidebar-title">Elemento Seleccionado</SidebarTitle>
             
             <Card style={{ margin: 0, cursor: 'default' }}>
               <CardHeader>
@@ -1462,7 +1646,7 @@ const EnhancedSectoresManager = () => {
               
               <QuickActions style={{ marginTop: '1rem' }}>
                 {(selectedItem.type === 'indiciado' || selectedItem.type === 'vehiculo') && (
-                  <QuickAction onClick={() => {
+                  <QuickAction $theme={theme} className="quick-action" onClick={() => {
                     selectedItem.type === 'indiciado' 
                       ? handleViewIndiciado(selectedItem) 
                       : handleViewVehiculo(selectedItem);
@@ -1472,13 +1656,13 @@ const EnhancedSectoresManager = () => {
                   </QuickAction>
                 )}
                 
-                <QuickAction onClick={() => handleEdit(selectedItem)}>
+                <QuickAction $theme={theme} className="quick-action" onClick={() => handleEdit(selectedItem)}>
                   <Edit size={16} />
                   Editar
                 </QuickAction>
                 
                 {selectedItem.type === 'sector' && (
-                  <QuickAction onClick={() => handleCreateSubsector(selectedItem)}>
+                  <QuickAction $theme={theme} className="quick-action" onClick={() => handleCreateSubsector(selectedItem)}>
                     <Plus size={16} />
                     Agregar Subsector
                   </QuickAction>
@@ -1486,11 +1670,11 @@ const EnhancedSectoresManager = () => {
                 
                 {selectedItem.type === 'subsector' && (
                   <>
-                    <QuickAction onClick={() => handleCreateIndiciado(selectedItem)}>
+                    <QuickAction $theme={theme} className="quick-action" onClick={() => handleCreateIndiciado(selectedItem)}>
                       <User size={16} />
                       Agregar Indiciado
                     </QuickAction>
-                    <QuickAction onClick={() => handleCreateVehiculo(selectedItem)}>
+                    <QuickAction $theme={theme} className="quick-action" onClick={() => handleCreateVehiculo(selectedItem)}>
                       <Car size={16} />
                       Agregar Vehículo
                     </QuickAction>
@@ -1531,44 +1715,47 @@ const EnhancedSectoresManager = () => {
         <ContentArea>
           {/* Stats */}
           <StatsContainer>
-            <StatCard>
+            <StatCard $theme={theme} className="stat-card">
               <StatIcon color="#007bff">
                 <Folder size={24} />
               </StatIcon>
-              <StatValue>{stats.sectores}</StatValue>
-              <StatLabel>Sectores</StatLabel>
+              <StatValue $theme={theme} className="text-primary">{stats.sectores}</StatValue>
+              <StatLabel $theme={theme} className="text-secondary">Sectores</StatLabel>
             </StatCard>
             
-            <StatCard>
+            <StatCard $theme={theme} className="stat-card">
               <StatIcon color="#28a745">
                 <FolderOpen size={24} />
               </StatIcon>
-              <StatValue>{stats.subsectores}</StatValue>
-              <StatLabel>Subsectores</StatLabel>
+              <StatValue $theme={theme} className="text-primary">{stats.subsectores}</StatValue>
+              <StatLabel $theme={theme} className="text-secondary">Subsectores</StatLabel>
             </StatCard>
             
-            <StatCard>
+            <StatCard $theme={theme} className="stat-card">
               <StatIcon color="#ffc107">
                 <User size={24} />
               </StatIcon>
-              <StatValue>{stats.indiciados}</StatValue>
-              <StatLabel>Indiciados</StatLabel>
+              <StatValue $theme={theme} className="text-primary">{stats.indiciados}</StatValue>
+              <StatLabel $theme={theme} className="text-secondary">Indiciados</StatLabel>
             </StatCard>
             
-            <StatCard>
+            <StatCard $theme={theme} className="stat-card">
               <StatIcon color="#17a2b8">
                 <Car size={24} />
               </StatIcon>
-              <StatValue>{stats.vehiculos}</StatValue>
-              <StatLabel>Vehículos</StatLabel>
+              <StatValue $theme={theme} className="text-primary">{stats.vehiculos}</StatValue>
+              <StatLabel $theme={theme} className="text-secondary">Vehículos</StatLabel>
             </StatCard>
           </StatsContainer>
 
           {/* Content Area */}
-          <HierarchyArea>
-            <HierarchyHeader>
+          <HierarchyArea $theme={theme} className="hierarchy-area">
+            <HierarchyHeader $theme={theme} className="hierarchy-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <h3 style={{ margin: 0, color: '#333' }}>
+                <h3 style={{ 
+                  margin: 0, 
+                  color: getTheme(theme).colors.textPrimary 
+                }}>
                   {searchTerm ? `Resultados: ${getFilteredHierarchy().length}` : 'Estructura Jerárquica'}
                 </h3>
                 

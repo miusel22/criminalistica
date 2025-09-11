@@ -65,3 +65,191 @@ code {
 .modal {
   z-index: 1001;
 }
+
+/* ===== SISTEMA DE TEMAS ===== */
+
+/* Tema Light (por defecto) */
+body.theme-light {
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-alt: #f8f9fa;
+  --bg-header: #ffffff;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --border-color: #e1e5e9;
+  --border-light: #f1f3f4;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hover-bg: #f8f9fa;
+  --primary-color: #007bff;
+  --primary-hover: #0056b3;
+}
+
+/* Tema Dark */
+body.theme-dark {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-card: #1f2937;
+  --bg-alt: #374151;
+  --bg-header: #1f2937;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --border-color: #374151;
+  --border-light: #4b5563;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --hover-bg: #374151;
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+}
+
+/* Variables CSS aplicadas automáticamente */
+* {
+  color: var(--text-primary);
+}
+
+/* Elementos que deben usar colores del tema */
+.hierarchy-area,
+.stat-card,
+.sidebar,
+.card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 4px 20px var(--shadow-color) !important;
+}
+
+.hierarchy-header,
+.sidebar-header {
+  background: var(--bg-alt) !important;
+  border-color: var(--border-color) !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.text-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary,
+.breadcrumb-item {
+  color: var(--text-secondary) !important;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* Hover states */
+.tree-item-header:hover,
+.quick-action:hover {
+  background: var(--hover-bg) !important;
+}
+
+/* Inputs y selects */
+input, select, textarea {
+  background: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary-color) !important;
+}
+
+/* Botones primarios */
+.btn-primary {
+  background: var(--primary-color) !important;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover) !important;
+}
+
+/* Estilos específicos para el componente EnhancedSectoresManager */
+.breadcrumb-container .breadcrumb-item {
+  color: var(--text-secondary) !important;
+}
+
+.breadcrumb-container .breadcrumb-item[data-clickable="true"] {
+  color: var(--primary-color) !important;
+}
+
+.breadcrumb-container .breadcrumb-item[data-clickable="true"]:hover {
+  color: var(--primary-hover) !important;
+}
+
+/* TreeItem y componentes del árbol */
+.tree-item {
+  border-bottom-color: var(--border-light) !important;
+}
+
+.tree-item-header {
+  background: transparent !important;
+  transition: background 0.2s !important;
+}
+
+.tree-item-header:hover {
+  background: var(--hover-bg) !important;
+}
+
+.tree-item-name {
+  color: var(--text-primary) !important;
+}
+
+.tree-item-meta {
+  color: var(--text-secondary) !important;
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--bg-card) !important;
+}
+
+.sidebar-header {
+  background: var(--bg-alt) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+.sidebar-title {
+  color: var(--text-primary) !important;
+}
+
+.filter-label {
+  color: var(--text-secondary) !important;
+}
+
+.quick-action {
+  background: var(--bg-alt) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-light) !important;
+}
+
+.quick-action:hover {
+  background: var(--hover-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+/* EmptyState */
+.empty-state {
+  color: var(--text-secondary) !important;
+}
+
+.empty-state h3 {
+  color: var(--text-primary) !important;
+}
+
+/* Action icons */
+.action-icon {
+  background: var(--bg-alt) !important;
+  color: var(--text-secondary) !important;
+}
+
+.action-icon:hover {
+  background: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* Children area */
+.children-area {
+  background: var(--bg-alt) !important;
+}

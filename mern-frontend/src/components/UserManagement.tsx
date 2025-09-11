@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { useTheme } from '../contexts/ThemeContext';
+import { getTheme } from '../theme/theme';
 import { 
   Plus, 
   Search, 
@@ -26,32 +28,57 @@ import { useDeleteUserConfirmation, useToggleUserStatusConfirmation, useUpdateUs
 import UserForm from './UserForm';
 import UserStatsPanel from './UserStatsPanel';
 
-const Container = styled.div`
+// Type definitions for styled components with theme prop
+interface ThemeProps {
+  $theme?: string;
+}
+
+interface ThemePropsWithVariants extends ThemeProps {
+  $active?: boolean;
+  $disabled?: boolean;
+}
+
+const Container = styled.div<ThemeProps>`
   padding: 2rem;
-  background: #f8f9fa;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.background;
+  }};
   min-height: 100vh;
 `;
 
-const Header = styled.div`
-  background: white;
+const Header = styled.div<ThemeProps>`
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundCard;
+  }};
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.shadows.md;
+  }};
 `;
 
-const Title = styled.h1`
+const Title = styled.h1<ThemeProps>`
   margin: 0 0 1rem 0;
-  color: #333;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   font-size: 1.75rem;
   display: flex;
   align-items: center;
   gap: 12px;
 `;
 
-const Description = styled.p`
+const Description = styled.p<ThemeProps>`
   margin: 0 0 1.5rem 0;
-  color: #666;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   font-size: 1rem;
 `;
 
@@ -68,37 +95,67 @@ const SearchContainer = styled.div`
   min-width: 300px;
 `;
 
-const SearchInput = styled.input`
+const SearchInput = styled.input<ThemeProps>`
   width: 100%;
   padding: 12px 12px 12px 40px;
-  border: 1px solid #ddd;
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   border-radius: 8px;
   font-size: 16px;
   
   &:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.primary;
+    }};
   }
 `;
 
-const SearchIcon = styled(Search)`
+const SearchIcon = styled(Search)<ThemeProps>`
   position: absolute;
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #666;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
 `;
 
-const FilterSelect = styled.select`
+const FilterSelect = styled.select<ThemeProps>`
   padding: 12px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   border-radius: 8px;
   font-size: 16px;
-  background: white;
   
   &:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.primary;
+    }};
   }
 `;
 
@@ -115,28 +172,52 @@ const Button = styled.button`
   white-space: nowrap;
 `;
 
-const PrimaryButton = styled(Button)`
-  background: #007bff;
-  color: white;
+const PrimaryButton = styled(Button)<ThemeProps>`
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.primary;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
   
   &:hover {
-    background: #0056b3;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.primaryHover;
+    }};
   }
 `;
 
-const SecondaryButton = styled(Button)`
-  background: #6c757d;
-  color: white;
+const SecondaryButton = styled(Button)<ThemeProps>`
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
   
   &:hover {
-    background: #545b62;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.textPrimary;
+    }};
   }
 `;
 
-const Content = styled.div`
-  background: white;
+const Content = styled.div<ThemeProps>`
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundCard;
+  }};
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.shadows.md;
+  }};
 `;
 
 const TableContainer = styled.div`
@@ -148,39 +229,60 @@ const Table = styled.table`
   border-collapse: collapse;
 `;
 
-const TableHeader = styled.th`
+const TableHeader = styled.th<ThemeProps>`
   padding: 1rem;
   text-align: left;
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 2px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
   font-weight: 600;
-  color: #495057;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
 `;
 
-const TableRow = styled.tr`
+const TableRow = styled.tr<ThemeProps>`
   &:hover {
-    background: #f8f9fa;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.hover;
+    }};
   }
   
   &:nth-child(even) {
-    background: rgba(0, 0, 0, 0.02);
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.backgroundSecondary;
+    }};
   }
 `;
 
-const TableCell = styled.td`
+const TableCell = styled.td<ThemeProps>`
   padding: 1rem;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
   vertical-align: middle;
 `;
 
-const UserAvatar = styled.div`
+const UserAvatar = styled.div<ThemeProps>`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #007bff, #0056b3);
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return `linear-gradient(45deg, ${theme.colors.primary}, ${theme.colors.primaryHover})`;
+  }};
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
   font-weight: 600;
   font-size: 14px;
 `;
@@ -195,14 +297,20 @@ const UserDetails = styled.div`
   flex: 1;
 `;
 
-const UserName = styled.div`
+const UserName = styled.div<ThemeProps>`
   font-weight: 600;
-  color: #333;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   margin-bottom: 4px;
 `;
 
-const UserEmail = styled.div`
-  color: #666;
+const UserEmail = styled.div<ThemeProps>`
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   font-size: 0.875rem;
 `;
 
@@ -228,80 +336,128 @@ const ActionButtons = styled.div`
   gap: 8px;
 `;
 
-const ActionButton = styled.button`
+const ActionButton = styled.button<ThemeProps>`
   background: none;
   border: none;
   cursor: pointer;
   padding: 6px;
   border-radius: 4px;
-  color: #666;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   transition: all 0.2s ease;
   
   &:hover {
-    background: #e9ecef;
-    color: #333;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.hover;
+    }};
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.textPrimary;
+    }};
   }
   
   &.edit:hover {
-    color: #007bff;
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.primary;
+    }};
   }
   
   &.delete:hover {
-    color: #dc3545;
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.danger;
+    }};
   }
   
   &.toggle:hover {
-    color: #ffc107;
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.warning;
+    }};
   }
 `;
 
-const EmptyState = styled.div`
+const EmptyState = styled.div<ThemeProps>`
   text-align: center;
   padding: 3rem;
-  color: #666;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
 `;
 
-const EmptyIcon = styled.div`
+const EmptyIcon = styled.div<ThemeProps>`
   font-size: 3rem;
   margin-bottom: 1rem;
-  color: #ddd;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textTertiary;
+  }};
 `;
 
-const LoadingState = styled.div`
+const LoadingState = styled.div<ThemeProps>`
   text-align: center;
   padding: 3rem;
-  color: #666;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
 `;
 
-const Pagination = styled.div`
+const Pagination = styled.div<ThemeProps>`
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 1.5rem;
   gap: 1rem;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
 `;
 
-const PaginationButton = styled.button<{ $active?: boolean; $disabled?: boolean }>`
+const PaginationButton = styled.button<ThemePropsWithVariants>`
   padding: 8px 12px;
-  border: 1px solid #dee2e6;
-  background: ${props => props.$active ? '#007bff' : 'white'};
-  color: ${props => props.$active ? 'white' : '#495057'};
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return props.$active ? theme.colors.primary : theme.colors.background;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return props.$active ? theme.colors.textInverse : theme.colors.textPrimary;
+  }};
   border-radius: 4px;
   cursor: ${props => props.$disabled ? 'not-allowed' : 'pointer'};
   opacity: ${props => props.$disabled ? 0.5 : 1};
   
   &:hover:not(:disabled) {
-    background: ${props => props.$active ? '#0056b3' : '#f8f9fa'};
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return props.$active ? theme.colors.primaryHover : theme.colors.hover;
+    }};
   }
 `;
 
-const PaginationInfo = styled.span`
-  color: #6c757d;
+const PaginationInfo = styled.span<ThemeProps>`
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   font-size: 0.875rem;
 `;
 
 const UserManagement: React.FC = () => {
+  // Get current theme from context
+  const { theme } = useTheme();
+  
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -481,6 +637,7 @@ const UserManagement: React.FC = () => {
         key="prev"
         onClick={() => setCurrentPage(currentPage - 1)}
         $disabled={currentPage === 1}
+        $theme={theme}
       >
         Anterior
       </PaginationButton>
@@ -493,6 +650,7 @@ const UserManagement: React.FC = () => {
           key={i}
           onClick={() => setCurrentPage(i)}
           $active={i === currentPage}
+          $theme={theme}
         >
           {i}
         </PaginationButton>
@@ -505,6 +663,7 @@ const UserManagement: React.FC = () => {
         key="next"
         onClick={() => setCurrentPage(currentPage + 1)}
         $disabled={currentPage === totalPages}
+        $theme={theme}
       >
         Siguiente
       </PaginationButton>
@@ -518,40 +677,41 @@ const UserManagement: React.FC = () => {
     const statusBadge = UserService.getStatusBadge(user.isActive);
 
     return (
-      <TableRow key={user.id}>
-        <TableCell>
+      <TableRow key={user.id} $theme={theme}>
+        <TableCell $theme={theme}>
           <UserInfo>
-            <UserAvatar>
+            <UserAvatar $theme={theme}>
               {getInitials(user)}
             </UserAvatar>
             <UserDetails>
-              <UserName>{UserService.getFullName(user)}</UserName>
-              <UserEmail>{user.email}</UserEmail>
+              <UserName $theme={theme}>{UserService.getFullName(user)}</UserName>
+              <UserEmail $theme={theme}>{user.email}</UserEmail>
             </UserDetails>
           </UserInfo>
         </TableCell>
-        <TableCell>
+        <TableCell $theme={theme}>
           <Badge $color={roleBadge.color}>
             {user.role === 'admin' && <Shield size={12} />}
             {(user.role === 'editor' || user.role === 'viewer') && <UserIcon size={12} />}
             {roleBadge.text}
           </Badge>
         </TableCell>
-        <TableCell>
+        <TableCell $theme={theme}>
           <StatusBadge $active={user.isActive} $color={statusBadge.color}>
             {user.isActive ? <CheckCircle size={12} /> : <XCircle size={12} />}
             {statusBadge.text}
           </StatusBadge>
         </TableCell>
-        <TableCell>
+        <TableCell $theme={theme}>
           {new Date(user.createdAt).toLocaleDateString('es-ES')}
         </TableCell>
-        <TableCell>
+        <TableCell $theme={theme}>
           <ActionButtons>
             <ActionButton
               className="edit"
               onClick={() => handleEditUser(user)}
               title="Editar usuario"
+              $theme={theme}
             >
               <Edit size={16} />
             </ActionButton>
@@ -559,6 +719,7 @@ const UserManagement: React.FC = () => {
               className="toggle"
               onClick={() => handleToggleUserStatus(user)}
               title={user.isActive ? "Desactivar usuario" : "Activar usuario"}
+              $theme={theme}
             >
               {user.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
             </ActionButton>
@@ -566,6 +727,7 @@ const UserManagement: React.FC = () => {
               className="delete"
               onClick={() => handleDeleteUser(user)}
               title="Eliminar usuario"
+              $theme={theme}
             >
               <Trash2 size={16} />
             </ActionButton>
@@ -577,7 +739,7 @@ const UserManagement: React.FC = () => {
 
   if (!UserService.isCurrentUserAdmin()) {
     return (
-      <Container>
+      <Container $theme={theme}>
         <EmptyState>
           <EmptyIcon><AlertTriangle /></EmptyIcon>
           <h3>Acceso Denegado</h3>
@@ -589,27 +751,28 @@ const UserManagement: React.FC = () => {
   }
 
   return (
-    <Container>
-      <Header>
-        <Title>
+    <Container $theme={theme}>
+      <Header $theme={theme}>
+        <Title $theme={theme}>
           <Users size={28} />
           Gestión de Usuarios
         </Title>
-        <Description>
+        <Description $theme={theme}>
           Administra los usuarios del sistema. Solo los administradores pueden acceder a esta sección.
         </Description>
         <Controls>
           <SearchContainer>
-            <SearchIcon size={18} />
+            <SearchIcon size={18} $theme={theme} />
             <SearchInput
               type="text"
               placeholder="Buscar usuarios por nombre o email..."
               value={searchTerm}
               onChange={handleSearch}
+              $theme={theme}
             />
           </SearchContainer>
           
-          <FilterSelect value={roleFilter} onChange={handleRoleFilter}>
+          <FilterSelect value={roleFilter} onChange={handleRoleFilter} $theme={theme}>
             <option value="all">Todos los roles</option>
             <option value="admin">Administradores</option>
             <option value="editor">Editores</option>
@@ -617,21 +780,21 @@ const UserManagement: React.FC = () => {
             <option value="user">Usuarios</option>
           </FilterSelect>
 
-          <SecondaryButton onClick={loadUsers}>
+          <SecondaryButton onClick={loadUsers} $theme={theme}>
             <RefreshCw size={18} />
             Actualizar
           </SecondaryButton>
 
-          <PrimaryButton onClick={handleCreateUser}>
+          <PrimaryButton onClick={handleCreateUser} $theme={theme}>
             <Plus size={18} />
             Nuevo Usuario
           </PrimaryButton>
         </Controls>
       </Header>
 
-      {stats && <UserStatsPanel stats={stats} />}
+      {stats && <UserStatsPanel stats={stats} theme={theme} />}
 
-      <Content>
+      <Content $theme={theme}>
         {loading ? (
           <LoadingState>
             <div>Cargando usuarios...</div>
@@ -653,11 +816,11 @@ const UserManagement: React.FC = () => {
               <Table>
                 <thead>
                   <tr>
-                    <TableHeader>Usuario</TableHeader>
-                    <TableHeader>Rol</TableHeader>
-                    <TableHeader>Estado</TableHeader>
-                    <TableHeader>Fecha de Registro</TableHeader>
-                    <TableHeader>Acciones</TableHeader>
+                    <TableHeader $theme={theme}>Usuario</TableHeader>
+                    <TableHeader $theme={theme}>Rol</TableHeader>
+                    <TableHeader $theme={theme}>Estado</TableHeader>
+                    <TableHeader $theme={theme}>Fecha de Registro</TableHeader>
+                    <TableHeader $theme={theme}>Acciones</TableHeader>
                   </tr>
                 </thead>
                 <tbody>
@@ -667,9 +830,9 @@ const UserManagement: React.FC = () => {
             </TableContainer>
 
             {totalPages > 1 && (
-              <Pagination>
+              <Pagination $theme={theme}>
                 {renderPagination()}
-                <PaginationInfo>
+                <PaginationInfo $theme={theme}>
                   Página {currentPage} de {totalPages} • {totalUsers} usuarios total
                 </PaginationInfo>
               </Pagination>
@@ -684,6 +847,7 @@ const UserManagement: React.FC = () => {
           onSuccess={handleFormSuccess}
           onCancel={handleFormCancel}
           loading={formLoading}
+          theme={theme}
         />
       )}
       

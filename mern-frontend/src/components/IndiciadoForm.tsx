@@ -26,7 +26,9 @@ import { IndiciadoService } from '../services/indiciadoService';
 import { SectorService } from '../services/sectorService';
 import { transformBackendDataToFormData } from '../utils/indiciadoTransforms';
 import { DocumentosIndiciado } from './DocumentosIndiciado';
-import '../styles/IndiciadoForm.css';
+import styled from 'styled-components';
+import { useTheme } from '../contexts/ThemeContext';
+import { getTheme } from '../theme/theme';
 import '../styles/ComponentStyles.css'; // Para loading spinner y otros estilos
 
 // Esquema de validación con Yup
@@ -104,6 +106,549 @@ interface IndiciadoFormProps {
   onCancel?: () => void;
 }
 
+// Interface for styled components theme props
+interface StyledThemeProps {
+  $theme?: string;
+}
+
+interface ProgressBarProps extends StyledThemeProps {
+  progress: number;
+}
+
+interface PhotoPreviewProps extends StyledThemeProps {
+  hasImage?: boolean;
+}
+
+interface FormInputProps extends StyledThemeProps {
+  hasError?: boolean;
+}
+
+
+// Styled Components
+const FormContainer = styled.div<StyledThemeProps>`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundCard;
+  }};
+  border-radius: 12px;
+  box-shadow: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.shadows.md;
+  }};
+`;
+
+const FormHeader = styled.div<StyledThemeProps>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.primary;
+  }};
+`;
+
+const FormTitle = styled.h1<StyledThemeProps>`
+  font-size: 28px;
+  font-weight: bold;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+  svg {
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.primary;
+    }};
+  }
+`;
+
+const ProgressContainer = styled.div<StyledThemeProps>`
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundSecondary;
+  }};
+  height: 4px;
+  border-radius: 2px;
+  margin-bottom: 20px;
+  overflow: hidden;
+`;
+
+const ProgressBar = styled.div<ProgressBarProps>`
+  height: 100%;
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.primary;
+  }};
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  width: ${props => props.progress}%;
+`;
+
+const FormLayout = styled.form`
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 30px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+`;
+
+const FormSections = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+`;
+
+const FormSection = styled.section<StyledThemeProps>`
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundSecondary;
+  }};
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
+  border-radius: 8px;
+  padding: 20px;
+`;
+
+const SectionHeader = styled.div<StyledThemeProps>`
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
+`;
+
+const SectionTitle = styled.h2<StyledThemeProps>`
+  font-size: 18px;
+  font-weight: 600;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
+  margin: 0 0 0 10px;
+`;
+
+const SectionIcon = styled.div<StyledThemeProps>`
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
+  flex-shrink: 0;
+`;
+
+const FormGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const FormGridFull = styled.div`
+  grid-column: 1 / -1;
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const FormLabel = styled.label<StyledThemeProps>`
+  font-size: 14px;
+  font-weight: 500;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  .required {
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.danger;
+    }};
+  }
+`;
+
+const FormInput = styled.input<FormInputProps>`
+  padding: 10px 12px;
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return props.hasError ? theme.colors.danger : theme.colors.inputBorder;
+  }};
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputText;
+  }};
+  
+  &:focus {
+    outline: none;
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.inputFocus;
+    }};
+    box-shadow: 0 0 0 3px ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.shadowFocus;
+    }};
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const FormSelect = styled.select<FormInputProps>`
+  padding: 10px 12px;
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return props.hasError ? theme.colors.danger : theme.colors.inputBorder;
+  }};
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputText;
+  }};
+  
+  &:focus {
+    outline: none;
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.inputFocus;
+    }};
+    box-shadow: 0 0 0 3px ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.shadowFocus;
+    }};
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const FormTextarea = styled.textarea<FormInputProps>`
+  padding: 10px 12px;
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return props.hasError ? theme.colors.danger : theme.colors.inputBorder;
+  }};
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputText;
+  }};
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+  
+  &:focus {
+    outline: none;
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.inputFocus;
+    }};
+    box-shadow: 0 0 0 3px ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.shadowFocus;
+    }};
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const FormError = styled.span<StyledThemeProps>`
+  font-size: 12px;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.danger;
+  }};
+  margin-top: 4px;
+`;
+
+// Photo Upload Components
+const PhotoUploadSection = styled.div<StyledThemeProps>`
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundSecondary;
+  }};
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
+  border-radius: 8px;
+  padding: 20px;
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+  
+  @media (max-width: 768px) {
+    position: static;
+    order: -1;
+  }
+`;
+
+const PhotoPreviewContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+`;
+
+const PhotoPreview = styled.div<PhotoPreviewProps>`
+  width: 250px;
+  height: 300px;
+  border: 2px ${props => props.hasImage ? 'solid' : 'dashed'} ${props => {
+    const theme = getTheme(props.$theme);
+    return props.hasImage ? theme.colors.primary : theme.colors.border;
+  }};
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  position: relative;
+  overflow: hidden;
+  
+  @media (max-width: 768px) {
+    width: 200px;
+    height: 240px;
+  }
+`;
+
+const PhotoPreviewImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const PhotoPlaceholder = styled.div<StyledThemeProps>`
+  text-align: center;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
+  
+  svg {
+    margin-bottom: 8px;
+  }
+`;
+
+const FileInput = styled.input`
+  display: none;
+`;
+
+const FileInputLabel = styled.label<StyledThemeProps>`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.primary;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.primaryHover;
+    }};
+  }
+`;
+
+const RemovePhotoButton = styled.button<StyledThemeProps>`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.danger;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+`;
+
+// Form Action Components
+const FormActions = styled.div<StyledThemeProps>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
+  
+  @media (max-width: 768px) {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+`;
+
+const Button = styled.button`
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const PrimaryButton = styled(Button)<StyledThemeProps>`
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.primary;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
+  
+  &:hover:not(:disabled) {
+    background-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.primaryHover;
+    }};
+  }
+`;
+
+const SecondaryButton = styled(Button)<StyledThemeProps>`
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
+  
+  &:hover:not(:disabled) {
+    background-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.backgroundSecondary;
+    }};
+  }
+`;
+
+const DangerButton = styled(Button)<StyledThemeProps>`
+  background-color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.danger;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
+  
+  &:hover:not(:disabled) {
+    background-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.dangerHover;
+    }};
+  }
+`;
+
+const LoadingSpinner = styled.div<StyledThemeProps>`
+  width: 16px;
+  height: 16px;
+  border: 2px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
 
 export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
   initialData,
@@ -113,6 +658,7 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
   onSuccess,
   onCancel
 }) => {
+  const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
@@ -429,22 +975,19 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
   };
 
   return (
-    <div className="indiciado-form-container">
-      <div className="indiciado-form-header">
-        <h1 className="indiciado-form-title">
+    <FormContainer $theme={theme}>
+      <FormHeader $theme={theme}>
+        <FormTitle $theme={theme}>
           <User size={32} />
           {readOnly ? 'Ver Indiciado' : (isEdit || isEditing ? 'Editar Indiciado' : 'Nuevo Indiciado')}
-        </h1>
-      </div>
+        </FormTitle>
+      </FormHeader>
 
-      <div className="form-progress">
-        <div 
-          className="form-progress-bar" 
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+      <ProgressContainer $theme={theme}>
+        <ProgressBar $theme={theme} progress={progress} />
+      </ProgressContainer>
 
-      <form 
+      <FormLayout 
         id="indiciado-form" 
         onSubmit={(e) => {
           console.log('🎯 FORM SUBMIT EVENT TRIGGERED!');
@@ -455,86 +998,91 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
           // Llamar a handleSubmit de react-hook-form
           handleSubmit(onSubmit)(e);
         }}
-        className="indiciado-form"
       >
-        <div className="form-sections">
+        <FormSections>
           {/* Información Básica */}
-          <section className="form-section">
-            <div className="section-header">
-              <User className="section-icon" size={20} />
-              <h2 className="section-title">Información Básica</h2>
-            </div>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">
+          <FormSection $theme={theme}>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
+                <User size={20} />
+              </SectionIcon>
+              <SectionTitle $theme={theme}>Información Básica</SectionTitle>
+            </SectionHeader>
+            <FormGrid>
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Sector que Opera
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('sectorQueOpera')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: La Unión"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Nombre <span className="required">*</span>
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('nombre')}
                   type="text"
-                  className={`form-input ${errors.nombre ? 'error' : ''}`}
+                  $theme={theme}
+                  hasError={!!errors.nombre}
                   placeholder="Nombre completo"
                   disabled={readOnly}
                 />
-                {errors.nombre && <span className="form-error">{errors.nombre.message}</span>}
-              </div>
+                {errors.nombre && <FormError $theme={theme}>{errors.nombre.message}</FormError>}
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Apellidos <span className="required">*</span>
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('apellidos')}
                   type="text"
-                  className={`form-input ${errors.apellidos ? 'error' : ''}`}
+                  $theme={theme}
+                  hasError={!!errors.apellidos}
                   placeholder="Apellidos completos"
                   disabled={readOnly}
                 />
-                {errors.apellidos && <span className="form-error">{errors.apellidos.message}</span>}
-              </div>
+                {errors.apellidos && <FormError $theme={theme}>{errors.apellidos.message}</FormError>}
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Alias
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('alias')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Alias conocidos"
                   disabled={readOnly}
                 />
-              </div>
-            </div>
-          </section>
+              </FormGroup>
+            </FormGrid>
+          </FormSection>
 
           {/* Documento de Identidad */}
-          <section className="form-section">
-            <div className="section-header">
-              <FileText className="section-icon" size={20} />
-              <h2 className="section-title">Documento de Identidad</h2>
-            </div>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">
+          <FormSection $theme={theme}>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
+                <FileText size={20} />
+              </SectionIcon>
+              <SectionTitle $theme={theme}>Documento de Identidad</SectionTitle>
+            </SectionHeader>
+            <FormGrid>
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Tipo de Documento
-                </label>
-                <select
+                </FormLabel>
+                <FormSelect
                   {...register("documentoIdentidad.tipo")}
-                  className="form-select"
+                  $theme={theme}
                   disabled={readOnly}
                 >
                   <option value="">Seleccionar...</option>
@@ -543,620 +1091,656 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
                   <option value="Tarjeta de Identidad">Tarjeta de Identidad</option>
                   <option value="Pasaporte">Pasaporte</option>
                   <option value="Otro">Otro</option>
-                </select>
-              </div>
+                </FormSelect>
+              </FormGroup>
               
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Número de Documento
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register("documentoIdentidad.numero")}
                   type="text"
-                  className={`form-input ${errors.documentoIdentidad?.numero ? 'error' : ''}`}
+                  $theme={theme}
+                  hasError={!!errors.documentoIdentidad?.numero}
                   placeholder="Ej: 71.278.435"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Expedido en
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register("documentoIdentidad.expedidoEn")}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: Itagüí (Antioquia)"
                   disabled={readOnly}
                 />
-              </div>
-            </div>
-          </section>
+              </FormGroup>
+            </FormGrid>
+          </FormSection>
 
           {/* Fecha de Nacimiento y Edad */}
-          <section className="form-section">
-            <div className="section-header">
-              <Calendar className="section-icon" size={20} />
-              <h2 className="section-title">Fecha de Nacimiento</h2>
-            </div>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">
+          <FormSection $theme={theme}>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
+                <Calendar size={20} />
+              </SectionIcon>
+              <SectionTitle $theme={theme}>Fecha de Nacimiento</SectionTitle>
+            </SectionHeader>
+            <FormGrid>
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Fecha de Nacimiento
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('fechaNacimiento')}
                   type="date"
-                  className="form-input"
+                  $theme={theme}
                   onChange={handleBirthDateChange}
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Lugar de Nacimiento
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('lugarNacimiento')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: Itagüí (Antioquia)"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Edad
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('edad')}
                   type="number"
-                  className={`form-input ${errors.edad ? 'error' : ''}`}
+                  $theme={theme}
+                  hasError={!!errors.edad}
                   placeholder="Años"
                   min="0"
                   max="120"
                   disabled={readOnly}
                 />
-                {errors.edad && <span className="form-error">{errors.edad.message}</span>}
-              </div>
-            </div>
-          </section>
+                {errors.edad && <FormError $theme={theme}>{errors.edad.message}</FormError>}
+              </FormGroup>
+            </FormGrid>
+          </FormSection>
 
           {/* Información Familiar y Personal */}
-          <section className="form-section">
-            <div className="section-header">
-              <Home className="section-icon" size={20} />
-              <h2 className="section-title">Información Personal</h2>
-            </div>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">
+          <FormSection $theme={theme}>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
+                <Home size={20} />
+              </SectionIcon>
+              <SectionTitle $theme={theme}>Información Personal</SectionTitle>
+            </SectionHeader>
+            <FormGrid>
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Hijo de
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('hijoDe')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Nombres de los padres"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Género
-                </label>
-                <select
+                </FormLabel>
+                <FormSelect
                   {...register('genero')}
-                  className="form-select"
+                  $theme={theme}
                   disabled={readOnly}
                 >
                   <option value="">Seleccionar...</option>
                   <option value="Masculino">Masculino</option>
                   <option value="Femenino">Femenino</option>
                   <option value="Otro">Otro</option>
-                </select>
-              </div>
+                </FormSelect>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Estado Civil
-                </label>
-                <select
+                </FormLabel>
+                <FormSelect
                   {...register('estadoCivil')}
-                  className="form-select"
+                  $theme={theme}
                   disabled={readOnly}
                 >
                   <option value="">Seleccionar...</option>
                   {Object.values(EstadoCivil).map(estado => (
                     <option key={estado} value={estado}>{estado}</option>
                   ))}
-                </select>
-              </div>
+                </FormSelect>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Nacionalidad
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('nacionalidad')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: Colombiana"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group form-grid-full">
-                <label className="form-label">
-                  Residencia
-                </label>
-                <input
-                  {...register('residencia')}
-                  type="text"
-                  className="form-input"
-                  placeholder="Ciudad o municipio de residencia"
-                  disabled={readOnly}
-                />
-              </div>
+              <FormGridFull>
+                <FormGroup>
+                  <FormLabel $theme={theme}>
+                    Residencia
+                  </FormLabel>
+                  <FormInput
+                    {...register('residencia')}
+                    type="text"
+                    $theme={theme}
+                    placeholder="Ciudad o municipio de residencia"
+                    disabled={readOnly}
+                  />
+                </FormGroup>
+              </FormGridFull>
 
-              <div className="form-group form-grid-full">
-                <label className="form-label">
-                  Dirección
-                </label>
-                <input
-                  {...register('direccion')}
-                  type="text"
-                  className="form-input"
-                  placeholder="Dirección completa"
-                  disabled={readOnly}
-                />
-              </div>
+              <FormGridFull>
+                <FormGroup>
+                  <FormLabel $theme={theme}>
+                    Dirección
+                  </FormLabel>
+                  <FormInput
+                    {...register('direccion')}
+                    type="text"
+                    $theme={theme}
+                    placeholder="Dirección completa"
+                    disabled={readOnly}
+                  />
+                </FormGroup>
+              </FormGridFull>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Teléfono
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('telefono')}
                   type="tel"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Número de teléfono"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Email
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('email')}
                   type="email"
-                  className={`form-input ${errors.email ? 'error' : ''}`}
+                  $theme={theme}
+                  hasError={!!errors.email}
                   placeholder="Correo electrónico"
                   disabled={readOnly}
                 />
-                {errors.email && <span className="form-error">{errors.email.message}</span>}
-              </div>
-            </div>
-          </section>
+                {errors.email && <FormError $theme={theme}>{errors.email.message}</FormError>}
+              </FormGroup>
+            </FormGrid>
+          </FormSection>
 
           {/* Información Académica y Laboral */}
-          <section className="form-section">
-            <div className="section-header">
-              <GraduationCap className="section-icon" size={20} />
-              <h2 className="section-title">Información Académica y Laboral</h2>
-            </div>
-            <div className="form-grid">
-              <div className="form-group form-grid-full">
-                <label className="form-label">
-                  Estudios Realizados
-                </label>
-                <textarea
-                  {...register('estudiosRealizados')}
-                  className="form-textarea"
-                  placeholder="Descripción de estudios realizados"
-                  rows={3}
-                  disabled={readOnly}
-                />
-              </div>
+          <FormSection $theme={theme}>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
+                <GraduationCap size={20} />
+              </SectionIcon>
+              <SectionTitle $theme={theme}>Información Académica y Laboral</SectionTitle>
+            </SectionHeader>
+            <FormGrid>
+              <FormGridFull>
+                <FormGroup>
+                  <FormLabel $theme={theme}>
+                    Estudios Realizados
+                  </FormLabel>
+                  <FormTextarea
+                    {...register('estudiosRealizados')}
+                    $theme={theme}
+                    placeholder="Descripción de estudios realizados"
+                    rows={3}
+                    disabled={readOnly}
+                  />
+                </FormGroup>
+              </FormGridFull>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Profesión
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('profesion')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Profesión"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Oficio
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('oficio')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Oficio actual"
                   disabled={readOnly}
                 />
-              </div>
-            </div>
-          </section>
+              </FormGroup>
+            </FormGrid>
+          </FormSection>
 
           {/* Señales Físicas */}
-          <section className="form-section">
-            <div className="section-header">
-              <Eye className="section-icon" size={20} />
-              <h2 className="section-title">Señales Físicas</h2>
-            </div>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">
+          <FormSection $theme={theme}>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
+                <Eye size={20} />
+              </SectionIcon>
+              <SectionTitle $theme={theme}>Señales Físicas</SectionTitle>
+            </SectionHeader>
+            <FormGrid>
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Estatura
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicas.estatura')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: 1,69 m"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Peso
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicas.peso')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: 70 kg"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Contextura Física
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicas.contexturaFisica')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: Delgada, Media, Robusta"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Color de Piel
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicas.colorPiel')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Color de piel"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Color de Ojos
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicas.colorOjos')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Color de ojos"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Color de Cabello
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicas.colorCabello')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Color de cabello"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
-              <div className="form-group form-grid-full">
-                <label className="form-label">
-                  Marcas Especiales
-                </label>
-                <textarea
-                  {...register('senalesFisicas.marcasEspeciales')}
-                  className="form-textarea"
-                  placeholder="Tatuajes, cicatrices, marcas distintivas..."
-                  rows={3}
-                  disabled={readOnly}
-                />
-              </div>
-            </div>
-          </section>
+              <FormGridFull>
+                <FormGroup>
+                  <FormLabel $theme={theme}>
+                    Marcas Especiales
+                  </FormLabel>
+                  <FormTextarea
+                    {...register('senalesFisicas.marcasEspeciales')}
+                    $theme={theme}
+                    placeholder="Tatuajes, cicatrices, marcas distintivas..."
+                    rows={3}
+                    disabled={readOnly}
+                  />
+                </FormGroup>
+              </FormGridFull>
+            </FormGrid>
+          </FormSection>
 
           {/* Información Delictiva */}
-          <section className="form-section">
-            <div className="section-header">
-              <Shield className="section-icon" size={20} />
-              <h2 className="section-title">Información Delictiva</h2>
-            </div>
-            <div className="form-grid">
-              <div className="form-group form-grid-full">
-                <label className="form-label">
-                  Banda Delincuencial
-                </label>
-                <input
-                  {...register('bandaDelincuencial')}
-                  type="text"
-                  className="form-input"
-                  placeholder="Nombre de la banda o grupo"
-                  disabled={readOnly}
-                />
-              </div>
+          <FormSection $theme={theme}>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
+                <Shield size={20} />
+              </SectionIcon>
+              <SectionTitle $theme={theme}>Información Delictiva</SectionTitle>
+            </SectionHeader>
+            <FormGrid>
+              <FormGridFull>
+                <FormGroup>
+                  <FormLabel $theme={theme}>
+                    Banda Delincuencial
+                  </FormLabel>
+                  <FormInput
+                    {...register('bandaDelincuencial')}
+                    type="text"
+                    $theme={theme}
+                    placeholder="Nombre de la banda o grupo"
+                    disabled={readOnly}
+                  />
+                </FormGroup>
+              </FormGridFull>
 
-              <div className="form-group form-grid-full">
-                <label className="form-label">
-                  Delitos Atribuidos
-                </label>
-                <textarea
-                  {...register('delitosAtribuidos')}
-                  className="form-textarea"
-                  placeholder="Descripción de delitos atribuidos..."
-                  rows={4}
-                  disabled={readOnly}
-                />
-              </div>
+              <FormGridFull>
+                <FormGroup>
+                  <FormLabel $theme={theme}>
+                    Delitos Atribuidos
+                  </FormLabel>
+                  <FormTextarea
+                    {...register('delitosAtribuidos')}
+                    $theme={theme}
+                    placeholder="Descripción de delitos atribuidos..."
+                    rows={4}
+                    disabled={readOnly}
+                  />
+                </FormGroup>
+              </FormGridFull>
 
-              <div className="form-group form-grid-full">
-                <label className="form-label">
-                  Situación Jurídica
-                </label>
-                <textarea
-                  {...register('situacionJuridica')}
-                  className="form-textarea"
-                  placeholder="Situación legal actual..."
-                  rows={3}
-                  disabled={readOnly}
-                />
-              </div>
+              <FormGridFull>
+                <FormGroup>
+                  <FormLabel $theme={theme}>
+                    Situación Jurídica
+                  </FormLabel>
+                  <FormTextarea
+                    {...register('situacionJuridica')}
+                    $theme={theme}
+                    placeholder="Situación legal actual..."
+                    rows={3}
+                    disabled={readOnly}
+                  />
+                </FormGroup>
+              </FormGridFull>
               
-              <div className="form-group form-grid-full">
-                <label className="form-label">
-                  Antecedentes
-                </label>
-                <textarea
-                  {...register('antecedentes')}
-                  className="form-textarea"
-                  placeholder="Antecedentes penales y judiciales..."
-                  rows={3}
-                  disabled={readOnly}
-                />
-              </div>
-            </div>
-          </section>
+              <FormGridFull>
+                <FormGroup>
+                  <FormLabel $theme={theme}>
+                    Antecedentes
+                  </FormLabel>
+                  <FormTextarea
+                    {...register('antecedentes')}
+                    $theme={theme}
+                    placeholder="Antecedentes penales y judiciales..."
+                    rows={3}
+                    disabled={readOnly}
+                  />
+                </FormGroup>
+              </FormGridFull>
+            </FormGrid>
+          </FormSection>
 
           {/* Señales Físicas Detalladas */}
-          <section className="form-section">
-            <div className="section-header">
-              <Eye className="section-icon" size={20} />
-              <h2 className="section-title">Señales Físicas Detalladas</h2>
-            </div>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">
+          <FormSection $theme={theme}>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
+                <Eye size={20} />
+              </SectionIcon>
+              <SectionTitle $theme={theme}>Señales Físicas Detalladas</SectionTitle>
+            </SectionHeader>
+            <FormGrid>
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Complexión
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicasDetalladas.complexion')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: Atlética, Débil, Fuerte"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
               
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Forma de Cara
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicasDetalladas.formaCara')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: Ovalada, Redonda, Cuadrada"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
               
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Tipo de Cabello
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicasDetalladas.tipoCabello')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: Liso, Rizado, Ondulado"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
               
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Largo de Cabello
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicasDetalladas.largoCabello')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: Corto, Medio, Largo"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
               
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Forma de Ojos
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicasDetalladas.formaOjos')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: Redondos, Alargados, Pequeños"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
               
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Forma de Nariz
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicasDetalladas.formaNariz')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: Recta, Aguileña, Chata"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
               
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Forma de Boca
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicasDetalladas.formaBoca')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: Grande, Mediana, Pequeña"
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
               
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   Forma de Labios
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('senalesFisicasDetalladas.formaLabios')}
                   type="text"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="Ej: Gruesos, Delgados, Normales"
                   disabled={readOnly}
                 />
-              </div>
-            </div>
-          </section>
+              </FormGroup>
+            </FormGrid>
+          </FormSection>
 
           {/* Observaciones y Enlaces */}
-          <section className="form-section">
-            <div className="section-header">
-              <MessageSquare className="section-icon" size={20} />
-              <h2 className="section-title">Observaciones Adicionales</h2>
-            </div>
-            <div className="form-grid">
-              <div className="form-group form-grid-full">
-                <label className="form-label">
-                  Observaciones
-                </label>
-                <textarea
-                  {...register('observaciones')}
-                  className="form-textarea"
-                  placeholder="Observaciones generales, información adicional..."
-                  rows={4}
-                  disabled={readOnly}
-                />
-              </div>
+          <FormSection $theme={theme}>
+            <SectionHeader $theme={theme}>
+              <SectionIcon $theme={theme}>
+                <MessageSquare size={20} />
+              </SectionIcon>
+              <SectionTitle $theme={theme}>Observaciones Adicionales</SectionTitle>
+            </SectionHeader>
+            <FormGrid>
+              <FormGridFull>
+                <FormGroup>
+                  <FormLabel $theme={theme}>
+                    Observaciones
+                  </FormLabel>
+                  <FormTextarea
+                    {...register('observaciones')}
+                    $theme={theme}
+                    placeholder="Observaciones generales, información adicional..."
+                    rows={4}
+                    disabled={readOnly}
+                  />
+                </FormGroup>
+              </FormGridFull>
 
-              <div className="form-group">
-                <label className="form-label">
+              <FormGroup>
+                <FormLabel $theme={theme}>
                   URL de Google Earth
-                </label>
-                <input
+                </FormLabel>
+                <FormInput
                   {...register('googleEarthUrl')}
                   type="url"
-                  className="form-input"
+                  $theme={theme}
                   placeholder="https://earth.google.com/..."
                   disabled={readOnly}
                 />
-              </div>
+              </FormGroup>
 
               {/* Campo subsectorId oculto - se asigna automáticamente desde el contexto */}
-              <input
+              <FormInput
                 {...register('subsectorId')}
                 type="hidden"
+                $theme={theme}
               />
-            </div>
-          </section>
-        </div>
+            </FormGrid>
+          </FormSection>
+        </FormSections>
 
         {/* Sección de Foto */}
-        <div className="photo-upload-section">
-          <div className="section-header">
-            <Camera className="section-icon" size={20} />
-            <h2 className="section-title">Fotografía</h2>
-          </div>
+        <PhotoUploadSection $theme={theme}>
+          <SectionHeader $theme={theme}>
+            <SectionIcon $theme={theme}>
+              <Camera size={20} />
+            </SectionIcon>
+            <SectionTitle $theme={theme}>Fotografía</SectionTitle>
+          </SectionHeader>
           
-          <div className="photo-preview-container">
-            <div className={`photo-preview ${photoPreview ? 'has-image' : ''}`}>
+          <PhotoPreviewContainer>
+            <PhotoPreview $theme={theme} hasImage={!!photoPreview}>
               {photoPreview ? (
                 <>
-                  <img 
+                  <PhotoPreviewImage 
                     src={photoPreview} 
                     alt="Vista previa" 
-                    className="photo-preview-image"
                   />
-                  <button
+                  <RemovePhotoButton
                     type="button"
                     onClick={removePhoto}
-                    className="remove-photo-btn"
+                    $theme={theme}
                     title="Eliminar foto"
                   >
                     <X size={12} />
-                  </button>
+                  </RemovePhotoButton>
                 </>
               ) : (
-                <div className="photo-placeholder">
+                <PhotoPlaceholder $theme={theme}>
                   <Camera size={48} />
                   <p>Sin fotografía</p>
-                </div>
+                </PhotoPlaceholder>
               )}
-            </div>
+            </PhotoPreview>
 
             {!readOnly && (
               <>
-                <input
+                <FileInput
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   onChange={handlePhotoChange}
-                  className="file-input"
                   id="photo-input"
                 />
                 
-                <label htmlFor="photo-input" className="file-input-label">
+                <FileInputLabel $theme={theme} htmlFor="photo-input">
                   <Upload size={16} />
                   {photoPreview ? 'Cambiar Foto' : 'Subir Foto'}
-                </label>
+                </FileInputLabel>
               </>
             )}
 
@@ -1164,9 +1748,9 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
               Máximo 5MB<br />
               JPG, PNG, GIF
             </p>
-          </div>
-        </div>
-      </form>
+          </PhotoPreviewContainer>
+        </PhotoUploadSection>
+      </FormLayout>
 
       {/* Sección de Documentos - Solo mostrar si ya existe el indiciado */}
       {(initialData?.id || initialData?._id) && (
@@ -1177,7 +1761,7 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
       )}
 
       {/* Acciones del formulario */}
-      <div className="form-actions">
+      <FormActions $theme={theme}>
         <div>
           <span style={{ fontSize: '14px', color: '#6b7280' }}>
             Progreso: {progress}% completado
@@ -1186,23 +1770,23 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
         
         <div style={{ display: 'flex', gap: '10px' }}>
           {onCancel && (
-            <button
+            <SecondaryButton
               type="button"
               onClick={onCancel}
-              className="btn btn-secondary"
+              $theme={theme}
               disabled={isLoading}
             >
               <X size={16} />
               Cancelar
-            </button>
+            </SecondaryButton>
           )}
           
           {!readOnly && (
-            <button
+            <PrimaryButton
               type="submit"
               form="indiciado-form"
               disabled={isLoading}
-              className="btn btn-primary"
+              $theme={theme}
               onClick={(e) => {
                 console.log('🎯 BOTÓN CLICKED!');
                 console.log('🔍 Form state:', { errors, isValid, isSubmitting });
@@ -1211,15 +1795,15 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
               }}
             >
               {isLoading ? (
-                <div className="loading-spinner" />
+                <LoadingSpinner $theme={theme} />
               ) : (
                 <Save size={16} />
               )}
               {isLoading ? 'Guardando...' : (isEdit || isEditing ? 'Actualizar' : 'Crear')} Indiciado
-            </button>
+            </PrimaryButton>
           )}
         </div>
-      </div>
-    </div>
+      </FormActions>
+    </FormContainer>
   );
 };

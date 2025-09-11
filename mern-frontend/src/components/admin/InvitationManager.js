@@ -4,11 +4,15 @@ import { Mail, UserPlus, Eye, RefreshCw, Trash2, Clock, CheckCircle, AlertCircle
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import styled from 'styled-components';
+import { useTheme } from '../../contexts/ThemeContext';
+import { getTheme } from '../../theme/theme';
 
 const Container = styled.div`
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  background: ${({ $theme }) => getTheme($theme).colors.background};
+  min-height: 100vh;
 `;
 
 const Header = styled.div`
@@ -21,15 +25,18 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
-  color: #333;
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
   font-size: 24px;
   font-weight: 600;
   margin: 0;
 `;
 
 const Button = styled.button`
-  background: ${props => props.variant === 'danger' ? '#dc3545' : '#007bff'};
-  color: white;
+  background: ${props => {
+    if (props.variant === 'danger') return getTheme(props.$theme).colors.danger;
+    return getTheme(props.$theme).colors.primary;
+  }};
+  color: ${({ $theme }) => getTheme($theme).colors.textInverse};
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -42,7 +49,10 @@ const Button = styled.button`
   transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
-    background: ${props => props.variant === 'danger' ? '#c82333' : '#0056b3'};
+    background: ${props => {
+      if (props.variant === 'danger') return getTheme(props.$theme).colors.dangerHover;
+      return getTheme(props.$theme).colors.primaryHover;
+    }};
   }
 
   &:disabled {
@@ -52,10 +62,10 @@ const Button = styled.button`
 `;
 
 const Card = styled.div`
-  background: white;
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: ${({ $theme }) => $theme === 'dark' ? '0 2px 8px rgba(0, 0, 0, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)'};
   margin-bottom: 2rem;
 `;
 
@@ -78,38 +88,41 @@ const InputGroup = styled.div`
 
 const Label = styled.label`
   font-weight: 500;
-  color: #333;
+  color: ${({ $theme }) => getTheme($theme).colors.textSecondary};
   font-size: 14px;
 `;
 
 const Input = styled.input`
   padding: 10px 12px;
-  border: 2px solid #e1e5e9;
+  border: 2px solid ${({ $theme }) => getTheme($theme).colors.border};
   border-radius: 6px;
   font-size: 14px;
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
   transition: border-color 0.2s ease;
 
   &:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: ${({ $theme }) => getTheme($theme).colors.primary};
   }
 
   &.error {
-    border-color: #dc3545;
+    border-color: ${({ $theme }) => getTheme($theme).colors.danger};
   }
 `;
 
 const Select = styled.select`
   padding: 10px 12px;
-  border: 2px solid #e1e5e9;
+  border: 2px solid ${({ $theme }) => getTheme($theme).colors.border};
   border-radius: 6px;
   font-size: 14px;
-  background: white;
+  background: ${({ $theme }) => getTheme($theme).colors.backgroundCard};
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
   transition: border-color 0.2s ease;
 
   &:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: ${({ $theme }) => getTheme($theme).colors.primary};
   }
 `;
 
@@ -122,65 +135,79 @@ const Table = styled.table`
 const Th = styled.th`
   text-align: left;
   padding: 12px;
-  border-bottom: 2px solid #e1e5e9;
+  border-bottom: 2px solid ${({ $theme }) => getTheme($theme).colors.border};
   font-weight: 600;
-  color: #333;
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
 `;
 
 const Td = styled.td`
   padding: 12px;
-  border-bottom: 1px solid #f1f3f4;
+  border-bottom: 1px solid ${({ $theme }) => getTheme($theme).colors.border};
   vertical-align: middle;
+  color: ${({ $theme }) => getTheme($theme).colors.textPrimary};
 `;
 
 const StatusBadge = styled.span`
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 6px 16px;
+  border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
+  min-width: 80px;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   background: ${props => {
+    const theme = getTheme(props.$theme);
     switch (props.status) {
-      case 'pending': return '#fff3cd';
-      case 'used': return '#d1edff';
-      case 'expired': return '#f8d7da';
-      default: return '#e2e3e5';
+      case 'pending': return theme.colors.warning;
+      case 'used': return theme.colors.success;
+      case 'expired': return theme.colors.danger;
+      default: return theme.colors.backgroundSecondary;
     }
   }};
   color: ${props => {
+    const theme = getTheme(props.$theme);
     switch (props.status) {
-      case 'pending': return '#856404';
-      case 'used': return '#0c5460';
-      case 'expired': return '#721c24';
-      default: return '#383d41';
+      case 'pending': 
+      case 'used': 
+      case 'expired': return theme.colors.textInverse;
+      default: return theme.colors.textPrimary;
     }
   }};
 `;
 
 const RoleBadge = styled.span`
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 6px 12px;
+  border-radius: 16px;
   font-size: 12px;
   font-weight: 500;
+  min-width: 60px;
+  text-align: center;
+  display: inline-block;
   background: ${props => {
+    const theme = getTheme(props.$theme);
     switch (props.role) {
-      case 'admin': return '#d1ecf1';
-      case 'editor': return '#d4edda';
-      case 'viewer': return '#e2e3e5';
-      default: return '#f8f9fa';
+      case 'admin': return theme.colors.primary;
+      case 'editor': return theme.colors.success;
+      case 'viewer': return theme.colors.backgroundSecondary;
+      default: return theme.colors.backgroundSecondary;
     }
   }};
   color: ${props => {
+    const theme = getTheme(props.$theme);
     switch (props.role) {
-      case 'admin': return '#0c5460';
-      case 'editor': return '#155724';
-      case 'viewer': return '#383d41';
-      default: return '#495057';
+      case 'admin': 
+      case 'editor': return theme.colors.textInverse;
+      case 'viewer': 
+      default: return theme.colors.textPrimary;
     }
   }};
 `;
 
 const ErrorMessage = styled.div`
-  color: #dc3545;
+  color: ${({ $theme }) => getTheme($theme).colors.danger};
   font-size: 12px;
   margin-top: 4px;
 `;
@@ -192,13 +219,17 @@ const ActionButtons = styled.div`
 
 const SmallButton = styled.button`
   background: ${props => {
+    const theme = getTheme(props.$theme);
     switch (props.variant) {
-      case 'danger': return '#dc3545';
-      case 'secondary': return '#6c757d';
-      default: return '#007bff';
+      case 'danger': return theme.colors.danger;
+      case 'secondary': return theme.colors.backgroundSecondary;
+      default: return theme.colors.primary;
     }
   }};
-  color: white;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return props.variant === 'secondary' ? theme.colors.textPrimary : theme.colors.textInverse;
+  }};
   border: none;
   padding: 4px 8px;
   border-radius: 4px;
@@ -221,6 +252,7 @@ const SmallButton = styled.button`
 
 const InvitationManager = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -240,12 +272,12 @@ const InvitationManager = () => {
   // Check if user is administrator
   if (!user || user.role !== 'admin') {
     return (
-      <Container>
-        <Card>
+      <Container $theme={theme}>
+        <Card $theme={theme}>
           <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <AlertCircle size={48} color="#dc3545" style={{ marginBottom: '1rem' }} />
-            <h2>Acceso Denegado</h2>
-            <p>Solo los administradores pueden acceder a esta sección.</p>
+            <AlertCircle size={48} color={getTheme(theme).colors.danger} style={{ marginBottom: '1rem' }} />
+            <h2 style={{ color: getTheme(theme).colors.textPrimary }}>Acceso Denegado</h2>
+            <p style={{ color: getTheme(theme).colors.textSecondary }}>Solo los administradores pueden acceder a esta sección.</p>
           </div>
         </Card>
       </Container>
@@ -359,22 +391,23 @@ const InvitationManager = () => {
   };
 
   return (
-    <Container>
-      <Header>
-        <Title>Gestión de Invitaciones</Title>
-        <Button onClick={fetchInvitations} disabled={loading}>
+    <Container $theme={theme}>
+      <Header $theme={theme}>
+        <Title $theme={theme}>Gestión de Invitaciones</Title>
+        <Button $theme={theme} onClick={fetchInvitations} disabled={loading}>
           <RefreshCw size={16} />
           Actualizar
         </Button>
       </Header>
 
       {/* Send Invitation Form */}
-      <Card>
-        <h3 style={{ marginBottom: '1rem', color: '#333' }}>Enviar Nueva Invitación</h3>
+      <Card $theme={theme}>
+        <h3 style={{ marginBottom: '1rem', color: getTheme(theme).colors.textPrimary }}>Enviar Nueva Invitación</h3>
         <Form onSubmit={handleSubmit}>
           <InputGroup>
-            <Label>Email</Label>
+            <Label $theme={theme}>Email</Label>
             <Input
+              $theme={theme}
               type="email"
               name="email"
               value={formData.email}
@@ -382,12 +415,13 @@ const InvitationManager = () => {
               placeholder="usuario@ejemplo.com"
               className={errors.email ? 'error' : ''}
             />
-            {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
+            {errors.email && <ErrorMessage $theme={theme}>{errors.email}</ErrorMessage>}
           </InputGroup>
           
           <InputGroup>
-            <Label>Rol</Label>
+            <Label $theme={theme}>Rol</Label>
             <Select
+              $theme={theme}
               name="role"
               value={formData.role}
               onChange={handleChange}
@@ -400,7 +434,7 @@ const InvitationManager = () => {
 
           <div></div>
 
-          <Button type="submit" disabled={loading}>
+          <Button $theme={theme} type="submit" disabled={loading}>
             <UserPlus size={16} />
             {loading ? 'Enviando...' : 'Enviar Invitación'}
           </Button>
@@ -408,12 +442,13 @@ const InvitationManager = () => {
       </Card>
 
       {/* Filters */}
-      <Card>
-        <h3 style={{ marginBottom: '1rem', color: '#333' }}>Filtros</h3>
+      <Card $theme={theme}>
+        <h3 style={{ marginBottom: '1rem', color: getTheme(theme).colors.textPrimary }}>Filtros</h3>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <InputGroup style={{ minWidth: '150px' }}>
-            <Label>Estado</Label>
+            <Label $theme={theme}>Estado</Label>
             <Select
+              $theme={theme}
               value={filter.status}
               onChange={(e) => setFilter(prev => ({ ...prev, status: e.target.value }))}
             >
@@ -425,8 +460,9 @@ const InvitationManager = () => {
           </InputGroup>
 
           <InputGroup style={{ minWidth: '150px' }}>
-            <Label>Rol</Label>
+            <Label $theme={theme}>Rol</Label>
             <Select
+              $theme={theme}
               value={filter.role}
               onChange={(e) => setFilter(prev => ({ ...prev, role: e.target.value }))}
             >
@@ -440,18 +476,18 @@ const InvitationManager = () => {
       </Card>
 
       {/* Invitations List */}
-      <Card>
-        <h3 style={{ marginBottom: '1rem', color: '#333' }}>
+      <Card $theme={theme}>
+        <h3 style={{ marginBottom: '1rem', color: getTheme(theme).colors.textPrimary }}>
           Invitaciones ({invitations.length})
         </h3>
         
         {loading ? (
           <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite' }} />
-            <p>Cargando invitaciones...</p>
+            <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite', color: getTheme(theme).colors.textSecondary }} />
+            <p style={{ color: getTheme(theme).colors.textSecondary }}>Cargando invitaciones...</p>
           </div>
         ) : invitations.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
+          <div style={{ textAlign: 'center', padding: '2rem', color: getTheme(theme).colors.textSecondary }}>
             <Mail size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
             <p>No hay invitaciones que mostrar</p>
           </div>
@@ -460,13 +496,13 @@ const InvitationManager = () => {
             <Table>
               <thead>
                 <tr>
-                  <Th>Email</Th>
-                  <Th>Rol</Th>
-                  <Th>Estado</Th>
-                  <Th>Código</Th>
-                  <Th>Creada</Th>
-                  <Th>Expira</Th>
-                  <Th>Acciones</Th>
+                  <Th $theme={theme}>Email</Th>
+                  <Th $theme={theme}>Rol</Th>
+                  <Th $theme={theme}>Estado</Th>
+                  <Th $theme={theme}>Código</Th>
+                  <Th $theme={theme}>Creada</Th>
+                  <Th $theme={theme}>Expira</Th>
+                  <Th $theme={theme}>Acciones</Th>
                 </tr>
               </thead>
               <tbody>
@@ -474,37 +510,39 @@ const InvitationManager = () => {
                   const status = getInvitationStatus(invitation);
                   return (
                     <tr key={invitation.id}>
-                      <Td>{invitation.email}</Td>
-                      <Td>
-                        <RoleBadge role={invitation.role}>
+                      <Td $theme={theme}>{invitation.email}</Td>
+                      <Td $theme={theme}>
+                        <RoleBadge $theme={theme} role={invitation.role}>
                           {invitation.role}
                         </RoleBadge>
                       </Td>
-                      <Td>
-                        <StatusBadge status={status}>
+                      <Td $theme={theme}>
+                        <StatusBadge $theme={theme} status={status}>
                           {status === 'pending' && <Clock size={12} style={{ marginRight: '4px' }} />}
                           {status === 'used' && <CheckCircle size={12} style={{ marginRight: '4px' }} />}
                           {status === 'expired' && <AlertCircle size={12} style={{ marginRight: '4px' }} />}
                           {status === 'pending' ? 'Pendiente' : status === 'used' ? 'Usada' : 'Expirada'}
                         </StatusBadge>
                       </Td>
-                      <Td>
+                      <Td $theme={theme}>
                         <code style={{ 
-                          background: '#f8f9fa', 
+                          background: getTheme(theme).colors.backgroundSecondary, 
                           padding: '2px 6px', 
                           borderRadius: '4px',
-                          fontSize: '12px'
+                          fontSize: '12px',
+                          color: getTheme(theme).colors.textPrimary
                         }}>
                           {invitation.code}
                         </code>
                       </Td>
-                      <Td>{formatDate(invitation.createdAt)}</Td>
-                      <Td>{formatDate(invitation.expiresAt)}</Td>
-                      <Td>
+                      <Td $theme={theme}>{formatDate(invitation.createdAt)}</Td>
+                      <Td $theme={theme}>{formatDate(invitation.expiresAt)}</Td>
+                      <Td $theme={theme}>
                         <ActionButtons>
                           {status === 'pending' && (
                             <>
                               <SmallButton
+                                $theme={theme}
                                 onClick={() => handleResend(invitation.id)}
                                 title="Reenviar invitación"
                               >
@@ -512,6 +550,7 @@ const InvitationManager = () => {
                                 Reenviar
                               </SmallButton>
                               <SmallButton
+                                $theme={theme}
                                 variant="danger"
                                 onClick={() => handleRevoke(invitation.id)}
                                 title="Revocar invitación"
@@ -522,7 +561,7 @@ const InvitationManager = () => {
                             </>
                           )}
                           {status !== 'pending' && (
-                            <SmallButton variant="secondary" disabled>
+                            <SmallButton $theme={theme} variant="secondary" disabled>
                               <Eye size={12} />
                               Ver
                             </SmallButton>

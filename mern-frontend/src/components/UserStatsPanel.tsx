@@ -2,22 +2,39 @@ import React from 'react';
 import styled from 'styled-components';
 import { Users, UserCheck, UserX, Shield, Clock } from 'lucide-react';
 import { UserStats } from '../services/userService';
+import { useTheme } from '../contexts/ThemeContext';
+import { getTheme } from '../theme/theme';
+
+// Type definitions for styled components with theme prop
+interface ThemeProps {
+  $theme?: string;
+}
 
 interface UserStatsPanelProps {
   stats: UserStats;
+  theme?: string;
 }
 
-const Container = styled.div`
-  background: white;
+const Container = styled.div<ThemeProps>`
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundCard;
+  }};
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.shadows.md;
+  }};
 `;
 
-const Title = styled.h3`
+const Title = styled.h3<ThemeProps>`
   margin: 0 0 1.5rem 0;
-  color: #333;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   font-size: 1.25rem;
 `;
 
@@ -70,7 +87,10 @@ const StatLabel = styled.div`
   font-weight: 500;
 `;
 
-const UserStatsPanel: React.FC<UserStatsPanelProps> = ({ stats }) => {
+const UserStatsPanel: React.FC<UserStatsPanelProps> = ({ stats, theme: passedTheme }) => {
+  // Use passed theme or get from context
+  const { theme: contextTheme } = useTheme();
+  const theme = passedTheme || contextTheme;
   const statCards = [
     {
       icon: <Users size={24} />,
@@ -105,8 +125,8 @@ const UserStatsPanel: React.FC<UserStatsPanelProps> = ({ stats }) => {
   ];
 
   return (
-    <Container>
-      <Title>Estadísticas de Usuarios</Title>
+    <Container $theme={theme}>
+      <Title $theme={theme}>Estadísticas de Usuarios</Title>
       <StatsGrid>
         {statCards.map((stat, index) => (
           <StatCard key={index} style={{ background: stat.color }}>

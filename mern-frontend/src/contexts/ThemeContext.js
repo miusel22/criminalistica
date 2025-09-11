@@ -11,10 +11,10 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  // Obtener tema inicial del localStorage o usar 'light' por defecto
+  // Obtener tema inicial del localStorage o usar 'dark' por defecto
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem('app-theme');
-    return savedTheme || 'light';
+    return savedTheme || 'dark';
   });
 
   // Guardar tema en localStorage cuando cambie

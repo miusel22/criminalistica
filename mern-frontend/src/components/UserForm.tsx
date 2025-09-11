@@ -2,12 +2,20 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { X, Save, User, Mail, Lock, Shield, Eye, EyeOff } from 'lucide-react';
 import { UserService, User as UserType, UserFormData } from '../services/userService';
+import { useTheme } from '../contexts/ThemeContext';
+import { getTheme } from '../theme/theme';
+
+// Type definitions for styled components with theme prop
+interface ThemeProps {
+  $theme?: string;
+}
 
 interface UserFormProps {
   user?: UserType | null;
   onSuccess: () => void;
   onCancel: () => void;
   loading?: boolean;
+  theme?: string;
   confirmUpdate?: (user: UserType | null, changes: any) => Promise<boolean>;
 }
 
@@ -25,45 +33,66 @@ const Overlay = styled.div`
   padding: 20px;
 `;
 
-const Modal = styled.div`
-  background: white;
+const Modal = styled.div<ThemeProps>`
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.backgroundCard;
+  }};
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.shadows.lg;
+  }};
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
   overflow: auto;
 `;
 
-const Header = styled.div`
+const Header = styled.div<ThemeProps>`
   padding: 2rem 2rem 1rem 2rem;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.border;
+  }};
   display: flex;
   justify-content: space-between;
   align-items: center;
 `;
 
-const Title = styled.h2`
+const Title = styled.h2<ThemeProps>`
   margin: 0;
-  color: #333;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   font-size: 1.5rem;
   display: flex;
   align-items: center;
   gap: 12px;
 `;
 
-const CloseButton = styled.button`
+const CloseButton = styled.button<ThemeProps>`
   background: none;
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #666;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   padding: 0.5rem;
   border-radius: 50%;
   
   &:hover {
-    background: #f8f9fa;
-    color: #333;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.hover;
+    }};
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.textPrimary;
+    }};
   }
 `;
 
@@ -83,44 +112,80 @@ const FormGroup = styled.div`
   gap: 0.5rem;
 `;
 
-const Label = styled.label`
+const Label = styled.label<ThemeProps>`
   font-weight: 600;
-  color: #333;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
   font-size: 0.875rem;
   display: flex;
   align-items: center;
   gap: 8px;
 `;
 
-const Input = styled.input`
+const Input = styled.input<ThemeProps>`
   padding: 12px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBorder;
+  }};
   border-radius: 8px;
   font-size: 16px;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputText;
+  }};
   transition: border-color 0.2s ease;
   
   &:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.inputFocus;
+    }};
   }
   
   &:disabled {
-    background: #f8f9fa;
-    color: #6c757d;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.disabled;
+    }};
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.textSecondary;
+    }};
   }
 `;
 
-const Select = styled.select`
+const Select = styled.select<ThemeProps>`
   padding: 12px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBorder;
+  }};
   border-radius: 8px;
   font-size: 16px;
-  background: white;
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputBg;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.inputText;
+  }};
   transition: border-color 0.2s ease;
   
   &:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.inputFocus;
+    }};
   }
 `;
 
@@ -128,7 +193,7 @@ const PasswordContainer = styled.div`
   position: relative;
 `;
 
-const PasswordToggle = styled.button`
+const PasswordToggle = styled.button<ThemeProps>`
   position: absolute;
   right: 12px;
   top: 50%;
@@ -136,10 +201,16 @@ const PasswordToggle = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  color: #666;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
   
   &:hover {
-    color: #333;
+    color: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.textPrimary;
+    }};
   }
 `;
 
@@ -154,13 +225,20 @@ const Checkbox = styled.input`
   height: 18px;
 `;
 
-const CheckboxLabel = styled.label`
+const CheckboxLabel = styled.label<ThemeProps>`
   font-weight: normal;
   cursor: pointer;
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textPrimary;
+  }};
 `;
 
-const ErrorMessage = styled.div`
-  color: #dc3545;
+const ErrorMessage = styled.div<ThemeProps>`
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.danger;
+  }};
   font-size: 0.875rem;
   margin-top: 0.25rem;
 `;
@@ -189,21 +267,39 @@ const Button = styled.button`
   }
 `;
 
-const PrimaryButton = styled(Button)`
-  background: #007bff;
-  color: white;
+const PrimaryButton = styled(Button)<ThemeProps>`
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.primary;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
   
   &:hover:not(:disabled) {
-    background: #0056b3;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.primaryHover;
+    }};
   }
 `;
 
-const SecondaryButton = styled(Button)`
-  background: #6c757d;
-  color: white;
+const SecondaryButton = styled(Button)<ThemeProps>`
+  background: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textSecondary;
+  }};
+  color: ${props => {
+    const theme = getTheme(props.$theme);
+    return theme.colors.textInverse;
+  }};
   
   &:hover:not(:disabled) {
-    background: #545b62;
+    background: ${props => {
+      const theme = getTheme(props.$theme);
+      return theme.colors.textPrimary;
+    }};
   }
 `;
 
@@ -212,8 +308,12 @@ const UserForm: React.FC<UserFormProps> = ({
   onSuccess,
   onCancel,
   loading,
+  theme: passedTheme,
   confirmUpdate
 }) => {
+  // Use passed theme or get from context
+  const { theme: contextTheme } = useTheme();
+  const theme = passedTheme || contextTheme;
   const [formData, setFormData] = useState<UserFormData>({
     nombre: '',
     apellidos: '',
@@ -344,13 +444,13 @@ const UserForm: React.FC<UserFormProps> = ({
 
   return (
     <Overlay>
-      <Modal>
-        <Header>
-          <Title>
+      <Modal $theme={theme}>
+        <Header $theme={theme}>
+          <Title $theme={theme}>
             <User size={24} />
             {isEditing ? 'Editar Usuario' : 'Crear Nuevo Usuario'}
           </Title>
-          <CloseButton onClick={onCancel}>
+          <CloseButton onClick={onCancel} $theme={theme}>
             <X size={24} />
           </CloseButton>
         </Header>
@@ -358,7 +458,7 @@ const UserForm: React.FC<UserFormProps> = ({
         <Body>
           <Form onSubmit={handleSubmit}>
             <FormGroup>
-              <Label>
+              <Label $theme={theme}>
                 <User size={16} />
                 Nombre
               </Label>
@@ -370,11 +470,12 @@ const UserForm: React.FC<UserFormProps> = ({
                 placeholder="Ingresa el nombre"
                 required
                 disabled={submitting}
+                $theme={theme}
               />
             </FormGroup>
 
             <FormGroup>
-              <Label>
+              <Label $theme={theme}>
                 <User size={16} />
                 Apellidos
               </Label>
@@ -386,11 +487,12 @@ const UserForm: React.FC<UserFormProps> = ({
                 placeholder="Ingresa los apellidos"
                 required
                 disabled={submitting}
+                $theme={theme}
               />
             </FormGroup>
 
             <FormGroup>
-              <Label>
+              <Label $theme={theme}>
                 <Mail size={16} />
                 Email
               </Label>
@@ -402,16 +504,17 @@ const UserForm: React.FC<UserFormProps> = ({
                 placeholder="usuario@ejemplo.com"
                 required
                 disabled={submitting || isEditing}
+                $theme={theme}
               />
               {isEditing && (
-                <ErrorMessage style={{ color: '#666', fontSize: '0.75rem' }}>
+                <ErrorMessage $theme={theme} style={{ fontSize: '0.75rem' }}>
                   El email no se puede modificar por razones de seguridad
                 </ErrorMessage>
               )}
             </FormGroup>
 
             <FormGroup>
-              <Label>
+              <Label $theme={theme}>
                 <Lock size={16} />
                 {isEditing ? 'Nueva Contraseña (opcional)' : 'Contraseña'}
               </Label>
@@ -425,11 +528,13 @@ const UserForm: React.FC<UserFormProps> = ({
                   required={!isEditing}
                   disabled={submitting}
                   style={{ paddingRight: '48px' }}
+                  $theme={theme}
                 />
                 <PasswordToggle
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={submitting}
+                  $theme={theme}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </PasswordToggle>
@@ -437,7 +542,7 @@ const UserForm: React.FC<UserFormProps> = ({
             </FormGroup>
 
             <FormGroup>
-              <Label>
+              <Label $theme={theme}>
                 <Shield size={16} />
                 Rol
               </Label>
@@ -446,13 +551,14 @@ const UserForm: React.FC<UserFormProps> = ({
                 value={formData.role}
                 onChange={handleInputChange}
                 disabled={Boolean(submitting || isEditingSelf)} // Can't change own role
+                $theme={theme}
               >
                 <option value="viewer">Visualizador</option>
                 <option value="editor">Editor</option>
                 <option value="admin">Administrador</option>
               </Select>
               {isEditingSelf && (
-                <ErrorMessage>
+                <ErrorMessage $theme={theme}>
                   No puedes cambiar tu propio rol
                 </ErrorMessage>
               )}
@@ -468,12 +574,12 @@ const UserForm: React.FC<UserFormProps> = ({
                   onChange={handleInputChange}
                   disabled={Boolean(submitting || isEditingSelf)} // Can't deactivate own account
                 />
-                <CheckboxLabel htmlFor="isActive">
+                <CheckboxLabel htmlFor="isActive" $theme={theme}>
                   Usuario activo
                 </CheckboxLabel>
               </CheckboxGroup>
               {isEditingSelf && (
-                <ErrorMessage>
+                <ErrorMessage $theme={theme}>
                   No puedes desactivar tu propia cuenta
                 </ErrorMessage>
               )}
@@ -482,7 +588,7 @@ const UserForm: React.FC<UserFormProps> = ({
             {errors.length > 0 && (
               <FormGroup>
                 {errors.map((error, index) => (
-                  <ErrorMessage key={index}>
+                  <ErrorMessage key={index} $theme={theme}>
                     {error}
                   </ErrorMessage>
                 ))}
@@ -496,6 +602,7 @@ const UserForm: React.FC<UserFormProps> = ({
             type="button"
             onClick={onCancel}
             disabled={submitting}
+            $theme={theme}
           >
             Cancelar
           </SecondaryButton>
@@ -504,6 +611,7 @@ const UserForm: React.FC<UserFormProps> = ({
             type="submit"
             onClick={handleSubmit}
             disabled={submitting}
+            $theme={theme}
           >
             <Save size={16} />
             {submitting 
