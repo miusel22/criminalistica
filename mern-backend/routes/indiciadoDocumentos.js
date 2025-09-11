@@ -1,12 +1,13 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs-extra');
 const { v4: uuidv4 } = require('uuid');
 const { param, validationResult } = require('express-validator');
 const { User, Indiciado } = require('../models/sequelize');
 const authMiddleware = require('../middleware/auth');
 const { canRead, canWrite } = require('../middleware/permissions');
+
+// Importar configuración de Cloudinary
+const { documentStorage } = require('../config/cloudinary');
 
 const router = express.Router();
 
@@ -26,20 +27,6 @@ async function getEffectiveUser(req) {
   
   return defaultUser;
 }
-
-// Configuración de multer para documentos de indiciados
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadsDir = path.join(__dirname, '../uploads/documentos');
-    fs.ensureDirSync(uploadsDir);
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const uniqueName = `indiciado_${uuidv4()}_${Date.now()}${ext}`;
-    cb(null, uniqueName);
-  }
-});
 
 const fileFilter = (req, file, cb) => {
   // Permitir varios tipos de documentos
@@ -64,10 +51,10 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-  storage,
+  storage: documentStorage, // Usar Cloudinary storage
   fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB por archivo
+    fileSize: 20 * 1024 * 1024, // 20MB por archivo (Cloudinary maneja archivos más grandes)
     files: 5 // Máximo 5 archivos por vez
   }
 });
@@ -86,12 +73,7 @@ router.post('/:id/documentos',
       // Validar parámetros
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        // Limpiar archivos si hay errores de validación
-        if (req.files) {
-          req.files.forEach(file => {
-            fs.unlink(file.path).catch(console.error);
-          });
-        }
+        // Los archivos ya están en Cloudinary, no necesitamos limpiar
         return res.status(400).json({ errors: errors.array() });
       }
 
@@ -118,23 +100,22 @@ router.post('/:id/documentos',
       });
 
       if (!indiciado) {
-        // Limpiar archivos
-        req.files.forEach(file => {
-          fs.unlink(file.path).catch(console.error);
-        });
+        // Los archivos ya están en Cloudinary
         return res.status(404).json({
           msg: 'Indiciado no encontrado o no tienes permisos para modificarlo'
         });
       }
 
-      // Procesar archivos subidos
+      // Procesar archivos subidos (Cloudinary)
       const nuevosDocumentos = req.files.map(file => ({
         id: uuidv4(),
         filename: file.filename,
         originalName: file.originalname,
         mimeType: file.mimetype,
         size: file.size,
-        path: file.path,
+        path: file.path, // Cloudinary URL
+        url: file.path, // Cloudinary URL pública
+        publicId: file.filename, // ID público de Cloudinary para eliminar
         fechaSubida: new Date(),
         descripcion: req.body.descripcion || '',
         tipo: req.body.tipo || 'General'
@@ -160,17 +141,12 @@ router.post('/:id/documentos',
         msg: `${nuevosDocumentos.length} documento(s) subido(s) exitosamente`,
         documentos: nuevosDocumentos.map(doc => ({
           ...doc,
-          url: `/uploads/documentos/${doc.filename}`
+          url: doc.url // URL de Cloudinary
         }))
       });
 
     } catch (error) {
-      // Limpiar archivos si hay error
-      if (req.files) {
-        req.files.forEach(file => {
-          fs.unlink(file.path).catch(console.error);
-        });
-      }
+      // Los archivos ya están en Cloudinary, no necesitamos limpiar
       console.error('❌ Error subiendo documentos:', error);
       res.status(500).json({
         error: 'Error del servidor al subir documentos',
