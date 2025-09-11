@@ -6,10 +6,8 @@ import { Sector, SectoresResponse, SectorTreeNode } from '../types/sector';
 export class SectorService {
   // Obtener todos los sectores del usuario
   static async obtenerTodos(): Promise<Sector[]> {
-    console.log('🐘 Obteniendo sectores de PostgreSQL');
     const response = await axios.get('/sectores');
     const sectores = response.data.sectores || response.data || [];
-    console.log('📊 Sectores obtenidos:', sectores.length);
     return sectores;
   }
 

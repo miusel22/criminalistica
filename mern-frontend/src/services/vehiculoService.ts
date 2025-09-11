@@ -16,7 +16,6 @@ export class VehiculoService {
 
   // Crear vehículo
   static async crear(vehiculoData: VehiculoFormData, fotos?: File[]): Promise<{ message: string; vehiculo: Vehiculo }> {
-    console.log('🆕 VehiculoService.crear - Datos:', vehiculoData);
     
     try {
       // Enviar datos directamente en el formato que espera PostgreSQL
@@ -26,7 +25,6 @@ export class VehiculoService {
         fechaIncidente: vehiculoData.fechaIncidente || null,
       };
       
-      console.log('📦 Payload para PostgreSQL:', payload);
       const response = await axios.post(API_BASE, payload, {
         headers: {
           'Content-Type': 'application/json'
@@ -43,11 +41,9 @@ export class VehiculoService {
 
   // Obtener todos los vehículos
   static async obtenerTodos(filtros: FiltrosVehiculo = {}): Promise<Vehiculo[]> {
-    console.log('🐘 VehiculoService.obtenerTodos - Usando PostgreSQL');
     try {
       const response = await axios.get(API_BASE);
       const vehiculos = Array.isArray(response.data) ? response.data : [];
-      console.log('📊 Vehículos obtenidos:', vehiculos.length);
       return vehiculos;
     } catch (error: any) {
       console.error('❌ Error obteniendo vehículos:', error.response?.data || error.message);
@@ -57,9 +53,7 @@ export class VehiculoService {
 
   // Obtener vehículo específico
   static async obtener(id: string): Promise<Vehiculo> {
-    console.log('🔍 VehiculoService.obtener - ID:', id);
     const response = await axios.get(`${API_BASE}/${id}`);
-    console.log('✅ Vehículo obtenido:', response.data);
     return response.data;
   }
 
@@ -69,8 +63,7 @@ export class VehiculoService {
     vehiculoData: Partial<VehiculoFormData>, 
     nuevasFotos?: File[]
   ): Promise<{ message: string; vehiculo: Vehiculo }> {
-    console.log('🔄 VehiculoService.actualizar - ID:', id, 'Datos:', vehiculoData);
-    
+
     try {
       // Enviar datos directamente en el formato que espera PostgreSQL
       const payload = {
@@ -96,9 +89,7 @@ export class VehiculoService {
 
   // Eliminar vehículo
   static async eliminar(id: string): Promise<{ message: string }> {
-    console.log('🗑️ VehiculoService.eliminar - ID:', id);
     const response = await axios.delete(`${API_BASE}/${id}`);
-    console.log('✅ Vehículo eliminado:', response.data);
     return response.data;
   }
 

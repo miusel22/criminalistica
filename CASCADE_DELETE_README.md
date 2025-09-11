@@ -48,9 +48,6 @@ indiciadoSchema.pre('deleteMany', async function(next) {
   try {
     const query = this.getQuery();
     const indiciados = await this.model.find(query);
-    
-    console.log(`Deleting ${indiciados.length} indiciados with cascade cleanup`);
-    
     // TODO: Implementar limpieza de archivos si es necesario
     
     next();

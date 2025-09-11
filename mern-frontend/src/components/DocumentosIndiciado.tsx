@@ -570,15 +570,12 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
     setIsLoading(true);
     try {
       const docs = await IndiciadoDocumentosService.obtenerDocumentos(indiciadoId);
-      console.log('📄 Documentos cargados desde el backend:', docs);
       
       // Agregar URLs a los documentos si no las tienen
       const docsConUrl = docs.map(doc => ({
         ...doc,
         url: doc.url || IndiciadoDocumentosService.obtenerUrlDocumento(doc.filename)
       }));
-      
-      console.log('🔗 Documentos con URLs procesadas:', docsConUrl);
       setDocumentos(docsConUrl);
       
       if (onDocumentosChange) {
@@ -666,10 +663,6 @@ export const DocumentosIndiciado: React.FC<DocumentosIndiciadoProps> = ({
   };
 
   const eliminarDocumento = async (documentoId: string, nombreArchivo: string) => {
-    console.log('🗑️ === INICIANDO ELIMINACIÓN ===');
-    console.log('🗑️ DocumentoId:', documentoId);
-    console.log('🗑️ Nombre del archivo:', nombreArchivo);
-    console.log('🗑️ IndiciadoId:', indiciadoId);
     
     const confirmed = await showConfirmation({
       title: 'Eliminar Documento',

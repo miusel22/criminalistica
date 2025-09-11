@@ -40,8 +40,6 @@ export class VehiculoDocumentosService {
       formData.append('tipo', tipo);
     }
     
-    console.log('🚗 Subiendo documentos para vehículo:', vehiculoId);
-    console.log('📁 Cantidad de archivos:', archivos.length);
     
     const response = await axios.post(`/vehiculos/${vehiculoId}/documentos`, formData, {
       headers: {
@@ -93,13 +91,6 @@ export class VehiculoDocumentosService {
       formData.append('documento', datos.archivo);
     }
     
-    console.log('📝 Actualizando documento:', documentoId, 'para vehículo:', vehiculoId);
-    console.log('📋 Datos de actualización:', {
-      descripcion: datos.descripcion,
-      tipo: datos.tipo,
-      tieneNuevoArchivo: !!datos.archivo
-    });
-    
     const response = await axios.put(`/vehiculos/${vehiculoId}/documentos/${documentoId}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
@@ -122,7 +113,6 @@ export class VehiculoDocumentosService {
 
   // Descargar archivo directamente por filename (incluye token automáticamente)
   static async descargarArchivoDirecto(filename: string): Promise<Blob> {
-    console.log('📥 Descargando archivo directo con token:', filename);
     const response = await axios.get(`/vehiculos/${filename}`, {
       responseType: 'blob'
     });
@@ -145,7 +135,6 @@ export class VehiculoDocumentosService {
       `${baseUrl}/files/${filename}`
     ];
     
-    console.log('🔗 URLs posibles para archivo:', filename, '->', rutasPosibles);
     return rutasPosibles;
   }
 

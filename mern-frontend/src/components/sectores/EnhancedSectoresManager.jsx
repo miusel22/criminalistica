@@ -39,8 +39,6 @@ import SectoresService from '../../services/sectoresService';
 import { IndiciadoService } from '../../services/indiciadoService';
 import { VehiculoService } from '../../services/vehiculoService';
 
-// Debug utilities
-import '../../utils/debugSectorError.js';
 
 // Custom confirmation modals
 import { 

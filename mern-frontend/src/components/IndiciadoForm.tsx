@@ -844,34 +844,10 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
   // Reset form with transformed data when initialData changes
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
-      console.log('\n🔄 ==================== RESETEO DE FORMULARIO ====================');
-      console.log('🔄 Resetting form with initialData:', {
-        hasInitialData: !!initialData,
-        keysCount: Object.keys(initialData).length,
-        isEdit,
-        readOnly
-      });
-      
       // Transform backend data to form format if needed
       const transformedData = isEdit || readOnly ? transformBackendDataToFormData(initialData) : initialData;
-      console.log('📏 Transformed data for form (keys):', Object.keys(transformedData));
-      console.log('📄 documentoIdentidad específico que se pasa al reset:', transformedData.documentoIdentidad);
-      console.log('🏃 Señales físicas que se pasan al reset:');
-      console.log('  - senalesFisicas object:', transformedData.senalesFisicas);
-      if (transformedData.senalesFisicas) {
-        console.log('    - estatura:', transformedData.senalesFisicas.estatura);
-        console.log('    - peso:', transformedData.senalesFisicas.peso);
-        console.log('    - contexturaFisica:', transformedData.senalesFisicas.contexturaFisica);
-        console.log('    - colorPiel:', transformedData.senalesFisicas.colorPiel);
-        console.log('    - colorOjos:', transformedData.senalesFisicas.colorOjos);
-        console.log('    - colorCabello:', transformedData.senalesFisicas.colorCabello);
-        console.log('    - marcasEspeciales:', transformedData.senalesFisicas.marcasEspeciales);
-        console.log("y entonces",transformedData.senalesFisicasDetalladas);
-      }
       // Reset form with only the transformed data (without empty defaults)
       reset(transformedData);
-      console.log('✅ Formulario reseteado con éxito');
-      console.log('🔄 ============================================================\n');
     }
   }, [initialData, isEdit, readOnly, reset]);
   
@@ -883,47 +859,12 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
         (initialData.foto?.filename ? IndiciadoService.obtenerUrlFoto(initialData.foto.filename) : null);
       if (imageUrl) {
         setPhotoPreview(imageUrl);
-        console.log('📸 Cargando imagen existente:', imageUrl);
       }
     }
   }, [initialData]);
 
   // Enviar formulario
   const onSubmit = async (data: IndiciadoFormData) => {
-    console.log('\n🚀 ============= INICIO SUBMIT FORMULARIO =============');
-    console.log('📤 Enviando formulario...');
-    console.log('🔍 Debug props completo:', {
-      isEdit,
-      isEditing, 
-      readOnly,
-      hasInitialData: !!initialData,
-      hasId: !!initialData?.id,
-      hasIdUnderscore: !!initialData?._id,
-      initialDataId: initialData?.id,
-      initialDataIdUnderscore: initialData?._id,
-      initialDataKeys: initialData ? Object.keys(initialData) : [],
-      completeInitialData: initialData
-    });
-    console.log('📋 Form data recibida completa:', data);
-    console.log('🔍 Documento de identidad en form data:', data.documentoIdentidad);
-    console.log('🆔 SubsectorId:', data.subsectorId);
-    console.log('📷 ===== INFORMACIÓN DE FOTO =====');
-    console.log('  - selectedPhoto (File object):', selectedPhoto);
-    console.log('  - selectedPhoto name:', selectedPhoto?.name);
-    console.log('  - selectedPhoto size:', selectedPhoto?.size);
-    console.log('  - selectedPhoto type:', selectedPhoto?.type);
-    console.log('  - photoPreview URL:', photoPreview);
-    console.log('📁 ===== INFORMACIÓN DE DOCUMENTOS =====');
-    console.log('  - documentsToUpload:', documentsToUpload);
-    console.log('  - cantidad de documentos:', documentsToUpload.length);
-    console.log('🔗 Props del componente:', { isEdit, isEditing, readOnly });
-    console.log('🎯 Campos críticos del formulario:');
-    console.log('  - alias:', data.alias);
-    console.log('  - nombre:', data.nombre);
-    console.log('  - apellidos:', data.apellidos);
-    console.log('  - documentoIdentidad.tipo:', data.documentoIdentidad?.tipo);
-    console.log('  - documentoIdentidad.numero:', data.documentoIdentidad?.numero);
-    console.log('  - documentoIdentidad.expedidoEn:', data.documentoIdentidad?.expedidoEn);
     setIsLoading(true);
     
     try {
@@ -938,36 +879,26 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
       const isEditMode = (isEdit || isEditing) && (initialData?.id || initialData?._id);
       const indiciadoId = initialData?.id || initialData?._id;
       
-      console.log('🔍 Modo edición detectado:', isEditMode, 'con ID:', indiciadoId);
-      
       if (isEditMode && indiciadoId) {
-        console.log('🔄 Actualizando indiciado con ID:', indiciadoId);
         result = await IndiciadoService.actualizar(indiciadoId, formDataWithPhoto);
       } else {
-        console.log('➕ Creando nuevo indiciado');
         result = await IndiciadoService.crear(formDataWithPhoto);
       }
-
-      console.log('✅ Indiciado guardado exitosamente:', result);
       
       // Si es una creación, verificar que realmente se guardó
       if (!isEditMode) {
         const indiciadoId = result.indiciado?._id || result.indiciado?.id;
         if (indiciadoId) {
-          console.log('🔍 Verificando que el indiciado se guardó realmente...');
           try {
             const existe = await IndiciadoService.verificarExistencia(indiciadoId);
-            if (existe) {
-              console.log('✅ Confirmado: El indiciado existe en la base de datos');
-            } else {
-              console.log('❌ PROBLEMA: El indiciado NO se encontró en la base de datos');
+            if (!existe) {
               toast.error('Problema al verificar creación', {
                 duration: 8000,
                 id: 'verification-error'
               });
             }
           } catch (error) {
-            console.log('❌ Error verificando existencia:', error);
+            // Error silencioso en verificación
           }
         }
       }
@@ -1003,12 +934,6 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
         }
       }
     } catch (error: any) {
-      console.error('❌ Error al guardar indiciado:', error);
-      console.error('❌ Error completo:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
       const errorMessage = error.response?.data?.msg || error.response?.data?.message || error.message || 'Error desconocido';
       toast.error(`Error al guardar: ${errorMessage}`, {
         duration: 8000,
@@ -1034,15 +959,7 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
 
       <FormLayout 
         id="indiciado-form" 
-        onSubmit={(e) => {
-          console.log('🎯 FORM SUBMIT EVENT TRIGGERED!');
-          console.log('📝 Event:', e);
-          console.log('📋 Form validity:', e.currentTarget.checkValidity());
-          console.log('🔍 Form state before submit:', { errors, isValid, isSubmitting });
-          
-          // Llamar a handleSubmit de react-hook-form
-          handleSubmit(onSubmit)(e);
-        }}
+        onSubmit={handleSubmit(onSubmit)}
       >
         <FormSections>
           {/* Información Básica */}
@@ -1852,12 +1769,6 @@ export const IndiciadoForm: React.FC<IndiciadoFormProps> = ({
               form="indiciado-form"
               disabled={isLoading}
               $theme={theme}
-              onClick={(e) => {
-                console.log('🎯 BOTÓN CLICKED!');
-                console.log('🔍 Form state:', { errors, isValid, isSubmitting });
-                console.log('🔍 Button props:', { readOnly, isLoading });
-                // No prevent default - permitir que el form se submita normalmente
-              }}
             >
               {isLoading ? (
                 <LoadingSpinner $theme={theme} />

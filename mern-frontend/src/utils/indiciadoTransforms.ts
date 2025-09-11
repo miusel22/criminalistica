@@ -110,13 +110,6 @@ export const transformBackendDataToFormData = (backendData: any): any => {
     oficio: backendData.oficio || '',
     // Transform señales físicas como objeto anidado para el formulario
     senalesFisicas: (() => {
-      console.log('🔍 transformBackendDataToFormData - backendData completo:', {
-        id: backendData.id || backendData._id,
-        nombre: backendData.nombre,
-        apellidos: backendData.apellidos
-      });
-      console.log('🔍 Señales físicas raw del backend:', backendData.senalesFisicas);
-      console.log('🔍 Tipo de senalesFisicas:', typeof backendData.senalesFisicas);
       
       let senalesFisicas: any = {};
       
@@ -133,18 +126,8 @@ export const transformBackendDataToFormData = (backendData: any): any => {
       // Si senalesFisicas es un objeto, usarlo directamente
       else if (backendData.senalesFisicas && typeof backendData.senalesFisicas === 'object') {
         senalesFisicas = backendData.senalesFisicas;
-        console.log('✨ Señales físicas como objeto:', senalesFisicas);
       }
       
-      // DEBUG: Verificar cada campo individual
-      console.log('📝 EXTRAYENDO VALORES DE SEÑALES FÍSICAS:');
-      console.log('  - estatura:', senalesFisicas.estatura);
-      console.log('  - peso:', senalesFisicas.peso);
-      console.log('  - contexturaFisica:', senalesFisicas.contexturaFisica);
-      console.log('  - colorPiel:', senalesFisicas.colorPiel);
-      console.log('  - colorOjos:', senalesFisicas.colorOjos);
-      console.log('  - colorCabello:', senalesFisicas.colorCabello);
-      console.log('  - marcasEspeciales:', senalesFisicas.marcasEspeciales);
       
       const result = {
         estatura: senalesFisicas.estatura || '',
@@ -156,23 +139,17 @@ export const transformBackendDataToFormData = (backendData: any): any => {
         marcasEspeciales: senalesFisicas.marcasEspeciales || ''
       };
       
-      console.log('🎯 RESULTADO FINAL DE TRANSFORMACIÓN DE SEÑALES FÍSICAS:', result);
       return result;
     })(),
     // Transform señales físicas detalladas como objeto anidado separado para el formulario
     senalesFisicasDetalladas: (() => {
-      console.log('🔍 DEBUGGING - Señales físicas detalladas raw del backend (senalesFisicasDetalladas):', backendData.senalesFisicasDetalladas);
-      console.log('🔍 DEBUGGING - Señales físicas detalladas raw del backend (señalesFisicas):', backendData.señalesFisicas);
-      console.log('🔍 DEBUGGING - Tipo de senalesFisicasDetalladas:', typeof backendData.senalesFisicasDetalladas);
-      console.log('🔍 DEBUGGING - Tipo de señalesFisicas:', typeof backendData.señalesFisicas);
-      
       let senalesFisicasDetalladas: any = {};
       
       // Intentar primero con el campo sin ñ (senalesFisicasDetalladas)
       if (typeof backendData.senalesFisicasDetalladas === 'string') {
         try {
           senalesFisicasDetalladas = JSON.parse(backendData.senalesFisicasDetalladas);
-          console.log('✨ Señales físicas detalladas parseadas desde JSON string (senalesFisicasDetalladas):', senalesFisicasDetalladas);
+  
         } catch (error) {
           console.error('❌ Error parsing senalesFisicasDetalladas JSON:', error);
           senalesFisicasDetalladas = {};
@@ -198,17 +175,7 @@ export const transformBackendDataToFormData = (backendData: any): any => {
         senalesFisicasDetalladas = backendData.señalesFisicas;
         console.log('✨ Señales físicas detalladas como objeto (señalesFisicas):', senalesFisicasDetalladas);
       }
-      
-      // DEBUG: Verificar cada campo individual detallado
-      console.log('📋 EXTRAYENDO VALORES DE SEÑALES FÍSICAS DETALLADAS:');
-      console.log('  - complexion:', senalesFisicasDetalladas.complexion);
-      console.log('  - formaCara:', senalesFisicasDetalladas.formaCara);
-      console.log('  - tipoCabello:', senalesFisicasDetalladas.tipoCabello);
-      console.log('  - largoCabello:', senalesFisicasDetalladas.largoCabello);
-      console.log('  - formaOjos:', senalesFisicasDetalladas.formaOjos);
-      console.log('  - formaNariz:', senalesFisicasDetalladas.formaNariz);
-      console.log('  - formaBoca:', senalesFisicasDetalladas.formaBoca);
-      console.log('  - formaLabios:', senalesFisicasDetalladas.formaLabios);
+  
       
       const result = {
         complexion: senalesFisicasDetalladas.complexion || '',
@@ -233,12 +200,6 @@ export const transformBackendDataToFormData = (backendData: any): any => {
     observaciones: backendData.observaciones || '',
     googleEarthUrl: backendData.googleEarthUrl || '',
     subsectorId: (() => {
-      console.log('🔍 Transform subsectorId:', {
-        original: backendData.subsectorId,
-        type: typeof backendData.subsectorId,
-        isObject: typeof backendData.subsectorId === 'object',
-        value: backendData.subsectorId
-      });
       
       // Si es un objeto, extraer el ID; si es string, usar directo; si no existe, string vacío
       let result = '';
@@ -249,8 +210,6 @@ export const transformBackendDataToFormData = (backendData: any): any => {
           result = backendData.subsectorId;
         }
       }
-      
-      console.log('🔍 Transform subsectorId result:', result);
       return result;
     })(),
     // Include photo info for display

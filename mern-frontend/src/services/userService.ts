@@ -68,7 +68,6 @@ export class UserService {
     search = '', 
     role = 'all'
   ): Promise<UsersResponse> {
-    console.log('👥 Obteniendo lista de usuarios');
     
     const params = new URLSearchParams({
       page: page.toString(),
@@ -79,23 +78,18 @@ export class UserService {
     if (role !== 'all') params.append('role', role);
     
     const response = await axios.get(`/users?${params.toString()}`);
-    console.log('✅ Usuarios obtenidos:', response.data.users.length);
     return response.data;
   }
 
   // Obtener usuario por ID
   static async getUserById(id: string): Promise<User> {
-    console.log('🔍 Obteniendo usuario por ID:', id);
     const response = await axios.get(`/users/${id}`);
-    console.log('✅ Usuario obtenido:', response.data.email);
     return response.data;
   }
 
   // Crear nuevo usuario
   static async createUser(userData: UserFormData): Promise<{ msg: string; user: User }> {
-    console.log('🆕 Creando nuevo usuario:', userData.email);
     const response = await axios.post('/users', userData);
-    console.log('✅ Usuario creado exitosamente:', response.data.user.email);
     return response.data;
   }
 
@@ -104,33 +98,25 @@ export class UserService {
     id: string, 
     userData: UserUpdateData
   ): Promise<{ msg: string; user: User }> {
-    console.log('🔄 Actualizando usuario:', id);
     const response = await axios.put(`/users/${id}`, userData);
-    console.log('✅ Usuario actualizado:', response.data.user.email);
     return response.data;
   }
 
   // Eliminar usuario
   static async deleteUser(id: string): Promise<{ msg: string }> {
-    console.log('🗑️ Eliminando usuario:', id);
     const response = await axios.delete(`/users/${id}`);
-    console.log('✅ Usuario eliminado exitosamente');
     return response.data;
   }
 
   // Cambiar estado activo/inactivo del usuario
   static async toggleUserStatus(id: string): Promise<{ msg: string; user: User }> {
-    console.log('🔄 Cambiando estado del usuario:', id);
     const response = await axios.patch(`/users/${id}/toggle-status`);
-    console.log('✅ Estado cambiado:', response.data.user.isActive ? 'Activo' : 'Inactivo');
     return response.data;
   }
 
   // Obtener estadísticas de usuarios
   static async getUserStats(): Promise<UserStats> {
-    console.log('📊 Obteniendo estadísticas de usuarios');
     const response = await axios.get('/users/stats');
-    console.log('✅ Estadísticas obtenidas:', response.data);
     return response.data;
   }
 
@@ -144,11 +130,6 @@ export class UserService {
       if (userStr) {
         try {
           const user = JSON.parse(userStr);
-          console.log('📋 UserService - Usuario desde localStorage:', { 
-            email: user.email, 
-            role: user.role, 
-            isAdmin: user.role === 'admin' 
-          });
           if (user.role === 'admin') {
             return true;
           }
@@ -162,11 +143,6 @@ export class UserService {
       if (sessionUserStr) {
         try {
           const user = JSON.parse(sessionUserStr);
-          console.log('📋 UserService - Usuario desde sessionStorage:', { 
-            email: user.email, 
-            role: user.role, 
-            isAdmin: user.role === 'admin' 
-          });
           if (user.role === 'admin') {
             return true;
           }
@@ -181,11 +157,6 @@ export class UserService {
         try {
           // Decodificar payload JWT (solo para verificar rol, no para validar)
           const payload = JSON.parse(atob(token.split('.')[1]));
-          console.log('📋 UserService - Datos del token JWT:', { 
-            email: payload.email, 
-            role: payload.role, 
-            isAdmin: payload.role === 'admin' 
-          });
           if (payload.role === 'admin') {
             return true;
           }
@@ -194,7 +165,6 @@ export class UserService {
         }
       }
 
-      console.log('⚠️ UserService - No se encontró información válida de administrador');
       return false;
     } catch (error) {
       console.error('❌ Error general validando rol de admin:', error);
