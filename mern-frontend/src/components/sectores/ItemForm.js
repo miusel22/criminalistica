@@ -340,6 +340,7 @@ const ItemForm = ({
   // Reset form when modal opens with different type or when switching between create/edit
   useEffect(() => {
     if (isOpen) {
+      console.log('Datos del item recibido:', item); // Debug
       setFormData({
         nombre: item?.nombre || '',
         departamentoId: item?.ubicacion?.departamento?.id || '',
@@ -428,7 +429,19 @@ const ItemForm = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (formData.nombre.trim()) {
-      onSubmit(formData);
+      // Para sectores, enviar los datos de ubicación en el formato que espera el backend
+      if (type === 'sector') {
+        const sectorData = {
+          ...formData,
+          // Agregar campos de ubicación para el backend
+          departamentoId: formData.departamentoId || null,
+          ciudadId: formData.ciudadId || null,
+          ciudadPersonalizada: formData.ciudadPersonalizada || null
+        };
+        onSubmit(sectorData);
+      } else {
+        onSubmit(formData);
+      }
     }
   };
 

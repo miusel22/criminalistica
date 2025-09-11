@@ -2,6 +2,49 @@ const express = require('express');
 const { Sector, User, Indiciado, Vehiculo } = require('../models/sequelize');
 const { Op } = require('sequelize');
 const authMiddleware = require('../middleware/auth');
+const fs = require('fs').promises;
+const path = require('path');
+
+// Helper functions para cargar datos de Colombia
+const loadColombiaData = async () => {
+  try {
+    const dataPath = path.join(__dirname, '../data/colombia.json');
+    const data = await fs.readFile(dataPath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Error loading Colombia data:', error);
+    return null;
+  }
+};
+
+const obtenerNombreDepartamento = async (departamentoId) => {
+  try {
+    const data = await loadColombiaData();
+    if (!data) return null;
+    
+    const departamento = data.departamentos.find(dept => dept.id === departamentoId);
+    return departamento ? departamento.nombre : null;
+  } catch (error) {
+    console.error('Error obteniendo nombre departamento:', error);
+    return null;
+  }
+};
+
+const obtenerNombreCiudad = async (departamentoId, ciudadId) => {
+  try {
+    const data = await loadColombiaData();
+    if (!data) return null;
+    
+    const departamento = data.departamentos.find(dept => dept.id === departamentoId);
+    if (!departamento) return null;
+    
+    const ciudad = departamento.ciudades.find(city => city.id === ciudadId);
+    return ciudad ? ciudad.nombre : null;
+  } catch (error) {
+    console.error('Error obteniendo nombre ciudad:', error);
+    return null;
+  }
+};
 
 const router = express.Router();
 
@@ -101,7 +144,11 @@ router.post('/', authMiddleware, async (req, res) => {
       jefeCargo,
       jefeContacto,
       configuracion,
-      orden
+      orden,
+      // Nuevos campos de ubicación
+      departamentoId,
+      ciudadId,
+      ciudadPersonalizada
     } = req.body;
 
     if (!nombre || nombre.trim() === '') {
@@ -139,6 +186,20 @@ router.post('/', authMiddleware, async (req, res) => {
       }
     }
 
+    // Obtener nombres de departamento y ciudad si se proporcionaron IDs
+    let departamentoNombre = null;
+    let ciudadNombre = null;
+    
+    if (departamentoId) {
+      departamentoNombre = await obtenerNombreDepartamento(departamentoId);
+      console.log(`🗺️ Departamento resuelto: ${departamentoId} -> ${departamentoNombre}`);
+    }
+    
+    if (ciudadId && departamentoId) {
+      ciudadNombre = await obtenerNombreCiudad(departamentoId, ciudadId);
+      console.log(`🏢 Ciudad resuelta: ${ciudadId} -> ${ciudadNombre}`);
+    }
+
     // Crear nuevo sector
     const nuevoSector = await Sector.create({
       nombre: nombre.trim(),
@@ -153,7 +214,13 @@ router.post('/', authMiddleware, async (req, res) => {
       configuracion: configuracion || {},
       orden: orden || 0,
       type: 'sector',
-      ownerId: req.user.id
+      ownerId: req.user.id,
+      // Nuevos campos de ubicación
+      departamentoId: departamentoId || null,
+      departamentoNombre: departamentoNombre,
+      ciudadId: ciudadId || null,
+      ciudadNombre: ciudadNombre,
+      ciudadPersonalizada: ciudadPersonalizada || null
     });
 
     console.log('✅ Sector creado:', nuevoSector.id);
@@ -189,7 +256,11 @@ router.put('/:id', authMiddleware, async (req, res) => {
       jefeContacto,
       configuracion,
       orden,
-      activo
+      activo,
+      // Nuevos campos de ubicación
+      departamentoId,
+      ciudadId,
+      ciudadPersonalizada
     } = req.body;
 
     const sector = await Sector.findOne({
@@ -237,6 +308,20 @@ router.put('/:id', authMiddleware, async (req, res) => {
       }
     }
 
+    // Obtener nombres de departamento y ciudad si se proporcionaron IDs
+    let departamentoNombre = sector.departamentoNombre;
+    let ciudadNombre = sector.ciudadNombre;
+    
+    if (departamentoId && departamentoId !== sector.departamentoId) {
+      departamentoNombre = await obtenerNombreDepartamento(departamentoId);
+      console.log(`🗺️ Departamento actualizado: ${departamentoId} -> ${departamentoNombre}`);
+    }
+    
+    if (ciudadId && ciudadId !== sector.ciudadId && departamentoId) {
+      ciudadNombre = await obtenerNombreCiudad(departamentoId, ciudadId);
+      console.log(`🏢 Ciudad actualizada: ${ciudadId} -> ${ciudadNombre}`);
+    }
+
     // Preparar datos de actualización
     const updateData = {
       nombre: nombre !== undefined ? nombre.trim() : sector.nombre,
@@ -250,7 +335,13 @@ router.put('/:id', authMiddleware, async (req, res) => {
       jefeContacto: jefeContacto !== undefined ? (jefeContacto ? jefeContacto.trim() : null) : sector.jefeContacto,
       configuracion: configuracion !== undefined ? configuracion : sector.configuracion,
       orden: orden !== undefined ? orden : sector.orden,
-      activo: activo !== undefined ? activo : sector.activo
+      activo: activo !== undefined ? activo : sector.activo,
+      // Nuevos campos de ubicación
+      departamentoId: departamentoId !== undefined ? departamentoId : sector.departamentoId,
+      departamentoNombre: departamentoNombre,
+      ciudadId: ciudadId !== undefined ? ciudadId : sector.ciudadId,
+      ciudadNombre: ciudadNombre,
+      ciudadPersonalizada: ciudadPersonalizada !== undefined ? ciudadPersonalizada : sector.ciudadPersonalizada
     };
 
     console.log('📦 Datos procesados para actualizar:', updateData);
