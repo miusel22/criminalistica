@@ -1195,7 +1195,15 @@ const EnhancedSectoresManager = () => {
 
   // Helper function to get indiciado image URL (prioritizes Cloudinary)
   const getIndiciadoImageUrl = (item) => {
-    if (!item.foto) return null;
+    console.log('🔍 Debug - getIndiciadoImageUrl para:', item.nombre, {
+      foto: item.foto,
+      tipoFoto: typeof item.foto
+    });
+    
+    if (!item.foto) {
+      console.log('❌ No foto encontrada para:', item.nombre);
+      return null;
+    }
     
     // Si foto es un objeto, priorizar path (URL de Cloudinary) sobre filename
     if (typeof item.foto === 'object') {
@@ -1250,11 +1258,12 @@ const EnhancedSectoresManager = () => {
       return hierarchy;
     }
     
-    const filterItem = (item) => {
+  const filterItem = (item) => {
       const matchesText = !filterText || 
         item.nombre?.toLowerCase().includes(filterText.toLowerCase()) ||
         (item.type === 'vehiculo' && item.placa?.toLowerCase().includes(filterText.toLowerCase())) ||
-        (item.type === 'indiciado' && item.alias?.toLowerCase().includes(filterText.toLowerCase()));
+        (item.type === 'indiciado' && item.alias?.toLowerCase().includes(filterText.toLowerCase())) ||
+        (item.type === 'indiciado' && item.documentoIdentidad?.numero?.toLowerCase().includes(filterText.toLowerCase()));
       
       const matchesType = filterType === 'all' || item.type === filterType;
       
@@ -1293,7 +1302,8 @@ const EnhancedSectoresManager = () => {
         const filteredIndiciados = item.indiciados.filter(indiciado => {
           const matchesTextInd = !filterText || 
             indiciado.nombre?.toLowerCase().includes(filterText.toLowerCase()) ||
-            indiciado.alias?.toLowerCase().includes(filterText.toLowerCase());
+            indiciado.alias?.toLowerCase().includes(filterText.toLowerCase()) ||
+            indiciado.documentoIdentidad?.numero?.toLowerCase().includes(filterText.toLowerCase());
           const matchesTypeInd = filterType === 'all' || filterType === 'indiciado';
           return matchesTextInd && matchesTypeInd;
         });
@@ -1468,13 +1478,13 @@ const EnhancedSectoresManager = () => {
                       <Eye size={14} />
                     </ActionIcon>
                   )}
-                  
+                  {item.type !=='sector' &&(
                   <ActionIcon $theme={theme}
                     onClick={(e) => { e.stopPropagation(); handleEdit(item); }}
                     title="Editar"
                   >
                     <Edit size={14} />
-                  </ActionIcon>
+                  </ActionIcon>)}
                   
                   <ActionIcon $theme={theme}
                     onClick={(e) => { e.stopPropagation(); handleDelete(item); }}
@@ -1521,10 +1531,10 @@ const EnhancedSectoresManager = () => {
           <SidebarTitle $theme={theme} className="sidebar-title">Filtros</SidebarTitle>
           
           <FilterGroup>
-            <FilterLabel $theme={theme} className="filter-label">Buscar por nombre, alias o placa</FilterLabel>
+            <FilterLabel $theme={theme} className="filter-label">Buscar por nombre, documento, alias o placa...</FilterLabel>
             <SearchInput
               type="text"
-              placeholder="Filtrar por nombre, alias o placa..."
+              placeholder=""
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
               style={{

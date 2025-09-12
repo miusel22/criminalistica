@@ -723,14 +723,14 @@ const UserManagement: React.FC = () => {
             >
               {user.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
             </ActionButton>
-            <ActionButton
+            {user.role !=="admin" &&(<ActionButton
               className="delete"
               onClick={() => handleDeleteUser(user)}
               title="Eliminar usuario"
               $theme={theme}
             >
               <Trash2 size={16} />
-            </ActionButton>
+            </ActionButton>)}
           </ActionButtons>
         </TableCell>
       </TableRow>

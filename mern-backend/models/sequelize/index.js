@@ -207,7 +207,12 @@ Sector.searchAll = async function(ownerId, searchTerm) {
       [sequelize.Sequelize.Op.or]: [
         { nombre: { [sequelize.Sequelize.Op.iLike]: searchRegex } },
         { apellidos: { [sequelize.Sequelize.Op.iLike]: searchRegex } },
-        { alias: { [sequelize.Sequelize.Op.iLike]: searchRegex } }
+        { alias: { [sequelize.Sequelize.Op.iLike]: searchRegex } },
+        // Buscar en documento de identidad (JSONB)
+        sequelize.where(
+          sequelize.cast(sequelize.col('documento_identidad'), 'text'),
+          { [sequelize.Sequelize.Op.iLike]: searchRegex }
+        )
       ]
     },
     limit: 25

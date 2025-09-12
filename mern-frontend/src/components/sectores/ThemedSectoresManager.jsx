@@ -854,14 +854,20 @@ export default function ThemedSectoresManager() {
     // Filtro por búsqueda
     if (searchTerm) {
       filtered = filtered.filter(item => 
-        item.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+        item.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.alias && item.alias.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.placa && item.placa.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.documentoIdentidad && item.documentoIdentidad.numero && item.documentoIdentidad.numero.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
     
     // Filtro por nombre en sidebar
     if (filters.nameFilter) {
       filtered = filtered.filter(item => 
-        item.nombre.toLowerCase().includes(filters.nameFilter.toLowerCase())
+        item.nombre.toLowerCase().includes(filters.nameFilter.toLowerCase()) ||
+        (item.alias && item.alias.toLowerCase().includes(filters.nameFilter.toLowerCase())) ||
+        (item.placa && item.placa.toLowerCase().includes(filters.nameFilter.toLowerCase())) ||
+        (item.documentoIdentidad && item.documentoIdentidad.numero && item.documentoIdentidad.numero.toLowerCase().includes(filters.nameFilter.toLowerCase()))
       );
     }
     
@@ -1213,11 +1219,11 @@ export default function ThemedSectoresManager() {
               </h4>
               
               <div>
-                <FilterLabel $theme={theme}>Buscar por nombre, alias o placa</FilterLabel>
+                <FilterLabel $theme={theme}>Buscar por nombre, alias, cédula o placa</FilterLabel>
                 <FilterInput
                   $theme={theme}
                   type="text"
-                  placeholder="Filtrar por nombre, alias o placa..."
+                  placeholder="Filtrar por nombre, alias, cédula o placa..."
                   value={filters.nameFilter}
                   onChange={(e) => handleFilterChange('nameFilter', e.target.value)}
                 />
