@@ -2,9 +2,9 @@
   "name": "shadow-docket-backend",
   "version": "1.0.0",
   "description": "MERN backend for Shadow Docket management app",
-  "main": "server.js",
+  "main": "server-postgres.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server-postgres.js",
     "start:postgres": "node server-postgres.js",
     "dev": "nodemon server.js",
     "dev:postgres": "nodemon server-postgres.js",
