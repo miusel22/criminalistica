@@ -5,10 +5,11 @@ require('dotenv').config();
 // Puede usar tanto URL completa como parámetros separados
 let sequelize;
 
-if (process.env.POSTGRES_URL) {
+if (process.env.DATABASE_URL || process.env.POSTGRES_URL) {
   // Usar URL completa (como la de Render)
-  console.log('🔗 Conectando usando POSTGRES_URL...');
-  sequelize = new Sequelize(process.env.POSTGRES_URL, {
+  const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  console.log('🔗 Conectando usando DATABASE_URL...');
+  sequelize = new Sequelize(dbUrl, {
     dialect: 'postgres',
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
     dialectOptions: {
