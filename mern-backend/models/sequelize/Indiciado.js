@@ -342,8 +342,19 @@ const Indiciado = sequelize.define('Indiciado', {
 
 // Métodos de instancia
 Indiciado.prototype.getFotoUrl = function() {
-  if (this.foto && this.foto.filename) {
-    return `/uploads/${this.foto.filename}`;
+  if (this.foto) {
+    // Si ya tiene una URL de Cloudinary, usarla
+    if (this.foto.url && this.foto.url.includes('cloudinary.com')) {
+      return this.foto.url;
+    }
+    // Si tiene path de Cloudinary, usarlo como URL
+    if (this.foto.path && this.foto.path.includes('cloudinary.com')) {
+      return this.foto.path;
+    }
+    // Fallback para archivos locales (desarrollo)
+    if (this.foto.filename) {
+      return `/uploads/${this.foto.filename}`;
+    }
   }
   return null;
 };
@@ -352,6 +363,18 @@ Indiciado.prototype.getFotosAdicionalesUrls = function() {
   if (!this.fotosAdicionales || !Array.isArray(this.fotosAdicionales)) return [];
   
   return this.fotosAdicionales.map(foto => {
+    // Si ya tiene una URL de Cloudinary, usarla
+    if (foto.url && foto.url.includes('cloudinary.com')) {
+      return foto;
+    }
+    // Si tiene path de Cloudinary, usarlo como URL
+    if (foto.path && foto.path.includes('cloudinary.com')) {
+      return {
+        ...foto,
+        url: foto.path
+      };
+    }
+    // Fallback para archivos locales (desarrollo)
     if (foto.filename) {
       return {
         ...foto,
@@ -371,6 +394,18 @@ Indiciado.prototype.getDocumentosRelacionadosUrls = function() {
   }
   
   return docs.map(documento => {
+    // Si ya tiene una URL de Cloudinary, usarla
+    if (documento.url && documento.url.includes('cloudinary.com')) {
+      return documento;
+    }
+    // Si tiene path de Cloudinary, usarlo como URL
+    if (documento.path && documento.path.includes('cloudinary.com')) {
+      return {
+        ...documento,
+        url: documento.path
+      };
+    }
+    // Fallback para archivos locales (desarrollo)
     if (documento.filename) {
       return {
         ...documento,

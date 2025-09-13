@@ -1,5 +1,7 @@
 const express = require('express');
 const multer = require('multer');
+const path = require('path');
+const fs = require('fs-extra');
 const { v4: uuidv4 } = require('uuid');
 const { param, validationResult } = require('express-validator');
 const { User, Indiciado } = require('../models/sequelize');
@@ -7,7 +9,7 @@ const authMiddleware = require('../middleware/auth');
 const { canRead, canWrite } = require('../middleware/permissions');
 
 // Importar configuración de Cloudinary
-const { documentStorage } = require('../config/cloudinary');
+const { documentStorage, deleteFromCloudinary } = require('../config/cloudinary');
 
 const router = express.Router();
 
@@ -219,6 +221,146 @@ router.get('/:id/documentos',
   }
 );
 
+// PUT /api/indiciados/:id/documentos/:documentoId - Actualizar documento (metadatos y/o archivo)
+router.put('/:id/documentos/:documentoId',
+  authMiddleware,
+  canWrite,
+  upload.single('archivo'), // Archivo opcional
+  [
+    param('id').isUUID().withMessage('ID del indiciado debe ser un UUID válido'),
+    param('documentoId').notEmpty().withMessage('ID del documento es requerido')
+  ],
+  async (req, res) => {
+    try {
+      const tieneArchivoNuevo = !!req.file;
+      console.log(tieneArchivoNuevo ? '🔄 === REEMPLAZANDO ARCHIVO Y ACTUALIZANDO DOCUMENTO ===' : '📝 === ACTUALIZANDO METADATOS DE DOCUMENTO ===');
+      console.log('📝 IndiciadoId:', req.params.id);
+      console.log('📝 DocumentoId:', req.params.documentoId);
+      console.log('📝 Datos a actualizar:', req.body);
+      console.log('📝 Archivo nuevo:', tieneArchivoNuevo ? req.file.originalname : 'No');
+      
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        console.log('❌ Errores de validación:', errors.array());
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const effectiveUser = await getEffectiveUser(req);
+      console.log('👤 Usuario efectivo:', effectiveUser.id, effectiveUser.role);
+
+      let whereCondition = {
+        id: req.params.id,
+        activo: true
+      };
+
+      if (effectiveUser.role !== 'admin') {
+        whereCondition.ownerId = effectiveUser.id;
+      }
+
+      console.log('🔍 Buscando indiciado con condición:', whereCondition);
+      const indiciado = await Indiciado.findOne({
+        where: whereCondition
+      });
+
+      if (!indiciado) {
+        console.log('❌ Indiciado no encontrado');
+        return res.status(404).json({
+          msg: 'Indiciado no encontrado'
+        });
+      }
+
+      console.log('✅ Indiciado encontrado');
+      const documentos = indiciado.documentosRelacionados || [];
+      console.log('📄 Documentos actuales:', documentos.length);
+      
+      const documentoIndex = documentos.findIndex(doc => doc.id === req.params.documentoId);
+      console.log('🔍 Índice del documento a actualizar:', documentoIndex);
+
+      if (documentoIndex === -1) {
+        console.log('❌ Documento no encontrado en el array');
+        return res.status(404).json({
+          msg: 'Documento no encontrado'
+        });
+      }
+
+      const documentoAnterior = documentos[documentoIndex];
+      console.log('📎 Documento anterior:', { id: documentoAnterior.id, filename: documentoAnterior.filename });
+
+      // Si hay un archivo nuevo, eliminar el anterior de Cloudinary
+      if (tieneArchivoNuevo && (documentoAnterior.publicId || documentoAnterior.filename)) {
+        const publicIdAnterior = documentoAnterior.publicId || documentoAnterior.filename;
+        console.log('🗂️ Eliminando archivo anterior de Cloudinary:', publicIdAnterior);
+        try {
+          await deleteFromCloudinary(publicIdAnterior);
+          console.log('✅ Archivo anterior eliminado de Cloudinary');
+        } catch (err) {
+          console.error('⚠️ Error eliminando archivo anterior de Cloudinary:', err.message);
+          // Continuar con la actualización aunque falle la eliminación
+        }
+      }
+
+      // Crear documento actualizado
+      let documentoActualizado = { ...documentoAnterior };
+      
+      // Actualizar metadatos permitidos
+      const camposPermitidos = ['descripcion', 'tipo', 'originalName'];
+      camposPermitidos.forEach(campo => {
+        if (req.body[campo] !== undefined) {
+          documentoActualizado[campo] = req.body[campo];
+        }
+      });
+
+      // Si hay archivo nuevo, actualizar datos del archivo
+      if (tieneArchivoNuevo) {
+        documentoActualizado = {
+          ...documentoActualizado,
+          filename: req.file.filename,
+          originalName: req.file.originalname,
+          mimeType: req.file.mimetype,
+          size: req.file.size,
+          path: req.file.path, // Nueva Cloudinary URL
+          url: req.file.path, // Nueva Cloudinary URL pública
+          publicId: req.file.filename // Nuevo ID público de Cloudinary
+        };
+        console.log('🔄 Archivo reemplazado con:', req.file.originalname);
+      }
+
+      // Agregar timestamp de actualización
+      documentoActualizado.fechaActualizacion = new Date();
+
+      // Reemplazar documento en el array
+      console.log(tieneArchivoNuevo ? '🔄 Reemplazando documento con archivo nuevo...' : '📝 Actualizando metadatos del documento...');
+      documentos[documentoIndex] = documentoActualizado;
+
+      // Actualizar indiciado
+      console.log('💾 Actualizando base de datos...');
+      
+      // FIX: Forzar detección de cambios en Sequelize para campos JSONB
+      indiciado.changed('documentosRelacionados', true);
+      
+      await indiciado.update({
+        documentosRelacionados: documentos
+      });
+
+      console.log('✅ Documento actualizado exitosamente');
+      res.json({
+        msg: tieneArchivoNuevo ? 'Documento y archivo actualizados exitosamente' : 'Metadatos del documento actualizados exitosamente',
+        documento: {
+          ...documentoActualizado,
+          url: documentoActualizado.url // URL de Cloudinary
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Error actualizando documento:', error);
+      res.status(500).json({
+        error: 'Error del servidor al actualizar documento',
+        message: error.message
+      });
+    }
+  }
+);
+
 // DELETE /api/indiciados/:id/documentos/:documentoId - Eliminar un documento específico
 router.delete('/:id/documentos/:documentoId',
   authMiddleware,
@@ -281,13 +423,17 @@ router.delete('/:id/documentos/:documentoId',
       const documento = documentos[documentoIndex];
       console.log('📎 Documento a eliminar:', { id: documento.id, filename: documento.filename });
 
-      // Eliminar archivo físico
-      if (documento.filename) {
-        const filePath = path.join(__dirname, '../uploads/documentos', documento.filename);
-        console.log('🗂️ Eliminando archivo físico:', filePath);
-        fs.unlink(filePath).catch(err => {
-          console.error('⚠️ Error eliminando archivo físico:', err.message);
-        });
+      // Eliminar archivo de Cloudinary
+      if (documento.publicId || documento.filename) {
+        const publicId = documento.publicId || documento.filename;
+        console.log('🗂️ Eliminando archivo de Cloudinary:', publicId);
+        try {
+          await deleteFromCloudinary(publicId);
+          console.log('✅ Archivo eliminado de Cloudinary exitosamente');
+        } catch (err) {
+          console.error('⚠️ Error eliminando archivo de Cloudinary:', err.message);
+          // No detener el proceso si falla la eliminación del archivo
+        }
       }
 
       // Remover documento del array

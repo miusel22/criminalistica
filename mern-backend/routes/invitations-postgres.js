@@ -47,26 +47,61 @@ router.post('/send', authMiddleware, requireAdmin, [
       });
     }
 
-    // Check if there's already a pending invitation for this email
-    const existingInvitation = await InvitationCode.findOne({
+    // Check for existing invitations (any type)
+    const existingInvitations = await InvitationCode.findAll({
       where: {
-        email,
-        isUsed: false,
-        expiresAt: { [Op.gt]: new Date() }
-      }
+        email
+      },
+      order: [['createdAt', 'DESC']]
     });
 
-    if (existingInvitation) {
-      return res.status(400).json({
-        error: 'Invitation already exists',
-        message: 'There is already a pending invitation for this email',
-        invitation: {
-          code: existingInvitation.code,
-          expiresAt: existingInvitation.expiresAt,
-          role: existingInvitation.role
-        }
-      });
+    if (existingInvitations.length > 0) {
+      const latestInvitation = existingInvitations[0];
+      
+      // Check if there's a pending (unused and not expired) invitation
+      const pendingInvitation = existingInvitations.find(inv => 
+        !inv.isUsed && inv.expiresAt > new Date()
+      );
+      
+      if (pendingInvitation) {
+        return res.status(400).json({
+          error: 'Invitation already exists',
+          message: 'There is already a pending invitation for this email. Please use the existing invitation or wait for it to expire.',
+          invitation: {
+            code: pendingInvitation.code,
+            expiresAt: pendingInvitation.expiresAt,
+            role: pendingInvitation.role,
+            createdAt: pendingInvitation.createdAt
+          },
+          suggestion: 'You can resend the existing invitation if needed'
+        });
+      }
+      
+      // Check if there's a used invitation (user already registered)
+      const usedInvitation = existingInvitations.find(inv => inv.isUsed);
+      
+      if (usedInvitation) {
+        return res.status(400).json({
+          error: 'User already invited',
+          message: 'This email has already been used to create an account. The user is already in the system.',
+          lastInvitation: {
+            role: usedInvitation.role,
+            usedAt: usedInvitation.updatedAt,
+            createdAt: usedInvitation.createdAt
+          },
+          suggestion: 'Check the users list to verify if this user already exists'
+        });
+      }
+      
+      // If there are only expired invitations, we can allow creating a new one
+      // This will be handled by the code below
     }
+
+    // Determine if this is a replacement for expired invitations
+    const hasExpiredInvitations = existingInvitations.length > 0;
+    const expiredCount = existingInvitations.filter(inv => 
+      !inv.isUsed && inv.expiresAt <= new Date()
+    ).length;
 
     // Create new invitation
     const invitation = await InvitationCode.create({
@@ -74,6 +109,11 @@ router.post('/send', authMiddleware, requireAdmin, [
       role,
       invitedBy
     });
+
+    console.log(`📧 Creating ${hasExpiredInvitations ? 'replacement' : 'new'} invitation for ${email}`);
+    if (hasExpiredInvitations) {
+      console.log(`📧 Previous expired invitations: ${expiredCount}`);
+    }
 
     // Send invitation email
     try {
@@ -87,8 +127,12 @@ router.post('/send', authMiddleware, requireAdmin, [
       // Mark email as sent
       await invitation.markEmailSent();
 
+      const responseMessage = hasExpiredInvitations 
+        ? `New invitation sent successfully (replacing ${expiredCount} expired invitation${expiredCount > 1 ? 's' : ''})`
+        : 'Invitation sent successfully';
+
       res.status(201).json({
-        message: 'Invitation sent successfully',
+        message: responseMessage,
         invitation: {
           id: invitation.id,
           email: invitation.email,
@@ -101,14 +145,24 @@ router.post('/send', authMiddleware, requireAdmin, [
           success: emailResult.success,
           messageId: emailResult.messageId,
           previewUrl: emailResult.previewUrl
-        }
+        },
+        ...(hasExpiredInvitations && {
+          previousInvitations: {
+            total: existingInvitations.length,
+            expired: expiredCount
+          }
+        })
       });
     } catch (emailError) {
       console.error('Failed to send invitation email:', emailError);
       
       // Still return the invitation but indicate email failed
+      const failedMessage = hasExpiredInvitations 
+        ? `Invitation created (replacing ${expiredCount} expired invitation${expiredCount > 1 ? 's' : ''}) but email sending failed`
+        : 'Invitation created but email sending failed';
+
       res.status(201).json({
-        message: 'Invitation created but email sending failed',
+        message: failedMessage,
         invitation: {
           id: invitation.id,
           email: invitation.email,
@@ -118,7 +172,13 @@ router.post('/send', authMiddleware, requireAdmin, [
           emailSent: false
         },
         error: 'Email sending failed',
-        emailError: emailError.message
+        emailError: emailError.message,
+        ...(hasExpiredInvitations && {
+          previousInvitations: {
+            total: existingInvitations.length,
+            expired: expiredCount
+          }
+        })
       });
     }
   } catch (error) {

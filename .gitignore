@@ -61,6 +61,10 @@ migrations/
 uploads/
 
 # ¡NUNCA subas tus variables de entorno con secretos!
+.env
+.env.local
+.env.development
+.env.production
 .flaskenv
 
 # =================================================================

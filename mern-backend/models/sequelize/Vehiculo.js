@@ -188,6 +188,18 @@ Vehiculo.prototype.getFotoUrls = function() {
   if (!this.fotos || !Array.isArray(this.fotos)) return [];
   
   return this.fotos.map(foto => {
+    // Si ya tiene una URL de Cloudinary, usarla
+    if (foto.url && foto.url.includes('cloudinary.com')) {
+      return foto;
+    }
+    // Si tiene path de Cloudinary, usarlo como URL
+    if (foto.path && foto.path.includes('cloudinary.com')) {
+      return {
+        ...foto,
+        url: foto.path
+      };
+    }
+    // Fallback para archivos locales (desarrollo)
     if (foto.filename) {
       return {
         ...foto,
@@ -207,6 +219,18 @@ Vehiculo.prototype.getDocumentosRelacionadosUrls = function() {
   }
   
   return docs.map(documento => {
+    // Si ya tiene una URL de Cloudinary, usarla
+    if (documento.url && documento.url.includes('cloudinary.com')) {
+      return documento;
+    }
+    // Si tiene path de Cloudinary, usarlo como URL
+    if (documento.path && documento.path.includes('cloudinary.com')) {
+      return {
+        ...documento,
+        url: documento.path
+      };
+    }
+    // Fallback para archivos locales (desarrollo)
     if (documento.filename) {
       return {
         ...documento,
