@@ -121,7 +121,7 @@ export class VehiculoDocumentosService {
 
   // Obtener múltiples URLs posibles para un documento
   static obtenerUrlsPosiblesDocumento(filename: string): string[] {
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5004/api';
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5005/api';
     const baseUrl = apiUrl.replace('/api', '');
     
     const rutasPosibles = [

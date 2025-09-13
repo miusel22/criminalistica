@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 const AuthContext = createContext();
 
 // Configure axios defaults
-axios.defaults.baseURL = process.env.REACT_APP_POSTGRES_API_URL || 'http://localhost:5004/api';
+axios.defaults.baseURL = process.env.REACT_APP_POSTGRES_API_URL || 'http://localhost:5005/api';
 console.log('API Base URL:', axios.defaults.baseURL);
 
 // Add request interceptor to include token

@@ -451,7 +451,7 @@ export class IndiciadoService {
     }
     
     // Si no, construir la URL local para compatibilidad con archivos antiguos
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5004/api';
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5005/api';
     const baseUrl = apiUrl.replace('/api', '');
     return `${baseUrl}/uploads/${filename}`;
   }

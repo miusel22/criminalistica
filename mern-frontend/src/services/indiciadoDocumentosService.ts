@@ -90,7 +90,7 @@ export class IndiciadoDocumentosService {
     
     // Agregar archivo si se proporciona uno nuevo
     if (datos.archivo) {
-      formData.append('documento', datos.archivo);
+      formData.append('archivo', datos.archivo);
     }
     
     console.log('📝 Actualizando documento:', documentoId, 'para indiciado:', indiciadoId);
@@ -131,11 +131,11 @@ export class IndiciadoDocumentosService {
 
   // Obtener múltiples URLs posibles para un documento
   static obtenerUrlsPosiblesDocumento(filename: string): string[] {
-    const apiUrl = process.env.REACT_APP_POSTGRES_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5004/api';
+    const apiUrl = process.env.REACT_APP_POSTGRES_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5005/api';
     const baseUrl = apiUrl.replace('/api', '');
     
     // Basándose en las herramientas de desarrollador, el patrón parece ser:
-    // http://localhost:5004/api/indiciados/[filename]
+    // http://localhost:5005/api/indiciados/[filename]
     const rutasPosibles = [
       `${apiUrl}/indiciados/${filename}`,  // Patrón observado en DevTools
       `${baseUrl}/uploads/indiciados/documentos/${filename}`,

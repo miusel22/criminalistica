@@ -261,6 +261,7 @@ const InvitationManager = () => {
   });
   const [errors, setErrors] = useState({});
   const [filter, setFilter] = useState({ status: 'all', role: 'all' });
+  const [processingInvitations, setProcessingInvitations] = useState(new Set());
 
   // All hooks must be called before any early returns
   useEffect(() => {
@@ -336,13 +337,97 @@ const InvitationManager = () => {
 
     try {
       setLoading(true);
-      await axios.post('/invitations/send', formData);
-      toast.success('Invitación enviada exitosamente');
+      const response = await axios.post('/invitations/send', formData);
+      
+      // Show success message with additional context if available
+      const successMessage = response.data?.message || 'Invitación enviada exitosamente';
+      toast.success(successMessage, {
+        duration: 4000,
+        id: 'invitation-sent'
+      });
+      
+      // Show additional info if it was a replacement invitation
+      if (response.data?.previousInvitations) {
+        const { total, expired } = response.data.previousInvitations;
+        toast.success(
+          `🔄 Se reemplazaron ${expired} invitación${expired > 1 ? 'es' : ''} expirada${expired > 1 ? 's' : ''} anterior${expired > 1 ? 'es' : ''}`,
+          {
+            duration: 4000,
+            id: 'invitation-replacement'
+          }
+        );
+      }
+      
       setFormData({ email: '', role: 'viewer' });
       fetchInvitations();
     } catch (error) {
-      const message = error.response?.data?.message || 'Error al enviar la invitación';
-      toast.error(message);
+      console.error('Error sending invitation:', error.response?.data);
+      
+      const errorData = error.response?.data;
+      const statusCode = error.response?.status;
+      
+      // Handle different types of errors with specific messages
+      if (statusCode === 400) {
+        if (errorData?.error === 'User already exists') {
+          toast.error('🙅‍♂️ Este usuario ya existe en el sistema. No es necesario enviar una invitación.', {
+            duration: 6000,
+            id: 'user-already-exists'
+          });
+        } else if (errorData?.error === 'User already invited') {
+          toast.error(
+            '📫 Este email ya fue usado para crear una cuenta. El usuario ya está en el sistema.',
+            {
+              duration: 6000,
+              id: 'user-already-invited'
+            }
+          );
+          if (errorData?.suggestion) {
+            toast.success(
+              `💡 ${errorData.suggestion}`,
+              {
+                duration: 4000,
+                id: 'suggestion-check-users'
+              }
+            );
+          }
+        } else if (errorData?.error === 'Invitation already exists') {
+          const invitation = errorData?.invitation;
+          const expireDate = invitation?.expiresAt ? new Date(invitation.expiresAt).toLocaleDateString('es-ES') : 'fecha desconocida';
+          toast.error(
+            `⚠️ Ya existe una invitación pendiente para este email que expira el ${expireDate}`,
+            {
+              duration: 6000,
+              id: 'invitation-already-exists'
+            }
+          );
+          if (errorData?.suggestion) {
+            toast.success(
+              `💡 ${errorData.suggestion}`,
+              {
+                duration: 4000,
+                id: 'suggestion-resend'
+              }
+            );
+          }
+        } else {
+          // Generic validation error
+          const message = errorData?.message || 'Error de validación';
+          toast.error(message, {
+            duration: 5000,
+            id: 'validation-error'
+          });
+        }
+        
+        // Refresh invitations to show current state
+        fetchInvitations();
+      } else {
+        // Server error or other issues
+        const message = errorData?.message || 'Error del servidor al enviar la invitación';
+        toast.error(message, {
+          duration: 6000,
+          id: 'server-error'
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -350,12 +435,19 @@ const InvitationManager = () => {
 
   const handleResend = async (invitationId) => {
     try {
+      setProcessingInvitations(prev => new Set(prev).add(invitationId));
       await axios.post(`/invitations/resend/${invitationId}`);
       toast.success('Invitación reenviada');
       fetchInvitations();
     } catch (error) {
       const message = error.response?.data?.message || 'Error al reenviar invitación';
       toast.error(message);
+    } finally {
+      setProcessingInvitations(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(invitationId);
+        return newSet;
+      });
     }
   };
 
@@ -545,9 +637,14 @@ const InvitationManager = () => {
                                 $theme={theme}
                                 onClick={() => handleResend(invitation.id)}
                                 title="Reenviar invitación"
+                                disabled={processingInvitations.has(invitation.id)}
                               >
-                                <Mail size={12} />
-                                Reenviar
+                                {processingInvitations.has(invitation.id) ? (
+                                  <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} />
+                                ) : (
+                                  <Mail size={12} />
+                                )}
+                                {processingInvitations.has(invitation.id) ? 'Enviando...' : 'Reenviar'}
                               </SmallButton>
                               <SmallButton
                                 $theme={theme}

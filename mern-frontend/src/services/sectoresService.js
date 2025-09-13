@@ -7,7 +7,7 @@ const VEHICULOS_API = '/vehiculos';
 
 // Asegurar que tenemos la baseURL correcta
 if (!axios.defaults.baseURL) {
-  axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5004/api';
+  axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5005/api';
 }
 
 // Asegurar interceptor de autenticación

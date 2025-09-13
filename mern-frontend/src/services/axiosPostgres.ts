@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Crear instancia de axios para PostgreSQL
 const axiosPostgres = axios.create({
-  baseURL: process.env.REACT_APP_POSTGRES_API_URL || 'http://localhost:5004/api',
+  baseURL: process.env.REACT_APP_POSTGRES_API_URL || 'http://localhost:5005/api',
   headers: {
     'Content-Type': 'application/json',
   },
