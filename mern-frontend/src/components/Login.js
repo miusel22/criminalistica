@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff, User, Lock, Shield } from 'lucide-react';
 import styled from 'styled-components';
-import { testLogin } from '../loginTest';
 
 const LoginContainer = styled.div`
   min-height: 100vh;
@@ -399,19 +398,6 @@ const Login = () => {
     }
   };
 
-  // Temporary test function
-  const handleTestLogin = async () => {
-    console.log('🟠 Probando login directo sin AuthContext...');
-    const result = await testLogin(formData);
-    console.log('🟠 Resultado:', result);
-    
-    if (result.success) {
-      alert('Login exitoso! Ver consola para detalles.');
-    } else {
-      alert('Error de login: ' + result.error);
-    }
-  };
-
   return (
     <LoginContainer>
       <LoginCard>
@@ -468,14 +454,6 @@ const Login = () => {
 
             <Button type="submit" disabled={loading}>
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-            </Button>
-            
-            <Button 
-              type="button" 
-              onClick={handleTestLogin}
-              style={{ marginTop: '10px', opacity: '0.7', fontSize: '12px' }}
-            >
-              🧪 TEST Directo (Sin AuthContext)
             </Button>
           </Form>
 

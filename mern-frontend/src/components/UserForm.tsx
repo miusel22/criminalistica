@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
-import { X, Save, User, Mail, Lock, Shield, Eye, EyeOff } from 'lucide-react';
+import { X, Save, User as UserIcon, Mail, Lock, Shield } from 'lucide-react';
 import { UserService, User as UserType, UserFormData } from '../services/userService';
 import { useTheme } from '../contexts/ThemeContext';
 import { getTheme } from '../theme/theme';
+import EnhancedPasswordInput from './ui/EnhancedPasswordInput';
+import ValidationMessage from './ui/ValidationMessage';
+import { useUserFormValidation } from '../hooks/useUserFormValidation';
 
 // Type definitions for styled components with theme prop
 interface ThemeProps {
@@ -189,30 +192,6 @@ const Select = styled.select<ThemeProps>`
   }
 `;
 
-const PasswordContainer = styled.div`
-  position: relative;
-`;
-
-const PasswordToggle = styled.button<ThemeProps>`
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: ${props => {
-    const theme = getTheme(props.$theme);
-    return theme.colors.textSecondary;
-  }};
-  
-  &:hover {
-    color: ${props => {
-      const theme = getTheme(props.$theme);
-      return theme.colors.textPrimary;
-    }};
-  }
-`;
 
 const CheckboxGroup = styled.div`
   display: flex;
@@ -234,13 +213,20 @@ const CheckboxLabel = styled.label<ThemeProps>`
   }};
 `;
 
-const ErrorMessage = styled.div<ThemeProps>`
+const StatusMessage = styled.div<ThemeProps & { $type?: 'error' | 'warning' | 'info' }>`
   color: ${props => {
     const theme = getTheme(props.$theme);
-    return theme.colors.danger;
+    return props.$type === 'warning' 
+      ? '#f59e0b' 
+      : props.$type === 'info' 
+        ? theme.colors.primary 
+        : theme.colors.danger;
   }};
   font-size: 0.875rem;
   margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 const Footer = styled.div`
@@ -323,11 +309,37 @@ const UserForm: React.FC<UserFormProps> = ({
     isActive: true
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  // Estados removidos por no usar en esta implementación
+  // Se podrían usar para funcionalidades adicionales en el futuro
+  const [serverError, setServerError] = useState<string>('');
 
   const isEditing = !!user;
+  
+  // Obtener emails existentes para validación
+  const [existingEmails, setExistingEmails] = useState<string[]>([]);
+  
+  useEffect(() => {
+    const fetchEmails = async () => {
+      try {
+        const response = await UserService.getAllUsers(1, 1000); // Obtener todos los usuarios
+        const emails = response.users
+          .filter((u: UserType) => !user || u.id !== user.id) // Excluir el usuario actual en edición
+          .map((u: UserType) => u.email.toLowerCase());
+        setExistingEmails(emails);
+      } catch (error) {
+        console.error('Error fetching user emails for validation:', error);
+      }
+    };
+    
+    fetchEmails();
+  }, [user]);
+
+  // Configurar validación
+  const validation = useUserFormValidation({
+    isEditing,
+    existingEmails
+  });
 
   useEffect(() => {
     if (user) {
@@ -351,44 +363,47 @@ const UserForm: React.FC<UserFormProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
+    const newValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      [name]: newValue
     }));
     
-    // Clear errors when user starts typing
-    if (errors.length > 0) {
-      setErrors([]);
+    // Validar el campo actualizado
+    validation.validateField(name as keyof UserFormData, newValue);
+    
+    // Limpiar errores del servidor cuando el usuario hace cambios
+    if (serverError) {
+      setServerError('');
     }
   };
+  
+  // Manejar cambios en la contraseña
+  const handlePasswordChange = useCallback((value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      password: value
+    }));
+    
+    // Validar contraseña
+    validation.validateField('password', value);
+    
+    // Limpiar errores del servidor cuando el usuario hace cambios
+    if (serverError) {
+      setServerError('');
+    }
+  }, [validation, serverError]);
+  
+  // Manejar cambios en la validación de contraseña (placeholder para futuras funcionalidades)
+  const handlePasswordValidation = useCallback((_isValid: boolean, _strength: number) => {
+    // Funcionalidad disponible para futuras mejoras
+  }, []);
 
   const validateForm = (): boolean => {
-    const validationErrors: string[] = [];
-
-    // Required fields
-    if (!formData.nombre.trim()) {
-      validationErrors.push('El nombre es requerido');
-    }
-
-    if (!formData.apellidos.trim()) {
-      validationErrors.push('Los apellidos son requeridos');
-    }
-
-    if (!formData.email.trim()) {
-      validationErrors.push('El email es requerido');
-    }
-
-    // Password is required only when creating new user
-    if (!isEditing && !formData.password) {
-      validationErrors.push('La contraseña es requerida');
-    }
-
-    // Use service validation for more detailed checks
-    const serviceErrors = UserService.validateUserData(formData);
-    validationErrors.push(...serviceErrors);
-
-    setErrors(validationErrors);
-    return validationErrors.length === 0;
+    // Usar nuestro hook de validación personalizado
+    validation.validateForm(formData);
+    return !validation.hasErrors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -433,7 +448,7 @@ const UserForm: React.FC<UserFormProps> = ({
     } catch (error: any) {
       console.error('Error submitting form:', error);
       const errorMessage = error.response?.data?.msg || error.message || 'Error desconocido';
-      setErrors([errorMessage]);
+      setServerError(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -447,7 +462,7 @@ const UserForm: React.FC<UserFormProps> = ({
       <Modal $theme={theme}>
         <Header $theme={theme}>
           <Title $theme={theme}>
-            <User size={24} />
+            <UserIcon size={24} />
             {isEditing ? 'Editar Usuario' : 'Crear Nuevo Usuario'}
           </Title>
           <CloseButton onClick={onCancel} $theme={theme}>
@@ -459,7 +474,7 @@ const UserForm: React.FC<UserFormProps> = ({
           <Form onSubmit={handleSubmit}>
             <FormGroup>
               <Label $theme={theme}>
-                <User size={16} />
+                <UserIcon size={16} />
                 Nombre
               </Label>
               <Input
@@ -476,7 +491,7 @@ const UserForm: React.FC<UserFormProps> = ({
 
             <FormGroup>
               <Label $theme={theme}>
-                <User size={16} />
+                <UserIcon size={16} />
                 Apellidos
               </Label>
               <Input
@@ -507,9 +522,9 @@ const UserForm: React.FC<UserFormProps> = ({
                 $theme={theme}
               />
               {isEditing && (
-                <ErrorMessage $theme={theme} style={{ fontSize: '0.75rem' }}>
+                <StatusMessage $theme={theme} $type="info" style={{ fontSize: '0.75rem' }}>
                   El email no se puede modificar por razones de seguridad
-                </ErrorMessage>
+                </StatusMessage>
               )}
             </FormGroup>
 
@@ -518,27 +533,17 @@ const UserForm: React.FC<UserFormProps> = ({
                 <Lock size={16} />
                 {isEditing ? 'Nueva Contraseña (opcional)' : 'Contraseña'}
               </Label>
-              <PasswordContainer>
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder={isEditing ? 'Dejar en blanco para mantener actual' : 'Ingresa la contraseña'}
-                  required={!isEditing}
-                  disabled={submitting}
-                  style={{ paddingRight: '48px' }}
-                  $theme={theme}
-                />
-                <PasswordToggle
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={submitting}
-                  $theme={theme}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </PasswordToggle>
-              </PasswordContainer>
+              <EnhancedPasswordInput
+                value={formData.password}
+                onChange={handlePasswordChange}
+                required={!isEditing}
+                disabled={submitting}
+                isEditing={isEditing}
+                showStrengthMeter={true}
+                showGenerator={true}
+                showValidation={true}
+                onValidationChange={handlePasswordValidation}
+              />
             </FormGroup>
 
             <FormGroup>
@@ -557,10 +562,10 @@ const UserForm: React.FC<UserFormProps> = ({
                 <option value="editor">Editor</option>
                 <option value="admin">Administrador</option>
               </Select>
-              {isEditingSelf && (
-                <ErrorMessage $theme={theme}>
+              {isEditing && isEditingSelf && (
+                <StatusMessage $theme={theme} $type="info">
                   No puedes cambiar tu propio rol
-                </ErrorMessage>
+                </StatusMessage>
               )}
             </FormGroup>
 
@@ -579,19 +584,24 @@ const UserForm: React.FC<UserFormProps> = ({
                 </CheckboxLabel>
               </CheckboxGroup>
               {isEditingSelf && (
-                <ErrorMessage $theme={theme}>
+                <StatusMessage $theme={theme} $type="info">
                   No puedes desactivar tu propia cuenta
-                </ErrorMessage>
+                </StatusMessage>
               )}
             </FormGroup>
 
-            {errors.length > 0 && (
+            {(validation.errors.length > 0 || serverError) && (
               <FormGroup>
-                {errors.map((error, index) => (
-                  <ErrorMessage key={index} $theme={theme}>
-                    {error}
-                  </ErrorMessage>
-                ))}
+                <ValidationMessage 
+                  errors={[
+                    ...validation.errors,
+                    ...(serverError ? [{
+                      field: 'form',
+                      message: serverError,
+                      severity: 'error' as const
+                    }] : [])
+                  ]}
+                />
               </FormGroup>
             )}
           </Form>
