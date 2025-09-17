@@ -203,9 +203,8 @@ router.get('/:id/documentos',
         activo: true
       };
 
-      if (effectiveUser.role !== 'admin') {
-        whereCondition.ownerId = effectiveUser.id;
-      }
+      // No se filtra por ownerId en lectura - todos los roles pueden ver todos los registros
+      // El control de acceso se maneja a nivel de middleware (canRead)
 
       console.log('🔍 Buscando vehículo con condición:', whereCondition);
       const vehiculo = await Vehiculo.findOne({

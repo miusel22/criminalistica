@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff, User, Lock, Shield } from 'lucide-react';
 import styled from 'styled-components';
+import { testLogin } from '../loginTest';
 
 const LoginContainer = styled.div`
   min-height: 100vh;
@@ -236,6 +237,17 @@ const ErrorMessage = styled.div`
   font-size: 14px;
   margin-top: 8px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  font-weight: 500;
+  
+  &.general {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 12px;
+    background-color: rgba(255, 71, 87, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    backdrop-filter: blur(10px);
+  }
 `;
 
 const RegisterLink = styled.div`
@@ -315,16 +327,88 @@ const Login = () => {
     }
 
     setLoading(true);
+    // Clear any previous errors
+    setErrors({});
 
     try {
       const result = await login(formData);
       if (result.success) {
         navigate('/dashboard');
+      } else if (result.error) {
+        // Handle specific login errors
+        handleLoginError(result.error, result.errorType, result.errorData);
       }
     } catch (error) {
       console.error('Login error:', error);
+      // Fallback error handling
+      setErrors({
+        general: 'Error inesperado. Por favor, inténtalo de nuevo.'
+      });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLoginError = (errorMessage, errorType, errorData) => {
+    // Handle different types of errors based on errorType
+    switch (errorType) {
+      case 'credentials':
+        setErrors({
+          email: '🚫 Credenciales incorrectas',
+          password: 'Usuario o contraseña incorrectos'
+        });
+        break;
+      case 'validation':
+        // Handle specific validation errors
+        if (errorData?.details) {
+          const validationErrors = {};
+          errorData.details.forEach(detail => {
+            if (detail.path === 'email') {
+              validationErrors.email = 'El email es requerido';
+            } else if (detail.path === 'password') {
+              validationErrors.password = 'La contraseña es requerida';
+            }
+          });
+          setErrors(validationErrors);
+        } else {
+          setErrors({
+            general: '⚠️ Por favor, complete todos los campos requeridos.'
+          });
+        }
+        break;
+      case 'server':
+        setErrors({
+          general: '😕 Error del servidor. Por favor, inténtalo más tarde.'
+        });
+        break;
+      case 'network':
+        setErrors({
+          general: '🌐 Error de conexión. Verifica tu conexión a internet.'
+        });
+        break;
+      case 'auth':
+        setErrors({
+          general: '🔒 ' + errorMessage
+        });
+        break;
+      default:
+        // Generic error
+        setErrors({
+          general: errorMessage || '❌ Error al iniciar sesión. Inténtalo de nuevo.'
+        });
+    }
+  };
+
+  // Temporary test function
+  const handleTestLogin = async () => {
+    console.log('🟠 Probando login directo sin AuthContext...');
+    const result = await testLogin(formData);
+    console.log('🟠 Resultado:', result);
+    
+    if (result.success) {
+      alert('Login exitoso! Ver consola para detalles.');
+    } else {
+      alert('Error de login: ' + result.error);
     }
   };
 
@@ -343,6 +427,12 @@ const Login = () => {
           <Subtitle>Inicia sesión para acceder a los archivos clasificados</Subtitle>
           
           <Form onSubmit={handleSubmit}>
+            {errors.general && (
+              <ErrorMessage className="general">
+                {errors.general}
+              </ErrorMessage>
+            )}
+            
             <InputGroup>
               <Input
                 type="email"
@@ -378,6 +468,14 @@ const Login = () => {
 
             <Button type="submit" disabled={loading}>
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            </Button>
+            
+            <Button 
+              type="button" 
+              onClick={handleTestLogin}
+              style={{ marginTop: '10px', opacity: '0.7', fontSize: '12px' }}
+            >
+              🧪 TEST Directo (Sin AuthContext)
             </Button>
           </Form>
 

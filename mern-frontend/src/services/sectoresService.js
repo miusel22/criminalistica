@@ -10,22 +10,8 @@ if (!axios.defaults.baseURL) {
   axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5005/api';
 }
 
-// Asegurar interceptor de autenticación
-if (!axios.defaults.headers.common['Authorization']) {
-  // Agregar interceptor si no existe
-  axios.interceptors.request.use(
-    (config) => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
-  );
-}
+// Note: Auth interceptor is handled globally in AuthContext
+// No need to add duplicate interceptors here
 
 console.log('🔍 SectoresService - APIs configuradas');
 console.log('🔍 SectoresService - axios.defaults.baseURL:', axios.defaults.baseURL);

@@ -151,10 +151,9 @@ class IndiciadosPostgresController {
           });
         }
       } else {
-        // Si no se proporciona subsectorId, usar el primer sector del usuario
+        // Si no se proporciona subsectorId, usar el primer sector disponible (acceso global)
         const defaultSector = await Sector.findOne({ 
           where: {
-            ownerId: effectiveUser.id, 
             activo: true
           },
           order: [['createdAt', 'ASC']]
@@ -521,10 +520,8 @@ class IndiciadosPostgresController {
         activo: true
       };
 
-      // Agregar filtros de acceso según el rol
-      if (effectiveUser.role !== 'admin') {
-        whereCondition.ownerId = effectiveUser.id;
-      }
+      // No se filtra por ownerId - todos los roles pueden ver todos los registros
+      // El control de acceso se maneja a nivel de middleware (canRead)
 
       // Si hay búsqueda, aplicar filtros
       if (search) {
@@ -578,10 +575,8 @@ class IndiciadosPostgresController {
         activo: true
       };
 
-      // Agregar filtros de acceso según el rol
-      if (effectiveUser.role !== 'admin') {
-        whereCondition.ownerId = effectiveUser.id;
-      }
+      // No se filtra por ownerId - todos los roles pueden ver todos los registros
+      // El control de acceso se maneja a nivel de middleware (canRead)
       
       console.log('🔍 Buscando indiciado PostgreSQL con condición:', whereCondition);
       
@@ -841,10 +836,8 @@ class IndiciadosPostgresController {
         ]
       };
 
-      // Agregar filtros de acceso según el rol
-      if (effectiveUser.role !== 'admin') {
-        whereCondition.ownerId = effectiveUser.id;
-      }
+      // No se filtra por ownerId en búsqueda - todos los roles pueden buscar en todos los registros
+      // El control de acceso se maneja a nivel de middleware (canRead)
 
       const indiciados = await Indiciado.findAll({
         where: whereCondition,
@@ -875,10 +868,8 @@ class IndiciadosPostgresController {
       
       let whereCondition = { activo: true };
 
-      // Agregar filtros de acceso según el rol
-      if (effectiveUser.role !== 'admin') {
-        whereCondition.ownerId = effectiveUser.id;
-      }
+      // No se filtra por ownerId en estadísticas - todos los roles pueden ver estadísticas globales
+      // El control de acceso se maneja a nivel de middleware (canRead)
 
       const totalIndiciados = await Indiciado.count({
         where: whereCondition
