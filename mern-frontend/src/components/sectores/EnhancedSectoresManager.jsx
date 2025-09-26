@@ -1698,18 +1698,7 @@ const EnhancedSectoresManager = () => {
       
       <SidebarContent>
         <SidebarSection>
-          <SidebarTitle $theme={theme} className="sidebar-title">Vista y Filtros</SidebarTitle>
-          
-          <FilterGroup>
-            <FilterLabel $theme={theme} className="filter-label">Modo de Vista</FilterLabel>
-            <FilterSelect $theme={theme}
-              value={viewMode}
-              onChange={(e) => handleViewModeChange(e.target.value)}
-            >
-              <option value="tree">Vista Jerárquica</option>
-              <option value="list">Vista de Lista Paginada</option>
-            </FilterSelect>
-          </FilterGroup>
+          <SidebarTitle $theme={theme} className="sidebar-title">Filtros</SidebarTitle>
           
           <FilterGroup>
             <FilterLabel $theme={theme} className="filter-label">Buscar por nombre, documento, alias o placa...</FilterLabel>
