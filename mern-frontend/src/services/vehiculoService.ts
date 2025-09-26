@@ -50,6 +50,61 @@ export class VehiculoService {
       throw error;
     }
   }
+  
+  // Obtener vehículos con paginación
+  static async obtenerTodosPaginados(
+    page = 1, 
+    limit = 10, 
+    search?: string, 
+    filtros: FiltrosVehiculo = {}
+  ): Promise<VehiculosResponse> {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+      
+      if (search && search.trim()) {
+        params.append('search', search.trim());
+      }
+      
+      // Añadir filtros adicionales si existen
+      Object.entries(filtros).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+          params.append(key, value.toString());
+        }
+      });
+      
+      console.log('🐘 Obteniendo vehículos paginados - Page:', page, 'Limit:', limit);
+      const response = await axios.get(`${API_BASE}?${params.toString()}`);
+      
+      // Si el backend retorna paginación estructurada
+      if (response.data && response.data.pagination) {
+        return {
+          vehiculos: response.data.vehiculos || [],
+          pagination: {
+            current: response.data.pagination.current,
+            pages: response.data.pagination.pages,
+            total: response.data.pagination.total
+          }
+        };
+      }
+      
+      // Fallback si no hay paginación en el backend
+      const vehiculos = Array.isArray(response.data) ? response.data : [];
+      return {
+        vehiculos,
+        pagination: {
+          current: page,
+          pages: Math.ceil(vehiculos.length / limit),
+          total: vehiculos.length
+        }
+      };
+    } catch (error: any) {
+      console.error('❌ Error obteniendo vehículos paginados:', error.response?.data || error.message);
+      throw error;
+    }
+  }
 
   // Obtener vehículo específico
   static async obtener(id: string): Promise<Vehiculo> {

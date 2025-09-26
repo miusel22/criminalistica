@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from 'axios';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getTheme } from '../../theme/theme';
 import { 
   Plus, 
-  Search, 
-  Filter,
-  Grid,
-  List,
   Eye,
   Edit,
   Trash2,
@@ -20,17 +16,7 @@ import {
   FileText,
   Home,
   ChevronRight,
-  ChevronDown,
-  Users,
-  MapPin,
-  Calendar,
-  BarChart3,
-  Settings,
-  Info,
-  ArrowLeft,
-  Menu,
-  X,
-  MoreHorizontal
+  ChevronDown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -52,7 +38,7 @@ import {
 import { IndiciadoForm } from '../IndiciadoForm';
 import VehiculoForm from '../vehiculos/VehiculoForm';
 import ItemForm from './ItemForm';
-import SectoresStats from './SectoresStats';
+import Pagination from '../ui/Pagination';
 import { transformBackendDataToFormData } from '../../utils/indiciadoTransforms';
 
 // Styled Components
@@ -132,7 +118,7 @@ const BreadcrumbItem = styled.span`
   }
 `;
 
-const Title = styled.h1`
+/* const Title = styled.h1`
   margin: 0;
   color: ${props => {
     const theme = getTheme(props.$theme);
@@ -140,21 +126,21 @@ const Title = styled.h1`
   }};
   font-size: 1.5rem;
   font-weight: 700;
-`;
+`; */
 
-const ToolbarContainer = styled.div`
+/* const ToolbarContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
-`;
+`; */
 
-const SearchContainer = styled.div`
+/* const SearchContainer = styled.div`
   position: relative;
   min-width: 300px;
   flex: 1;
   max-width: 500px;
-`;
+`; */
 
 const SearchInput = styled.input`
   width: 100%;
@@ -173,14 +159,14 @@ const SearchInput = styled.input`
   }
 `;
 
-const SearchIcon = styled(Search)`
+/* const SearchIcon = styled(Search)`
   position: absolute;
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   color: #666;
   pointer-events: none;
-`;
+`; */
 
 const ToolbarButton = styled.button`
   display: flex;
@@ -293,15 +279,15 @@ const StatLabel = styled.div`
   font-weight: 500;
 `;
 
-const ViewToggle = styled.div`
+/* const ViewToggle = styled.div`
   display: flex;
   background: white;
   border-radius: 8px;
   padding: 0.25rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-`;
+`; */
 
-const ViewButton = styled.button`
+/* const ViewButton = styled.button`
   padding: 0.5rem;
   border: none;
   border-radius: 6px;
@@ -313,7 +299,7 @@ const ViewButton = styled.button`
   &:hover {
     background: ${props => props.active ? '#007bff' : '#f8f9fa'};
   }
-`;
+`; */
 
 const HierarchyArea = styled.div`
   background: ${props => {
@@ -352,12 +338,12 @@ const HierarchyContent = styled.div`
   max-height: calc(100vh - 400px);
 `;
 
-const GridView = styled.div`
+/* const GridView = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
   padding: 1.5rem;
-`;
+`; */
 
 const ListView = styled.div`
   padding: 0;
@@ -396,7 +382,7 @@ const CardIcon = styled.div`
   color: white;
 `;
 
-const CardActions = styled.div`
+/* const CardActions = styled.div`
   display: flex;
   gap: 0.5rem;
   opacity: 0;
@@ -405,7 +391,7 @@ const CardActions = styled.div`
   ${Card}:hover & {
     opacity: 1;
   }
-`;
+`; */
 
 const ActionIcon = styled.button`
   width: 32px;
@@ -452,19 +438,19 @@ const CardDescription = styled.p`
   line-height: 1.4;
 `;
 
-const CardStats = styled.div`
+/* const CardStats = styled.div`
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
-`;
+`; */
 
-const CardStat = styled.div`
+/* const CardStat = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
   color: #666;
   font-size: 0.85rem;
-`;
+`; */
 
 const TreeItem = styled.div`
   border-bottom: 1px solid ${props => {
@@ -694,7 +680,6 @@ const QuickAction = styled.button`
 // Component
 const EnhancedSectoresManager = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { theme } = useTheme();
   
   // State
@@ -704,10 +689,20 @@ const EnhancedSectoresManager = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [expandedItems, setExpandedItems] = useState(new Set());
   const [filterType, setFilterType] = useState('all'); // 'all', 'sector', 'subsector', 'indiciado', 'vehiculo'
-  const [sortBy, setSortBy] = useState('name'); // 'name', 'date', 'count'
   const [filterText, setFilterText] = useState(''); // Para filtrar por nombre o placa
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [showSidebar] = useState(false);
+  const [selectedItem] = useState(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [paginationData, setPaginationData] = useState({
+    current: 1,
+    pages: 1,
+    total: 0,
+    limit: 20
+  });
+  const [viewMode, setViewMode] = useState('tree'); // 'tree', 'list'
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -720,6 +715,14 @@ const EnhancedSectoresManager = () => {
   
   // Estado para notificación personalizada
   const [notification, setNotification] = useState(null);
+  
+  // Estado para estadísticas reales
+  const [realStats, setRealStats] = useState({
+    sectores: 0,
+    subsectores: 0,
+    indiciados: 0,
+    vehiculos: 0
+  });
   
   // Función para mostrar notificación personalizada
   const showCustomNotification = (message, type = 'error', duration = 6000) => {
@@ -738,31 +741,17 @@ const EnhancedSectoresManager = () => {
   const { confirmDeleteIndiciado, ConfirmationComponent: IndiciadoDeleteConfirmation } = useDeleteIndiciadoConfirmation();
   const { confirmDeleteVehiculo, ConfirmationComponent: VehiculoDeleteConfirmation } = useDeleteVehiculoConfirmation();
 
-  // Effects
-  useEffect(() => {
-    loadHierarchy();
-  }, []);
-
-  useEffect(() => {
-    if (searchTerm.length >= 2) {
-      performSearch();
-    } else {
-      setSearchResults([]);
-    }
-  }, [searchTerm]);
-
-  // API Functions
-  const loadHierarchy = async () => {
+  // Función para cargar estadísticas reales del backend
+  const loadRealStats = async () => {
     try {
-      console.log('🔄 EnhancedSectoresManager - Cargando jerarquía completa...');
-      setLoading(true);
+      console.log('📊 Cargando estadísticas reales...');
       
-      // Hacer peticiones directas para obtener todos los datos
+      // Hacer peticiones para obtener conteos totales (TODOS los datos)
       const [sectoresRes, subsectoresRes, indiciadosRes, vehiculosRes] = await Promise.all([
-        axios.get('/sectores'),
-        axios.get('/subsectores'),
-        axios.get('/indiciados'),
-        axios.get('/vehiculos')
+        axios.get('/sectores?limit=9999'),    // Obtener TODOS los sectores
+        axios.get('/subsectores?limit=9999'), // Obtener TODOS los subsectores
+        axios.get('/indiciados?limit=9999'),  // Obtener TODOS los indiciados
+        axios.get('/vehiculos?limit=9999')    // Obtener TODOS los vehículos
       ]);
       
       const sectoresData = sectoresRes.data.sectores || sectoresRes.data || [];
@@ -770,12 +759,67 @@ const EnhancedSectoresManager = () => {
       const indiciadosData = indiciadosRes.data.indiciados || indiciadosRes.data || [];
       const vehiculosData = vehiculosRes.data.vehiculos || vehiculosRes.data || [];
       
-      console.log('🔧 Datos de subsectores corregidos:', {
-        'subsectoresRes.data': subsectoresRes.data,
-        'subsectoresRes.data.subsectores': subsectoresRes.data.subsectores,
-        'subsectoresData final': subsectoresData,
-        'subsectoresData.length': subsectoresData.length
-      });
+      const newStats = {
+        sectores: sectoresData.length,
+        subsectores: subsectoresData.length,
+        indiciados: indiciadosData.length,
+        vehiculos: vehiculosData.length
+      };
+      
+      console.log('📊 Estadísticas reales cargadas:', newStats);
+      setRealStats(newStats);
+      
+    } catch (error) {
+      console.error('❌ Error cargando estadísticas reales:', error);
+    }
+  };
+
+  // Effects
+  useEffect(() => {
+    loadHierarchy();
+    loadRealStats();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+  // Efecto para recargar datos cuando cambie la paginación, filtros o búsqueda
+  useEffect(() => {
+    if (viewMode === 'list') {
+      loadPaginatedData();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize, filterType, searchTerm, viewMode]);
+
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      performSearch();
+    } else {
+      setSearchResults([]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
+
+  // API Functions
+  const loadHierarchy = async () => {
+    if (viewMode === 'list') {
+      return loadPaginatedData();
+    }
+    
+    try {
+      console.log('🔄 EnhancedSectoresManager - Cargando jerarquía completa...');
+      setLoading(true);
+      
+      // Hacer peticiones para obtener TODOS los datos sin limitaciones de paginación
+      const [sectoresRes, subsectoresRes, indiciadosRes, vehiculosRes] = await Promise.all([
+        axios.get('/sectores?limit=9999'),    // Obtener TODOS los sectores
+        axios.get('/subsectores?limit=9999'), // Obtener TODOS los subsectores
+        axios.get('/indiciados?limit=9999'),  // Obtener TODOS los indiciados
+        axios.get('/vehiculos?limit=9999')    // Obtener TODOS los vehículos
+      ]);
+      
+      const sectoresData = sectoresRes.data.sectores || sectoresRes.data || [];
+      const subsectoresData = subsectoresRes.data.subsectores || subsectoresRes.data || [];
+      const indiciadosData = indiciadosRes.data.indiciados || indiciadosRes.data || [];
+      const vehiculosData = vehiculosRes.data.vehiculos || vehiculosRes.data || [];
       
       console.log('📊 Datos obtenidos directamente:', {
         sectores: sectoresData.length,
@@ -836,10 +880,110 @@ const EnhancedSectoresManager = () => {
       setLoading(false);
     }
   };
+  
+  // Cargar datos paginados según el tipo de filtro
+  const loadPaginatedData = async () => {
+    try {
+      setLoading(true);
+      console.log('📄 Cargando datos paginados:', { filterType, currentPage, pageSize, searchTerm });
+      
+      let response;
+      
+      switch (filterType) {
+        case 'sector':
+          response = await SectoresService.obtenerSectoresPaginados({
+            page: currentPage,
+            limit: pageSize,
+            search: searchTerm
+          });
+          setHierarchy(response.sectores.map(item => ({...item, type: 'sector'})));
+          setPaginationData({
+            current: response.pagination.current,
+            pages: response.pagination.pages,
+            total: response.pagination.total,
+            limit: pageSize
+          });
+          break;
+          
+        case 'subsector':
+          response = await SectoresService.obtenerSubsectoresPaginados({
+            page: currentPage,
+            limit: pageSize,
+            search: searchTerm
+          });
+          setHierarchy(response.sectores.map(item => ({...item, type: 'subsector'})));
+          setPaginationData({
+            current: response.pagination.current,
+            pages: response.pagination.pages,
+            total: response.pagination.total,
+            limit: pageSize
+          });
+          break;
+          
+        case 'indiciado':
+          response = await IndiciadoService.obtenerTodos(currentPage, pageSize, searchTerm);
+          setHierarchy(response.indiciados.map(item => ({...item, type: 'indiciado'})));
+          setPaginationData({
+            current: response.page,
+            pages: response.pages,
+            total: response.total,
+            limit: pageSize
+          });
+          break;
+          
+        case 'vehiculo':
+          response = await VehiculoService.obtenerTodosPaginados(currentPage, pageSize, searchTerm);
+          setHierarchy(response.vehiculos.map(item => ({...item, type: 'vehiculo'})));
+          setPaginationData({
+            current: response.pagination.current,
+            pages: response.pagination.pages,
+            total: response.pagination.total,
+            limit: pageSize
+          });
+          break;
+          
+        default:
+          // Modo 'all' - cargar todos los elementos de forma paginada
+          const [sectoresRes, indiciadosRes, vehiculosRes] = await Promise.all([
+            SectoresService.obtenerSectoresPaginados({ page: currentPage, limit: Math.ceil(pageSize/3), search: searchTerm }),
+            IndiciadoService.obtenerTodos(currentPage, Math.ceil(pageSize/3), searchTerm),
+            VehiculoService.obtenerTodosPaginados(currentPage, Math.ceil(pageSize/3), searchTerm)
+          ]);
+          
+          const allItems = [
+            ...sectoresRes.sectores.map(item => ({...item, type: 'sector'})),
+            ...indiciadosRes.indiciados.map(item => ({...item, type: 'indiciado'})),
+            ...vehiculosRes.vehiculos.map(item => ({...item, type: 'vehiculo'}))
+          ];
+          
+          setHierarchy(allItems);
+          setPaginationData({
+            current: currentPage,
+            pages: Math.max(sectoresRes.pagination.pages, indiciadosRes.pages, vehiculosRes.pagination.pages),
+            total: sectoresRes.pagination.total + indiciadosRes.total + vehiculosRes.pagination.total,
+            limit: pageSize
+          });
+          break;
+      }
+      
+    } catch (error) {
+      console.error('❌ Error loading paginated data:', error);
+      toast.error('Error al cargar los datos paginados');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const performSearch = async () => {
     try {
-      // Por ahora, hacer búsqueda simple local hasta implementar búsqueda en backend
+      if (viewMode === 'list') {
+        // En modo lista paginada, recargar datos con el término de búsqueda
+        setCurrentPage(1); // Reset a primera página
+        await loadPaginatedData();
+        return;
+      }
+      
+      // Búsqueda local para modo jerárquico
       const allItems = [];
       const collectItems = (items) => {
         items.forEach(item => {
@@ -859,6 +1003,26 @@ const EnhancedSectoresManager = () => {
       console.error('Error searching:', error);
     }
   };
+  
+  // Handlers para paginación
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+  
+  const handlePageSizeChange = (size) => {
+    setPageSize(size);
+    setCurrentPage(1); // Volver a la primera página cuando cambie el tamaño
+  };
+  
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    setCurrentPage(1); // Reset página al cambiar modo
+  };
+  
+  const handleFilterTypeChange = (type) => {
+    setFilterType(type);
+    setCurrentPage(1); // Reset página al cambiar filtro
+  };
 
   // Event Handlers
   const toggleExpanded = (itemId) => {
@@ -871,12 +1035,6 @@ const EnhancedSectoresManager = () => {
     setExpandedItems(newExpanded);
   };
 
-  const handleItemClick = (item) => {
-    setSelectedItem(item);
-    if (item.type === 'indiciado') {
-      handleViewIndiciado(item);
-    }
-  };
 
   const handleCreateSector = () => {
     setModalType('sector');
@@ -1009,7 +1167,8 @@ const EnhancedSectoresManager = () => {
         
         console.log('🔄 Recargando jerarquía...');
         await loadHierarchy();
-        console.log('✅ Jerarquía recargada');
+        await loadRealStats();
+        console.log('✅ Jerarquía y estadísticas recargadas');
       }
     } catch (error) {
       console.error('❌ ERROR ELIMINANDO ELEMENTO:', {
@@ -1340,8 +1499,17 @@ const EnhancedSectoresManager = () => {
     return hierarchy.map(filterItem).filter(Boolean);
   };
 
-  // Stats calculation
-  const calculateStats = () => {
+  // Stats calculation - usar estadísticas reales o calculadas según el modo
+  const getDisplayStats = () => {
+    // En modo de lista paginada, usar las estadísticas reales del backend
+    if (viewMode === 'list') {
+      return {
+        ...realStats,
+        total: realStats.sectores + realStats.subsectores + realStats.indiciados + realStats.vehiculos
+      };
+    }
+    
+    // En modo jerárquico, calcular desde los datos cargados
     const stats = {
       sectores: 0,
       subsectores: 0,
@@ -1364,6 +1532,8 @@ const EnhancedSectoresManager = () => {
           case 'vehiculo':
             stats.vehiculos++;
             break;
+          default:
+            break;
         }
         
         if (item.subsectores) countItems(item.subsectores);
@@ -1378,7 +1548,7 @@ const EnhancedSectoresManager = () => {
     return stats;
   };
 
-  const stats = calculateStats();
+  const stats = getDisplayStats();
 
   // Render Functions
   const renderBreadcrumb = () => (
@@ -1528,7 +1698,18 @@ const EnhancedSectoresManager = () => {
       
       <SidebarContent>
         <SidebarSection>
-          <SidebarTitle $theme={theme} className="sidebar-title">Filtros</SidebarTitle>
+          <SidebarTitle $theme={theme} className="sidebar-title">Vista y Filtros</SidebarTitle>
+          
+          <FilterGroup>
+            <FilterLabel $theme={theme} className="filter-label">Modo de Vista</FilterLabel>
+            <FilterSelect $theme={theme}
+              value={viewMode}
+              onChange={(e) => handleViewModeChange(e.target.value)}
+            >
+              <option value="tree">Vista Jerárquica</option>
+              <option value="list">Vista de Lista Paginada</option>
+            </FilterSelect>
+          </FilterGroup>
           
           <FilterGroup>
             <FilterLabel $theme={theme} className="filter-label">Buscar por nombre, documento, alias o placa...</FilterLabel>
@@ -1545,19 +1726,37 @@ const EnhancedSectoresManager = () => {
             />
           </FilterGroup>
           
-          <FilterGroup>
-            <FilterLabel $theme={theme} className="filter-label">Tipo de elemento</FilterLabel>
-            <FilterSelect $theme={theme}
-              value={filterType} 
-              onChange={(e) => setFilterType(e.target.value)}
-            >
-              <option value="all">Todos</option>
-              <option value="sector">Sectores</option>
-              <option value="subsector">Subsectores</option>
-              <option value="indiciado">Indiciados</option>
-              <option value="vehiculo">Vehículos</option>
-            </FilterSelect>
-          </FilterGroup>
+          {viewMode === 'list' && (
+            <FilterGroup>
+              <FilterLabel $theme={theme} className="filter-label">Tipo de elemento</FilterLabel>
+              <FilterSelect $theme={theme}
+                value={filterType} 
+                onChange={(e) => handleFilterTypeChange(e.target.value)}
+              >
+                <option value="all">Todos</option>
+                <option value="sector">Sectores</option>
+                <option value="subsector">Subsectores</option>
+                <option value="indiciado">Indiciados</option>
+                <option value="vehiculo">Vehículos</option>
+              </FilterSelect>
+            </FilterGroup>
+          )}
+          
+          {viewMode === 'tree' && (
+            <FilterGroup>
+              <FilterLabel $theme={theme} className="filter-label">Tipo de elemento</FilterLabel>
+              <FilterSelect $theme={theme}
+                value={filterType} 
+                onChange={(e) => setFilterType(e.target.value)}
+              >
+                <option value="all">Todos</option>
+                <option value="sector">Sectores</option>
+                <option value="subsector">Subsectores</option>
+                <option value="indiciado">Indiciados</option>
+                <option value="vehiculo">Vehículos</option>
+              </FilterSelect>
+            </FilterGroup>
+          )}
         </SidebarSection>
         
         <SidebarSection>
@@ -1697,7 +1896,20 @@ const EnhancedSectoresManager = () => {
                   margin: 0, 
                   color: getTheme(theme).colors.textPrimary 
                 }}>
-                  {searchTerm ? `Resultados: ${getFilteredHierarchy().length}` : 'Estructura Jerárquica'}
+                  {viewMode === 'list' ? (
+                    paginationData ? (
+                      `${filterType === 'all' ? 'Todos los elementos' : 
+                        filterType === 'sector' ? 'Sectores' :
+                        filterType === 'subsector' ? 'Subsectores' :
+                        filterType === 'indiciado' ? 'Indiciados' :
+                        filterType === 'vehiculo' ? 'Vehículos' : 'Elementos'
+                      } (${paginationData.total} total${searchTerm ? `, filtrado por "${searchTerm}"` : ''})`
+                    ) : (
+                      'Cargando...'
+                    )
+                  ) : (
+                    searchTerm ? `Resultados: ${getFilteredHierarchy().length}` : 'Estructura Jerárquica'
+                  )}
                 </h3>
                 
                 {searchTerm && (
@@ -1732,6 +1944,29 @@ const EnhancedSectoresManager = () => {
               ) : (
                 renderTreeView()
               )}
+              
+              {/* Paginación para modo lista */}
+              {viewMode === 'list' && paginationData && paginationData.pages > 1 && (
+                <div style={{ 
+                  marginTop: '2rem', 
+                  padding: '1rem', 
+                  borderTop: `1px solid ${getTheme(theme).colors.border}`,
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}>
+                  <Pagination
+                    pagination={{
+                      current: paginationData.current,
+                      pages: paginationData.pages,
+                      total: paginationData.total,
+                      limit: paginationData.limit
+                    }}
+                    onPageChange={handlePageChange}
+                    onLimitChange={handlePageSizeChange}
+                    showLimitSelector={true}
+                  />
+                </div>
+              )}
             </HierarchyContent>
           </HierarchyArea>
         </ContentArea>
@@ -1755,6 +1990,8 @@ const EnhancedSectoresManager = () => {
                 case 'subsector':
                   await SectoresService.updateSubsector(editingItem.id, formData);
                   break;
+                default:
+                  break;
               }
               const successMessage = `${editingItem.type === 'sector' ? 'Sector' : 'Subsector'} actualizado exitosamente`;
               showCustomNotification(successMessage, 'success');
@@ -1777,11 +2014,14 @@ const EnhancedSectoresManager = () => {
                   showCustomNotification('Subsector creado exitosamente', 'success');
                   toast.success('Subsector creado exitosamente');
                   break;
+                default:
+                  break;
               }
             }
             
             setShowModal(false);
             loadHierarchy();
+            loadRealStats();
           } catch (error) {
             console.error('❌ Error al guardar el elemento:', error);
             console.log('🔍 Detalles completos del error:', {
@@ -1882,6 +2122,7 @@ const EnhancedSectoresManager = () => {
               console.log('🔄 Recargando jerarquía después de actualización...');
               setTimeout(() => {
                 loadHierarchy();
+                loadRealStats();
               }, 500);
             }}
             onCancel={() => {
@@ -1911,6 +2152,7 @@ const EnhancedSectoresManager = () => {
             setParentItem(null);
             setEditingItem(null);
             loadHierarchy();
+            loadRealStats();
           }}
           initialData={editingItem}
           subsectorId={parentItem?.id}

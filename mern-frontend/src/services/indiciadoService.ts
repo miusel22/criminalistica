@@ -4,23 +4,42 @@ import { Indiciado, IndiciadosResponse, EstadisticasIndiciados, IndiciadoFormDat
 export class IndiciadoService {
   // Obtener todos los indiciados
   static async obtenerTodos(page = 1, limit = 10, search?: string): Promise<IndiciadosResponse> {
-    console.log('🐘 Using PostgreSQL directly');
+    console.log('🐘 Using PostgreSQL with pagination - Page:', page, 'Limit:', limit);
     
-    // PostgreSQL backend devuelve array directo
-    const response = await axios.get('/indiciados');
-    const indiciados = Array.isArray(response.data) ? response.data : [];
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
     
-    // Simular paginación en cliente si es necesario
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedData = indiciados.slice(startIndex, endIndex);
+    if (search && search.trim()) {
+      params.append('search', search.trim());
+    }
     
-    return {
-      indiciados: paginatedData,
-      total: indiciados.length,
-      page,
-      pages: Math.ceil(indiciados.length / limit)
-    };
+    try {
+      const response = await axios.get(`/indiciados?${params.toString()}`);
+      
+      // Si el backend retorna paginación estructurada
+      if (response.data && response.data.pagination) {
+        return {
+          indiciados: response.data.indiciados || [],
+          total: response.data.pagination.total,
+          page: response.data.pagination.current,
+          pages: response.data.pagination.pages
+        };
+      }
+      
+      // Si el backend retorna array directo (fallback)
+      const indiciados = Array.isArray(response.data) ? response.data : [];
+      return {
+        indiciados,
+        total: indiciados.length,
+        page,
+        pages: Math.ceil(indiciados.length / limit)
+      };
+    } catch (error) {
+      console.error('Error obteniendo indiciados:', error);
+      throw error;
+    }
   }
 
   // Obtener un indiciado por ID

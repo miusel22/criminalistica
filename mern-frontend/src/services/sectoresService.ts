@@ -17,6 +17,21 @@ export interface SubsectorData extends SectorData {
   tipo: 'subsector';
 }
 
+export interface SectoresResponse {
+  sectores: SectorData[];
+  pagination: {
+    current: number;
+    pages: number;
+    total: number;
+  };
+}
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
 class SectoresService {
   // ==========================================
   // OPERACIONES DE SECTORES
@@ -28,6 +43,50 @@ class SectoresService {
     const sectores = response.data.sectores || response.data || [];
     console.log('📊 Sectores obtenidos:', sectores.length);
     return sectores;
+  }
+  
+  static async obtenerSectoresPaginados(params: PaginationParams = {}): Promise<SectoresResponse> {
+    const { page = 1, limit = 10, search } = params;
+    console.log('🐘 Obteniendo sectores paginados - Page:', page, 'Limit:', limit);
+    
+    const urlParams = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    
+    if (search && search.trim()) {
+      urlParams.append('search', search.trim());
+    }
+    
+    try {
+      const response = await axios.get(`/sectores?${urlParams.toString()}`);
+      
+      // Si el backend retorna paginación estructurada
+      if (response.data && response.data.pagination) {
+        return {
+          sectores: response.data.sectores || [],
+          pagination: {
+            current: response.data.pagination.current,
+            pages: response.data.pagination.pages,
+            total: response.data.pagination.total
+          }
+        };
+      }
+      
+      // Fallback si no hay paginación en el backend
+      const sectores = response.data.sectores || response.data || [];
+      return {
+        sectores,
+        pagination: {
+          current: page,
+          pages: Math.ceil(sectores.length / limit),
+          total: sectores.length
+        }
+      };
+    } catch (error) {
+      console.error('Error obteniendo sectores paginados:', error);
+      throw error;
+    }
   }
   
   static async crearSector(data: Partial<SectorData>): Promise<{ message: string; sector: SectorData }> {
@@ -77,6 +136,50 @@ class SectoresService {
     const subsectores = Array.isArray(response.data) ? response.data : [];
     console.log('📊 Subsectores obtenidos:', subsectores.length);
     return subsectores;
+  }
+  
+  static async obtenerSubsectoresPaginados(params: PaginationParams = {}): Promise<SectoresResponse> {
+    const { page = 1, limit = 10, search } = params;
+    console.log('🐘 Obteniendo subsectores paginados - Page:', page, 'Limit:', limit);
+    
+    const urlParams = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    
+    if (search && search.trim()) {
+      urlParams.append('search', search.trim());
+    }
+    
+    try {
+      const response = await axios.get(`/subsectores?${urlParams.toString()}`);
+      
+      // Si el backend retorna paginación estructurada
+      if (response.data && response.data.pagination) {
+        return {
+          sectores: response.data.sectores || response.data.subsectores || [],
+          pagination: {
+            current: response.data.pagination.current,
+            pages: response.data.pagination.pages,
+            total: response.data.pagination.total
+          }
+        };
+      }
+      
+      // Fallback si no hay paginación en el backend
+      const subsectores = Array.isArray(response.data) ? response.data : [];
+      return {
+        sectores: subsectores,
+        pagination: {
+          current: page,
+          pages: Math.ceil(subsectores.length / limit),
+          total: subsectores.length
+        }
+      };
+    } catch (error) {
+      console.error('Error obteniendo subsectores paginados:', error);
+      throw error;
+    }
   }
   
   static async obtenerSubsectoresPorSector(sectorId: string): Promise<SectorData[]> {
